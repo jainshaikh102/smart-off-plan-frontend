@@ -1,0 +1,1263 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+
+  /* Luxury neutral color palette */
+  --background: #fefdfb;
+  --foreground: #3c3530;
+  --card: #ffffff;
+  --card-foreground: #3c3530;
+  --popover: #ffffff;
+  --popover-foreground: #3c3530;
+  --primary: #8b7355;
+  --primary-foreground: #ffffff;
+  --secondary: #f8f6f3;
+  --secondary-foreground: #3c3530;
+  --muted: #f5f3f0;
+  --muted-foreground: #8a7968;
+  --accent: #d4af37;
+  --accent-foreground: #3c3530;
+  --destructive: #d97706;
+  --destructive-foreground: #ffffff;
+  --border: #e8e4df;
+  --input: transparent;
+  --input-background: #fefdfb;
+  --switch-background: #e8e4df;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #d4af37;
+  --chart-1: #8b7355;
+  --chart-2: #d4af37;
+  --chart-3: #c19a6b;
+  --chart-4: #a0845c;
+  --chart-5: #b8956d;
+  --radius: 0.75rem;
+  --sidebar: #f8f6f3;
+  --sidebar-foreground: #3c3530;
+  --sidebar-primary: #8b7355;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f3f0;
+  --sidebar-accent-foreground: #3c3530;
+  --sidebar-border: #e8e4df;
+  --sidebar-ring: #d4af37;
+
+  /* Luxury theme colors */
+  --ivory: #fefdfb;
+  --beige: #f5f1eb;
+  --tan: #d2c7b8;
+  --soft-brown: #8b7355;
+  --gold: #d4af37;
+  --light-gold: #f4e8c1;
+  --warm-gray: #8a7968;
+  --soft-gray: #c9bfb3;
+
+  /* Splash screen luxury colors */
+  --charcoal: #2c2420;
+  --deep-charcoal: #1a1512;
+  --rich-charcoal: #3a2f26;
+  --splash-gold: #d4af37;
+  --splash-ivory: #fefdfb;
+  --splash-gold-glow: rgba(212, 175, 55, 0.6);
+  --splash-ambient: rgba(212, 175, 55, 0.1);
+
+  /* Luxury spacing */
+  --section-padding: 5rem;
+  --large-padding: 2rem;
+  --medium-padding: 1.5rem;
+  --small-padding: 1rem;
+  --container-max-width: 1200px;
+
+  /* Animation timing variables */
+  --splash-logo-trace-duration: 1000ms;
+  --splash-glow-delay: 1200ms;
+  --splash-fade-delay: 1800ms;
+  --splash-exit-delay: 3000ms;
+  --splash-complete-delay: 4000ms;
+}
+
+.dark {
+  /* Keep light theme for luxury feel - no dark mode */
+  --background: #fefdfb;
+  --foreground: #3c3530;
+  --card: #ffffff;
+  --card-foreground: #3c3530;
+  --popover: #ffffff;
+  --popover-foreground: #3c3530;
+  --primary: #8b7355;
+  --primary-foreground: #ffffff;
+  --secondary: #f8f6f3;
+  --secondary-foreground: #3c3530;
+  --muted: #f5f3f0;
+  --muted-foreground: #8a7968;
+  --accent: #d4af37;
+  --accent-foreground: #3c3530;
+  --destructive: #d97706;
+  --destructive-foreground: #ffffff;
+  --border: #e8e4df;
+  --input: #fefdfb;
+  --ring: #d4af37;
+  --chart-1: #8b7355;
+  --chart-2: #d4af37;
+  --chart-3: #c19a6b;
+  --chart-4: #a0845c;
+  --chart-5: #b8956d;
+  --sidebar: #f8f6f3;
+  --sidebar-foreground: #3c3530;
+  --sidebar-primary: #8b7355;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f3f0;
+  --sidebar-accent-foreground: #3c3530;
+  --sidebar-border: #e8e4df;
+  --sidebar-ring: #d4af37;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Luxury colors */
+  --color-ivory: var(--ivory);
+  --color-beige: var(--beige);
+  --color-tan: var(--tan);
+  --color-soft-brown: var(--soft-brown);
+  --color-gold: var(--gold);
+  --color-light-gold: var(--light-gold);
+  --color-warm-gray: var(--warm-gray);
+  --color-soft-gray: var(--soft-gray);
+  --color-charcoal: var(--charcoal);
+  --color-deep-charcoal: var(--deep-charcoal);
+  --color-rich-charcoal: var(--rich-charcoal);
+  --color-splash-gold: var(--splash-gold);
+  --color-splash-ivory: var(--splash-ivory);
+
+  /* Legacy color support for existing components */
+  --color-light-gray: var(--beige);
+  --color-deep-blue: var(--soft-brown);
+  --color-emerald-green: var(--gold);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-size: var(--font-size);
+    line-height: 1.6;
+    color: var(--foreground);
+    background-color: var(--background);
+  }
+}
+
+@layer base {
+  /* Luxury Typography - Serif for headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
+    color: var(--soft-brown);
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-size: 2.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 1.25rem;
+  }
+
+  h3 {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+  }
+
+  h4 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+  }
+
+  h5 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+
+  h6 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Sans-serif for body and UI text */
+  p,
+  span,
+  div,
+  label,
+  button,
+  input,
+  textarea,
+  select {
+    @apply font-sans;
+  }
+
+  p {
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--warm-gray);
+    margin-bottom: 1rem;
+  }
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--soft-brown);
+  }
+
+  button {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+}
+
+/* Luxury Container */
+.container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Luxury spacing utilities */
+.section-padding {
+  padding: var(--section-padding) 0;
+}
+
+.large-padding {
+  padding: var(--large-padding);
+}
+
+.medium-padding {
+  padding: var(--medium-padding);
+}
+
+.small-padding {
+  padding: var(--small-padding);
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  h3 {
+    font-size: 1.75rem;
+  }
+
+  .section-padding {
+    padding: 3.5rem 0;
+  }
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  .section-padding {
+    padding: 3rem 0;
+  }
+
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Font utility classes */
+.font-heading {
+  @apply font-serif;
+}
+
+.font-body {
+  @apply font-sans;
+}
+
+/* Luxury accent elements */
+.gold-accent {
+  color: var(--gold);
+}
+
+.gold-bg {
+  background-color: var(--gold);
+}
+
+.beige-bg {
+  background-color: var(--beige);
+}
+
+.ivory-bg {
+  background-color: var(--ivory);
+}
+
+.soft-brown-text {
+  color: var(--soft-brown);
+}
+
+.warm-gray-text {
+  color: var(--warm-gray);
+}
+
+/* Luxury dividers */
+.luxury-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  margin: 3rem 0;
+}
+
+/* Smooth transitions for luxury feel */
+* {
+  transition: color 0.3s ease, background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Horizontal scroll styling */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) var(--beige);
+  scroll-behavior: smooth;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: var(--beige);
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--soft-brown);
+}
+
+/* ========================================
+   CINEMATIC SPLASH SCREEN ANIMATIONS
+   ======================================== */
+
+/* Cinematic easing functions */
+:root {
+  --ease-in-expo: cubic-bezier(0.95, 0.05, 0.795, 0.035);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-out-circ: cubic-bezier(0.075, 0.82, 0.165, 1);
+  --ease-in-out-back: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ========================================
+   APP CONTAINER & SMOOTH TRANSITIONS
+   ======================================== */
+
+/* Main app container for managing splash/content transitions */
+.app-container {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--ivory);
+}
+
+/* Splash overlay for perfect layering */
+.splash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  opacity: 1;
+  transition: opacity 800ms var(--ease-in-out-expo),
+    transform 800ms var(--ease-in-out-expo);
+  transform: scale(1);
+}
+
+.splash-overlay-exiting {
+  opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+/* Main content container with smooth entrance */
+.app-content {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--ivory);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  overflow-x: hidden;
+}
+
+/* Content states for seamless transitions */
+.app-content-hidden {
+  opacity: 0;
+  transform: scale(0.97) translateY(20px);
+  transition: none;
+}
+
+.app-content-entering {
+  opacity: 0;
+  transform: scale(0.97) translateY(20px);
+  animation: contentSmoothEntrance 1000ms var(--ease-out-quart) 200ms forwards;
+}
+
+.app-content-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity 300ms var(--ease-out-quart),
+    transform 300ms var(--ease-out-quart);
+}
+
+/* Splash screen container */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  overflow: hidden;
+
+  /* Multi-layered gradient background */
+  background: radial-gradient(
+      circle at 20% 80%,
+      var(--splash-ambient) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--splash-ambient) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(212, 175, 55, 0.05) 0%,
+      transparent 60%
+    ),
+    linear-gradient(
+      135deg,
+      var(--deep-charcoal) 0%,
+      var(--charcoal) 40%,
+      var(--rich-charcoal) 100%
+    );
+  background-size: 400% 400%, 300% 300%, 500% 500%, 100% 100%;
+  animation: splashBackgroundShift 12s ease-in-out infinite;
+}
+
+/* Golden texture overlay */
+.splash-screen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+      circle at 30% 70%,
+      rgba(212, 175, 55, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 30%,
+      rgba(212, 175, 55, 0.06) 0%,
+      transparent 50%
+    );
+  opacity: 0.6;
+  animation: textureShift 8s ease-in-out infinite alternate;
+}
+
+/* Abstract Dubai skyline silhouettes */
+.splash-screen::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35vh;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300'%3E%3Cpath d='M0,300 L0,250 L40,250 L40,180 L80,180 L80,200 L120,200 L120,140 L160,140 L160,220 L200,220 L200,100 L240,100 L240,120 L280,120 L280,160 L320,160 L320,80 L360,80 L360,180 L400,180 L400,200 L440,200 L440,120 L480,120 L480,240 L520,240 L520,60 L560,60 L560,190 L600,190 L600,50 L640,50 L640,170 L680,170 L680,140 L720,140 L720,110 L760,110 L760,250 L800,250 L800,40 L840,40 L840,200 L880,200 L880,160 L920,160 L920,280 L960,280 L960,90 L1000,90 L1000,300 L1200,300 Z' fill='%23d4af37' fill-opacity='0.08'/%3E%3C/svg%3E")
+    bottom center/cover no-repeat;
+  opacity: 0.3;
+  animation: skylineGlow 6s ease-in-out infinite;
+}
+
+/* Floating ambient particles */
+.splash-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.splash-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--splash-gold);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.splash-particle:nth-child(1) {
+  left: 10%;
+  top: 20%;
+  animation: particleFloat 8s ease-in-out infinite;
+  animation-delay: 0s;
+}
+.splash-particle:nth-child(2) {
+  left: 20%;
+  top: 60%;
+  animation: particleFloat 6s ease-in-out infinite;
+  animation-delay: 1s;
+}
+.splash-particle:nth-child(3) {
+  left: 30%;
+  top: 10%;
+  animation: particleFloat 10s ease-in-out infinite;
+  animation-delay: 2s;
+}
+.splash-particle:nth-child(4) {
+  left: 40%;
+  top: 80%;
+  animation: particleFloat 7s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+.splash-particle:nth-child(5) {
+  left: 60%;
+  top: 30%;
+  animation: particleFloat 9s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+.splash-particle:nth-child(6) {
+  left: 70%;
+  top: 70%;
+  animation: particleFloat 8s ease-in-out infinite;
+  animation-delay: 2.5s;
+}
+.splash-particle:nth-child(7) {
+  left: 80%;
+  top: 15%;
+  animation: particleFloat 11s ease-in-out infinite;
+  animation-delay: 3s;
+}
+.splash-particle:nth-child(8) {
+  left: 90%;
+  top: 50%;
+  animation: particleFloat 6s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+/* Pulsing ambient lights */
+.splash-ambient-light {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--splash-gold-glow) 0%,
+    transparent 70%
+  );
+  animation: ambientPulse 4s ease-in-out infinite;
+}
+
+.splash-ambient-light:nth-child(1) {
+  width: 200px;
+  height: 200px;
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.splash-ambient-light:nth-child(2) {
+  width: 150px;
+  height: 150px;
+  top: 60%;
+  right: 20%;
+  animation-delay: 2s;
+}
+
+.splash-ambient-light:nth-child(3) {
+  width: 100px;
+  height: 100px;
+  bottom: 30%;
+  left: 70%;
+  animation-delay: 4s;
+}
+
+/* Main splash content container */
+.splash-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Logo container with four-stage animation */
+.splash-logo-container {
+  position: relative;
+  margin-bottom: 3rem;
+  opacity: 0;
+  animation: logoContainerFadeIn 800ms var(--ease-out-quart) 200ms forwards;
+}
+
+.splash-logo {
+  width: 280px;
+  height: auto;
+  max-width: 90vw;
+}
+
+@media (max-width: 768px) {
+  .splash-logo {
+    width: 220px;
+  }
+}
+
+/* Logo SVG animations */
+.splash-logo-svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 0 transparent);
+}
+
+/* Stage 1: Glowing line trace */
+.splash-logo-path {
+  stroke: var(--splash-gold);
+  stroke-width: 2;
+  fill: var(--splash-gold);
+  fill-opacity: 0;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: logoTrace var(--splash-logo-trace-duration) var(--ease-out-expo)
+      200ms forwards,
+    logoFill 600ms var(--ease-out-quart) calc(var(--splash-glow-delay) - 200ms)
+      forwards,
+    logoGlow 800ms var(--ease-in-out-quart) var(--splash-glow-delay) forwards;
+}
+
+/* Brand text with luxury typography */
+.splash-brand-text {
+  @apply font-serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--splash-ivory);
+  letter-spacing: 0.02em;
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: textFadeUp 800ms var(--ease-out-quart) var(--splash-fade-delay)
+    forwards;
+}
+
+@media (max-width: 768px) {
+  .splash-brand-text {
+    font-size: 2.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .splash-brand-text {
+    font-size: 2.2rem;
+  }
+}
+
+/* Tagline text */
+.splash-tagline {
+  @apply font-sans;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: rgba(254, 253, 251, 0.8);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 4rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: textFadeUp 600ms var(--ease-out-quart)
+    calc(var(--splash-fade-delay) + 300ms) forwards;
+}
+
+@media (max-width: 768px) {
+  .splash-tagline {
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+  }
+}
+
+/* Loading experience section */
+.splash-loading-section {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  opacity: 0;
+  animation: fadeInScale 600ms var(--ease-out-quart)
+    calc(var(--splash-fade-delay) + 600ms) forwards;
+}
+
+/* Loading experience text */
+.splash-loading-text {
+  @apply font-sans;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(254, 253, 251, 0.7);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Circular pulse animation */
+.splash-pulse-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.splash-pulse-circle {
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: 50%;
+  position: relative;
+  animation: circlePulse 2s ease-in-out infinite;
+}
+
+.splash-pulse-circle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: var(--splash-gold);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: centerPulse 2s ease-in-out infinite;
+}
+
+/* Progress line */
+.splash-progress-container {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.splash-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--splash-gold),
+    rgba(212, 175, 55, 0.8),
+    var(--splash-gold)
+  );
+  border-radius: 1px;
+  transform-origin: left;
+  transform: scaleX(0);
+  animation: progressFill 2500ms var(--ease-out-quart)
+    calc(var(--splash-fade-delay) + 800ms) forwards;
+}
+
+/* Exit transition animations */
+.splash-screen-exit {
+  animation: splashExit 1000ms var(--ease-in-out-expo) forwards;
+}
+
+.main-content-enter {
+  opacity: 0;
+  transform: scale(0.98);
+  animation: contentEntrance 800ms var(--ease-out-quart) 200ms forwards;
+}
+
+/* Enhanced crossfade transition for logo clicks */
+.splash-crossfade-enter {
+  animation: splashCrossfadeIn 600ms var(--ease-out-quart) forwards;
+}
+
+.content-crossfade-enter {
+  animation: contentCrossfadeIn 800ms var(--ease-out-quart) 400ms forwards;
+}
+
+/* ========================================
+   KEYFRAME ANIMATIONS
+   ======================================== */
+
+@keyframes splashBackgroundShift {
+  0%,
+  100% {
+    background-position: 0% 50%, 0% 50%, 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%, 100% 50%, 100% 50%;
+  }
+}
+
+@keyframes textureShift {
+  0% {
+    opacity: 0.6;
+    transform: translateX(0) translateY(0);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateX(20px) translateY(-10px);
+  }
+}
+
+@keyframes skylineGlow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes particleFloat {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translateY(-30px) translateX(15px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-15px) translateX(-15px);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translateY(-45px) translateX(10px);
+    opacity: 1;
+  }
+}
+
+@keyframes ambientPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes logoContainerFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes logoTrace {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes logoFill {
+  0% {
+    fill-opacity: 0;
+  }
+  100% {
+    fill-opacity: 1;
+  }
+}
+
+@keyframes logoGlow {
+  0% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    filter: drop-shadow(0 0 25px var(--splash-gold-glow))
+      drop-shadow(0 0 50px rgba(212, 175, 55, 0.4));
+  }
+  100% {
+    filter: drop-shadow(0 0 15px var(--splash-gold-glow))
+      drop-shadow(0 0 30px rgba(212, 175, 55, 0.3));
+  }
+}
+
+@keyframes textFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes circlePulse {
+  0%,
+  100% {
+    border-color: rgba(212, 175, 55, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    border-color: rgba(212, 175, 55, 0.8);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes centerPulse {
+  0%,
+  100% {
+    background: var(--splash-gold);
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    background: rgba(212, 175, 55, 0.8);
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+@keyframes progressFill {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes splashExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes splashCrossfadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes contentCrossfadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(30px);
+    filter: blur(3px);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.98) translateY(15px);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes contentEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes contentSmoothEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.97) translateY(20px);
+    filter: blur(2px);
+  }
+  40% {
+    opacity: 0.3;
+    transform: scale(0.985) translateY(10px);
+    filter: blur(1px);
+  }
+  70% {
+    opacity: 0.8;
+    transform: scale(1.005) translateY(-2px);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+/* Mobile menu animations */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slideInFromRight {
+  opacity: 0;
+  animation: slideInFromRight 0.3s ease-out forwards;
+}
+
+/* Map marker pulse animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+/* Performance optimizations */
+.splash-screen,
+.splash-screen::before,
+.splash-screen::after,
+.splash-particles,
+.splash-particle,
+.splash-ambient-light,
+.splash-content,
+.splash-logo-container,
+.splash-logo-svg,
+.splash-logo-path,
+.app-container,
+.app-content,
+.splash-overlay {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Smooth scroll behavior for entire app */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  background: var(--ivory);
+  margin: 0;
+  padding: 0;
+}
+
+/* Layout fixes for proper scrolling */
+#__next {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure proper layout for main content areas */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .splash-screen,
+  .splash-screen::before,
+  .splash-screen::after,
+  .splash-particle,
+  .splash-ambient-light,
+  .splash-logo-path,
+  .splash-pulse-circle,
+  .splash-pulse-circle::before,
+  .splash-progress-bar {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.custom-map .leaflet-container .leaflet-tile-pane img,
+.custom-map .leaflet-container .leaflet-tile-pane canvas {
+  transform: scale(
+    1.15
+  ) !important; /* Reduced to 1.15 to minimize blurriness */
+  transform-origin: top left !important;
+}
+
+/* Keep this temporarily to confirm class application */
+.custom-map {
+  border: 2px solid red !important;
+}
+
+/* Tailwind utility classes for shadows instead of custom classes */
+/* Use these Tailwind classes instead of the custom ones:
+   - For luxury-shadow: shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)]
+   - For luxury-shadow-hover: hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] hover:-translate-y-0.5 transition-all duration-300
+   - For card-shadow: same as luxury-shadow
+*/
