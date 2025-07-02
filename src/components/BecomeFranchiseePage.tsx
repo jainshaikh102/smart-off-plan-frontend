@@ -188,7 +188,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-ivory pt-20">
+    <div className="min-h-screen bg-ivory">
       {/* Hero Section */}
       <section className="section-padding bg-[#8b7355] text-white">
         <div className="container">

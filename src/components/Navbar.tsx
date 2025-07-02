@@ -61,7 +61,6 @@ export function Navbar({
   ];
 
   const joinItems = [
-    { name: "Join Us", route: "/join-us" },
     { name: "Join As A Partner", route: "/join-us/join-as-partner" },
     { name: "Become a Franchisee", route: "/join-us/become-franchisee" },
   ];
@@ -90,7 +89,7 @@ export function Navbar({
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <div key={item.name} className="relative">
                 {item.hasDropdown ? (
                   <div
@@ -135,7 +134,7 @@ export function Navbar({
                     >
                       <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] border border-gold/10 overflow-hidden">
                         <div className="p-2">
-                          {serviceItems.map((service, serviceIndex) => (
+                          {serviceItems.map((service) => (
                             <button
                               key={service.name}
                               onClick={() => handleNavigation(service.route)}
@@ -187,6 +186,7 @@ export function Navbar({
               onMouseLeave={handleDropdownLeave}
             >
               <Button
+                onClick={() => handleNavigation("/join-us")}
                 className={`bg-gold hover:bg-gold/90 text-[#8b7355] px-6 py-2 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] flex items-center ${
                   activeDropdown === "join-us"
                     ? "scale-105 shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)]"
@@ -211,7 +211,7 @@ export function Navbar({
               >
                 <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] border border-gold/10 overflow-hidden">
                   <div className="p-2">
-                    {joinItems.map((item, index) => (
+                    {joinItems.map((item) => (
                       <button
                         key={item.name}
                         onClick={() => handleNavigation(item.route)}
@@ -243,7 +243,7 @@ export function Navbar({
           <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gold/10 shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] z-40">
             <div className="container py-6">
               <div className="space-y-2">
-                {navItems.map((item, index) => (
+                {navItems.map((item) => (
                   <div key={item.name}>
                     {item.hasDropdown ? (
                       <div className="space-y-2">
@@ -283,8 +283,19 @@ export function Navbar({
 
                 {/* Mobile Join Options */}
                 <div className="pt-4 border-t border-gold/10 space-y-2">
-                  <div className="px-4 py-3 text-[#8b7355] text-sm font-medium">
-                    Join Us
+                  {/* Main Join Us Button */}
+                  <button
+                    onClick={() => handleNavigation("/join-us")}
+                    className="w-full text-left px-4 py-3 text-[#8b7355] hover:text-gold hover:bg-beige/50 transition-all duration-300 rounded-xl"
+                  >
+                    <span className="text-sm font-medium tracking-wide">
+                      Join Us
+                    </span>
+                  </button>
+
+                  {/* Sub-options */}
+                  <div className="px-4 py-2 text-[#8b7355] text-xs font-medium opacity-70">
+                    More Options
                   </div>
                   {joinItems.map((item) => (
                     <button

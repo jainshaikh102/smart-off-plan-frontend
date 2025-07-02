@@ -138,7 +138,7 @@ export function JoinUsPage({ onBack }: JoinUsPageProps) {
   ];
 
   return (
-    <div className="bg-ivory pt-20">
+    <div className="bg-ivory">
       {/* Hero Section */}
       <section className="section-padding bg-[#8b7355] text-white">
         <div className="container">

@@ -255,21 +255,6 @@ export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
         <div className="absolute top-40 right-60 w-16 h-16 bg-gradient-to-br from-gold/15 to-gold/8 rounded-xl rotate-45 hidden lg:block"></div>
 
         <div className="container relative z-10">
-          {/* Elegant Breadcrumb Navigation */}
-          <nav className="flex items-center space-x-2 mb-12 text-sm">
-            <button
-              onClick={onBack}
-              className="flex items-center text-warm-gray hover:text-gold transition-colors duration-300 group"
-            >
-              <Home className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform duration-300" />
-              <span>Home</span>
-            </button>
-            <ChevronRight className="w-4 h-4 text-soft-gray" />
-            <span className="text-[#8b7355] font-medium">
-              Company Formation
-            </span>
-          </nav>
-
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gold/10 to-gold/5 rounded-full mb-6">
               <span className="text-[rgba(30,26,26,1)] text-sm font-medium">

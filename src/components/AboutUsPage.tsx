@@ -305,7 +305,7 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ivory to-beige">
       {/* Enhanced Breadcrumb Navigation */}
-      <div className="bg-white border-b border-[#8b7355]/10">
+      {/* <div className="bg-white border-b border-[#8b7355]/10">
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <Breadcrumb>
@@ -339,7 +339,7 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
             </Button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Enhanced Hero Section */}
       <section className="relative section-padding overflow-hidden">

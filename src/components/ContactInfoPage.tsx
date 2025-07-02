@@ -185,43 +185,6 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
 
   return (
     <div className="bg-gradient-to-br from-ivory to-beige">
-      {/* Enhanced Breadcrumb Navigation */}
-      <div className="bg-white border-b border-[#8b7355]/10">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-[#8b7355] hover:text-gold transition-colors duration-300 cursor-pointer"
-                  >
-                    <Home className="w-4 h-4" />
-                    Home
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="text-warm-gray" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="text-[#8b7355] font-medium">
-                    Contact Information
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-
-            <Button
-              onClick={onBack}
-              variant="ghost"
-              size="sm"
-              className="text-[#8b7355] hover:text-gold hover:bg-beige/50 transition-all duration-300 rounded-xl px-3 py-2"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Header Section */}
       <section className="py-12 bg-gradient-to-br from-beige to-ivory">
         <div className="container">
