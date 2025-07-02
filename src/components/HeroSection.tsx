@@ -1,10 +1,15 @@
-import { Button } from './ui/button';
-import { ArrowRight } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { Button } from "./ui/button";
+import { ArrowRight } from "lucide-react";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useRouter } from "next/navigation";
 
 export function HeroSection() {
+  const router = useRouter();
   return (
-    <section id="home" className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+    <section
+      id="home"
+      className="relative w-full h-screen flex items-center justify-center overflow-hidden"
+    >
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <ImageWithFallback
@@ -25,10 +30,14 @@ export function HeroSection() {
           <p className="mb-8 text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto">
             Browse top projects from verified developers
           </p>
-          
+
           {/* CTA Buttons */}
           <div className="flex justify-center items-center">
-            <Button size="lg" className="bg-emerald-green hover:bg-emerald-green/90 text-white px-8 py-3">
+            <Button
+              size="lg"
+              className="bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-white px-8 py-3"
+              onClick={() => router.push("/properties")}
+            >
               Explore Listings
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
