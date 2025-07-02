@@ -939,36 +939,6 @@ export function PropertyDetailPage({
   const LoadingState = () => (
     <div className="min-h-screen bg-ivory">
       {/* Header Skeleton */}
-      <div className="bg-white border-b border-beige shadow-sm">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gold rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">S</span>
-                </div>
-                <div>
-                  <h1 className="text-xl text-[#8b7355] font-bold">
-                    SMART OFF PLAN
-                  </h1>
-                  <p className="text-xs text-warm-gray">
-                    Premium Dubai Properties
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={onBack}
-                variant="ghost"
-                size="sm"
-                className="text-warm-gray hover:text-gold"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Properties
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Loading Content */}
       <div className="container py-8">
@@ -1007,149 +977,6 @@ export function PropertyDetailPage({
 
   return (
     <div className="min-h-screen bg-ivory">
-      {/* Header */}
-      {/* <div className="bg-white border-b border-beige shadow-sm">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gold rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">S</span>
-                </div>
-                <div>
-                  <h1 className="text-xl text-[#8b7355] font-bold">
-                    SMART OFF PLAN
-                  </h1>
-                  <p className="text-xs text-warm-gray">
-                    Premium Dubai Properties
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                onClick={onBack}
-                variant="ghost"
-                size="sm"
-                className="text-warm-gray hover:text-gold"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Properties
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsShareDialogOpen(true)}
-                className="border-gold/30 text-gold hover:bg-gold/10"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-gold/30 text-gold hover:bg-gold/10"
-              >
-                <Bookmark className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-
-              <Dialog
-                open={isDownloadDialogOpen}
-                onOpenChange={setIsDownloadDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button className="bg-[#8b7355] hover:bg-[#8b7355]/90 text-white">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Brochure
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md bg-white">
-                  <DialogHeader>
-                    <DialogTitle className="text-[#8b7355]">
-                      Download Property Brochure
-                    </DialogTitle>
-                    <DialogDescription className="text-warm-gray">
-                      Get detailed information about {project.name}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleDownloadSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        value={downloadFormData.name}
-                        onChange={(e) =>
-                          setDownloadFormData((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter your full name"
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={downloadFormData.email}
-                        onChange={(e) =>
-                          setDownloadFormData((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter your email"
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={downloadFormData.phone}
-                        onChange={(e) =>
-                          setDownloadFormData((prev) => ({
-                            ...prev,
-                            phone: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter your phone number"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-3 pt-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsDownloadDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="bg-gold hover:bg-gold/90 text-charcoal"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download PDF
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       {/* Main Content */}
       <div className="container py-8">
         {/* Property Header */}
@@ -1183,11 +1010,6 @@ export function PropertyDetailPage({
               <div className="text-3xl lg:text-4xl text-gold mb-4">
                 {project.price}
               </div>
-
-              {/* <p className="text-warm-gray text-lg leading-relaxed max-w-3xl text-[15px] text-[16px] whitespace-pre-line">
-                {displayDescription ||
-                  "Experience luxury living at its finest with this exceptional property offering. Located in one of Dubai's most prestigious neighborhoods, this development combines modern architecture with world-class amenities."}
-              </p> */}
             </div>
 
             <div className="flex flex-col lg:flex-row gap-3">

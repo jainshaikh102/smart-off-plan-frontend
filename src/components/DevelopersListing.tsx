@@ -2,18 +2,16 @@ import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import {
   Building2,
-  Star,
   TrendingUp,
   Users,
   Award,
   Search,
   Filter,
-  SlidersHorizontal,
   X,
   Loader2,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
+import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import {
@@ -23,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useRouter } from "next/navigation";
 
 interface Developer {
@@ -46,10 +43,7 @@ export function DevelopersListing({
   maxItems,
 }: DevelopersListingProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTier, setSelectedTier] = useState("all");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
-  const [sortBy, setSortBy] = useState("rating");
-  const [minRating, setMinRating] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const router = useRouter();
 
@@ -58,156 +52,13 @@ export function DevelopersListing({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const developers = [
-    {
-      id: 1,
-      name: "Emaar Properties",
-      logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center",
-      tier: "Premium",
-      rating: 4.8,
-      totalProjects: 50,
-      currentProjects: 12,
-      completionRate: "98%",
-      description:
-        "Leading real estate developer in the UAE, renowned for iconic projects including Burj Khalifa and Dubai Mall.",
-      specialties: [
-        "Luxury Residential",
-        "Commercial",
-        "Mixed-Use",
-        "Hospitality",
-      ],
-    },
-    {
-      id: 2,
-      name: "DAMAC Properties",
-      logo: "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=400&h=400&fit=crop&crop=center",
-      tier: "Premium",
-      rating: 4.7,
-      totalProjects: 45,
-      currentProjects: 8,
-      completionRate: "96%",
-      description:
-        "Award-winning luxury real estate developer specializing in high-end residential and commercial properties.",
-      specialties: [
-        "Luxury Residential",
-        "Golf Communities",
-        "Branded Residences",
-      ],
-    },
-    {
-      id: 3,
-      name: "Dubai Properties",
-      logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=400&fit=crop&crop=center",
-      tier: "Featured",
-      rating: 4.6,
-      totalProjects: 35,
-      currentProjects: 6,
-      completionRate: "95%",
-      description:
-        "Government-backed developer creating master-planned communities and mixed-use developments.",
-      specialties: ["Master Communities", "Mixed-Use", "Affordable Housing"],
-    },
-    {
-      id: 4,
-      name: "Sobha Realty",
-      logo: "https://images.unsplash.com/photo-1555636222-cae831e670b3?w=400&h=400&fit=crop&crop=center",
-      tier: "Premium",
-      rating: 4.9,
-      totalProjects: 25,
-      currentProjects: 5,
-      completionRate: "99%",
-      description:
-        "Premium developer known for exceptional quality and craftsmanship in luxury residential projects.",
-      specialties: ["Ultra-Luxury", "Villas", "High-Rise Residential"],
-    },
-    {
-      id: 5,
-      name: "Meraas",
-      logo: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=400&fit=crop&crop=center",
-      tier: "Featured",
-      rating: 4.5,
-      totalProjects: 30,
-      currentProjects: 7,
-      completionRate: "94%",
-      description:
-        "Dubai-based holding company creating distinctive lifestyle destinations and experiences.",
-      specialties: [
-        "Lifestyle",
-        "Entertainment",
-        "Beach Communities",
-        "Mixed-Use",
-      ],
-    },
-    {
-      id: 6,
-      name: "Nakheel",
-      logo: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=400&h=400&fit=crop&crop=center",
-      tier: "Premium",
-      rating: 4.4,
-      totalProjects: 40,
-      currentProjects: 9,
-      completionRate: "93%",
-      description:
-        "Iconic developer behind Palm Jumeirah and other world-famous master developments.",
-      specialties: ["Master Development", "Waterfront", "Iconic Projects"],
-    },
-    {
-      id: 7,
-      name: "Aldar Properties",
-      logo: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=400&fit=crop&crop=center",
-      tier: "Partner",
-      rating: 4.3,
-      totalProjects: 28,
-      currentProjects: 4,
-      completionRate: "92%",
-      description:
-        "Abu Dhabi's leading property developer with expanding presence in Dubai market.",
-      specialties: ["Residential", "Commercial", "Retail"],
-    },
-    {
-      id: 8,
-      name: "Omniyat",
-      logo: "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=400&h=400&fit=crop&crop=center",
-      tier: "Featured",
-      rating: 4.7,
-      totalProjects: 15,
-      currentProjects: 3,
-      completionRate: "97%",
-      description:
-        "Boutique developer creating ultra-luxury and architecturally distinctive properties.",
-      specialties: [
-        "Ultra-Luxury",
-        "Architectural Innovation",
-        "Limited Edition",
-      ],
-    },
-  ];
-
-  const allSpecialties = useMemo(() => {
-    const specialties = new Set<string>();
-    developers.forEach((dev) => {
-      dev.specialties.forEach((specialty) => specialties.add(specialty));
-    });
-    return Array.from(specialties).sort();
-  }, []);
-
   const filteredDevelopers = useMemo(() => {
-    let filtered = developers.filter((developer) => {
-      const matchesSearch =
-        developer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        developer.specialties.some((specialty) =>
-          specialty.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    let filtered = apiDevelopers.filter((developer) => {
+      const matchesSearch = developer.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
-      const matchesTier =
-        selectedTier === "all" || developer.tier === selectedTier;
-      const matchesSpecialty =
-        selectedSpecialty === "all" ||
-        developer.specialties.includes(selectedSpecialty);
-      const matchesRating =
-        minRating === "all" || developer.rating >= parseFloat(minRating);
-
-      return matchesSearch && matchesTier && matchesSpecialty && matchesRating;
+      return matchesSearch;
     });
 
     // Sort filtered results
@@ -215,13 +66,9 @@ export function DevelopersListing({
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name);
-        case "projects":
-          return b.totalProjects - a.totalProjects;
-        case "active":
-          return b.currentProjects - a.currentProjects;
         case "rating":
         default:
-          return b.rating - a.rating;
+          return a.name.localeCompare(b.name); // Default to name sorting since API doesn't have rating
       }
     });
 
@@ -231,41 +78,14 @@ export function DevelopersListing({
     }
 
     return filtered;
-  }, [
-    searchTerm,
-    selectedTier,
-    selectedSpecialty,
-    sortBy,
-    minRating,
-    maxItems,
-  ]);
+  }, [searchTerm, sortBy, maxItems, apiDevelopers]);
 
-  const hasActiveFilters =
-    selectedTier !== "all" ||
-    selectedSpecialty !== "all" ||
-    minRating !== "all" ||
-    searchTerm !== "";
+  const hasActiveFilters = searchTerm !== "";
 
   const clearFilters = () => {
     setSearchTerm("");
-    setSelectedTier("all");
-    setSelectedSpecialty("all");
-    setSortBy("rating");
-    setMinRating("all");
+    setSortBy("name");
     setFiltersOpen(false);
-  };
-
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case "Premium":
-        return "bg-gold/15 text-gold border-gold/30";
-      case "Featured":
-        return "bg-[#8b7355]/15 text-[#8b7355] border-[#8b7355]/30";
-      case "Partner":
-        return "bg-beige text-[#8b7355] border-[#8b7355]/20";
-      default:
-        return "bg-beige text-[#8b7355] border-[#8b7355]/20";
-    }
   };
 
   // Fetch developers from API
@@ -468,167 +288,20 @@ export function DevelopersListing({
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#8b7355]/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
                   <SelectItem
-                    value="rating"
-                    className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                  >
-                    Sort by Rating
-                  </SelectItem>
-                  <SelectItem
                     value="name"
                     className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
                   >
                     Sort by Name
-                  </SelectItem>
-                  <SelectItem
-                    value="projects"
-                    className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                  >
-                    Sort by Projects
-                  </SelectItem>
-                  <SelectItem
-                    value="active"
-                    className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                  >
-                    Sort by Active Projects
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Filter Panel */}
-          {filtersOpen && (
-            <Card className="p-6 bg-beige rounded-3xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] border-0 mb-8">
-              {hasActiveFilters && (
-                <div className="flex justify-end mb-6">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-warm-gray hover:text-[#8b7355]"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Clear All
-                  </Button>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Tier Filter */}
-                <div>
-                  <label className="block text-[#8b7355] mb-2 text-sm">
-                    Partnership Tier
-                  </label>
-                  <Select value={selectedTier} onValueChange={setSelectedTier}>
-                    <SelectTrigger className="w-full rounded-xl border-[#8b7355]/30 text-[#8b7355] bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-[#8b7355]/50">
-                      <SelectValue placeholder="All Tiers" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-[#8b7355]/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                      <SelectItem
-                        value="all"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        All Tiers
-                      </SelectItem>
-                      <SelectItem
-                        value="Premium"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Premium Partners
-                      </SelectItem>
-                      <SelectItem
-                        value="Featured"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Featured Partners
-                      </SelectItem>
-                      <SelectItem
-                        value="Partner"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Partners
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Specialty Filter */}
-                <div>
-                  <label className="block text-[#8b7355] mb-2 text-sm">
-                    Specialty
-                  </label>
-                  <Select
-                    value={selectedSpecialty}
-                    onValueChange={setSelectedSpecialty}
-                  >
-                    <SelectTrigger className="w-full rounded-xl border-[#8b7355]/30 text-[#8b7355] bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-[#8b7355]/50">
-                      <SelectValue placeholder="All Specialties" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-[#8b7355]/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                      <SelectItem
-                        value="all"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        All Specialties
-                      </SelectItem>
-                      {allSpecialties.map((specialty) => (
-                        <SelectItem
-                          key={specialty}
-                          value={specialty}
-                          className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                        >
-                          {specialty}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Rating Filter */}
-                <div>
-                  <label className="block text-[#8b7355] mb-2 text-sm">
-                    Minimum Rating
-                  </label>
-                  <Select value={minRating} onValueChange={setMinRating}>
-                    <SelectTrigger className="w-full rounded-xl border-[#8b7355]/30 text-[#8b7355] bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-[#8b7355]/50">
-                      <SelectValue placeholder="Any Rating" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-[#8b7355]/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                      <SelectItem
-                        value="all"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Any Rating
-                      </SelectItem>
-                      <SelectItem
-                        value="4.5"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        4.5+ Stars
-                      </SelectItem>
-                      <SelectItem
-                        value="4.0"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        4.0+ Stars
-                      </SelectItem>
-                      <SelectItem
-                        value="3.5"
-                        className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        3.5+ Stars
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </Card>
-          )}
-
           {/* Results Summary */}
           <div className="flex items-center justify-between text-sm text-warm-gray mb-6">
             <div>
-              Showing {filteredDevelopers.length} of {developers.length}{" "}
+              Showing {filteredDevelopers.length} of {apiDevelopers.length}{" "}
               developers
               {hasActiveFilters && (
                 <span className="ml-2">
@@ -650,12 +323,28 @@ export function DevelopersListing({
         </div>
 
         {/* Developers Grid */}
-        {filteredDevelopers.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gold" />
+            <span className="ml-2 text-[#8b7355]">Loading developers...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button
+              onClick={fetchDevelopers}
+              variant="outline"
+              className="border-gold text-gold hover:bg-gold hover:text-white"
+            >
+              Try Again
+            </Button>
+          </div>
+        ) : filteredDevelopers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredDevelopers.map((developer) => (
               <Card
                 key={developer.id}
-                onClick={() => onPartnerSelect?.(developer)}
+                onClick={() => handleDeveloperSelect(developer)}
                 className="group cursor-pointer p-6 bg-white rounded-3xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] hover:shadow-[0_12px_40px_-4px_rgba(139,115,85,0.15),0_6px_20px_-4px_rgba(139,115,85,0.1)] transition-all duration-300 border-0 hover:-translate-y-2"
               >
                 <div className="space-y-5">
@@ -663,83 +352,24 @@ export function DevelopersListing({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-14 h-14 bg-beige rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <ImageWithFallback
-                          src={developer.logo}
-                          alt={`${developer.name} logo`}
-                          className="w-full h-full object-cover"
-                        />
+                        <Building2 className="w-8 h-8 text-gold" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-[rgba(30,26,26,1)] mb-1 group-hover:text-gold transition-colors duration-300 leading-tight text-lg font-medium">
                           {developer.name}
                         </h3>
-                        <Badge
-                          className={`${getTierColor(developer.tier)} text-xs`}
-                        >
-                          {developer.tier} Partner
+                        <Badge className="bg-gold/15 text-gold border-gold/30 text-xs">
+                          Developer Partner
                         </Badge>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-1 flex-shrink-0">
-                      <Star className="w-4 h-4 text-gold fill-gold" />
-                      <span className="text-[#8b7355] font-medium text-sm">
-                        {developer.rating}
-                      </span>
                     </div>
                   </div>
 
                   {/* Description */}
                   <p className="text-[rgba(30,26,26,0.8)] text-sm leading-relaxed">
-                    {developer.description}
+                    Trusted developer partner offering premium off-plan
+                    properties in Dubai.
                   </p>
-
-                  {/* Key Stats */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 bg-beige rounded-xl">
-                      <div className="text-lg text-[#8b7355] mb-1">
-                        {developer.totalProjects}
-                      </div>
-                      <p className="text-warm-gray text-xs">Projects</p>
-                    </div>
-                    <div className="text-center p-3 bg-beige rounded-xl">
-                      <div className="text-lg text-[#8b7355] mb-1">
-                        {developer.currentProjects}
-                      </div>
-                      <p className="text-warm-gray text-xs">Active</p>
-                    </div>
-                    <div className="text-center p-3 bg-beige rounded-xl">
-                      <div className="text-lg text-gold mb-1">
-                        {developer.completionRate}
-                      </div>
-                      <p className="text-warm-gray text-xs">On-Time</p>
-                    </div>
-                  </div>
-
-                  {/* Specialties */}
-                  <div>
-                    <p className="text-warm-gray text-xs mb-2">Specialties</p>
-                    <div className="flex flex-wrap gap-1">
-                      {developer.specialties
-                        .slice(0, 2)
-                        .map((specialty, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="border-[#8b7355]/20 text-warm-gray text-xs"
-                          >
-                            {specialty}
-                          </Badge>
-                        ))}
-                      {developer.specialties.length > 2 && (
-                        <Badge
-                          variant="outline"
-                          className="border-[#8b7355]/20 text-warm-gray text-xs"
-                        >
-                          +{developer.specialties.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
 
                   {/* Action Button */}
                   <Button
