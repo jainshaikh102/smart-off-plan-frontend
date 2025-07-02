@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import PropertyCard from "@/components/PropertyCard";
+import { PropertyCard } from "@/components/PropertyCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin, Building2 } from "lucide-react";
 import Link from "next/link";
@@ -127,7 +127,7 @@ export default function AreaPage({}: AreaPageProps) {
 
         {/* Properties Grid */}
         {properties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {properties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
