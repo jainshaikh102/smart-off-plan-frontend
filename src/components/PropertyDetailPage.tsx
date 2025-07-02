@@ -1008,7 +1008,7 @@ export function PropertyDetailPage({
   return (
     <div className="min-h-screen bg-ivory">
       {/* Header */}
-      <div className="bg-white border-b border-beige shadow-sm">
+      {/* <div className="bg-white border-b border-beige shadow-sm">
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -1148,7 +1148,7 @@ export function PropertyDetailPage({
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="container py-8">

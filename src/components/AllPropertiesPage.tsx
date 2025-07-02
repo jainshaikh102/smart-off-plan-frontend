@@ -459,7 +459,7 @@ export function AllPropertiesPage({
       <header className="bg-white border-b border-beige shadow-sm flex-shrink-0">
         <div className="container py-6">
           {/* Breadcrumb */}
-          <div className="flex items-center space-x-2 mb-4">
+          {/* <div className="flex items-center space-x-2 mb-4">
             <Button
               variant="ghost"
               size="sm"
@@ -477,7 +477,7 @@ export function AllPropertiesPage({
                 <span className="text-gold">{selectedDeveloper.name}</span>
               </>
             )}
-          </div>
+          </div> */}
 
           {/* Title */}
           <h1 className="text-4xl text-[#8b7355] mb-2">

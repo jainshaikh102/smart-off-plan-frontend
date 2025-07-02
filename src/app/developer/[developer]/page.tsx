@@ -1,16 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
-import {
-  Building2,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  ArrowLeft,
-  Loader2,
-} from "lucide-react";
+import { Building2, MapPin, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +27,7 @@ interface Property {
 
 export default function DeveloperPage() {
   const params = useParams();
+  const router = useRouter();
   const developerName = decodeURIComponent(params.developer as string);
 
   const [properties, setProperties] = useState<Property[]>([]);
@@ -89,24 +83,24 @@ export default function DeveloperPage() {
   }, [developerName]);
 
   const formatPrice = (property: Property) => {
-    if (property.min_price && property.max_price) {
-      return `${property.price_currency} ${(
-        property.min_price / 1000000
-      ).toFixed(1)}M - ${(property.max_price / 1000000).toFixed(1)}M`;
-    } else if (property.min_price) {
-      return `${property.price_currency} ${(
-        property.min_price / 1000000
-      ).toFixed(1)}M+`;
-    }
-    return "Price on Request";
-  };
+    const currency = property.price_currency || "AED";
 
-  const formatCompletionDate = (dateString?: string) => {
-    if (!dateString) return "TBD";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-    });
+    if (property.min_price && property.max_price) {
+      if (property.min_price === property.max_price) {
+        return `${currency} ${property.min_price.toLocaleString()}`;
+      }
+      return `${currency} ${property.min_price.toLocaleString()} - ${property.max_price.toLocaleString()}`;
+    }
+
+    if (property.min_price) {
+      return `From ${currency} ${property.min_price.toLocaleString()}`;
+    }
+
+    if (property.max_price) {
+      return `Up to ${currency} ${property.max_price.toLocaleString()}`;
+    }
+
+    return "Price on Request";
   };
 
   // Get image URL from JSON string
@@ -126,7 +120,7 @@ export default function DeveloperPage() {
       {/* Header */}
       <div className="bg-gradient-to-br from-beige to-ivory py-16">
         <div className="container">
-          <div className="flex items-center mb-6">
+          {/* <div className="flex items-center mb-6">
             <Button
               variant="ghost"
               onClick={() => window.history.back()}
@@ -135,9 +129,9 @@ export default function DeveloperPage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-          </div>
+          </div> */}
 
-          <div className="flex items-center mb-6">
+          <div className="flex items-center">
             <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mr-6">
               <Building2 className="w-8 h-8 text-gold" />
             </div>
@@ -183,56 +177,57 @@ export default function DeveloperPage() {
               {properties.map((property) => (
                 <Card
                   key={property.id}
-                  className="group cursor-pointer hover:shadow-xl transition-all duration-300"
+                  className="group cursor-pointer border border-beige hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden rounded-xl"
+                  onClick={() => router.push(`/properties/${property.id}`)}
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  {/* Property Image */}
+                  <div className="relative aspect-[4/3] overflow-hidden">
                     <ImageWithFallback
                       src={getImageUrl(property.cover_image_url)}
-                      alt={property.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      alt={property.name || "Property"}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-3 left-3">
-                      <Badge className="bg-gold text-white text-xs">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {formatCompletionDate(property.completion_datetime)}
-                      </Badge>
-                    </div>
-                    <div className="absolute bottom-3 left-3">
-                      <Badge
-                        variant="outline"
-                        className="bg-white/90 border-white text-[#8b7355] text-xs"
-                      >
-                        {property.sale_status}
-                      </Badge>
-                    </div>
-                    {property.featured && (
-                      <div className="absolute top-3 right-3">
-                        <Badge className="bg-emerald-500 text-white text-xs">
-                          Featured
-                        </Badge>
-                      </div>
-                    )}
+                    <Badge className="absolute top-4 right-4 bg-black/70 text-white border-0">
+                      {property.sale_status || "Available"}
+                    </Badge>
                   </div>
 
+                  {/* Property Details */}
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold text-[#8b7355] mb-2 group-hover:text-gold transition-colors">
-                      {property.name}
-                    </h3>
-                    <div className="flex items-center text-warm-gray text-sm mb-3">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {property.area}
+                    <div className="space-y-4">
+                      {/* Title and Location */}
+                      <div>
+                        <h3 className="text-xl text-[#8b7355] group-hover:text-gold transition-colors">
+                          {property.name || "Property Title"}
+                        </h3>
+                        <div className="flex items-center text-warm-gray mt-1">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          <span className="text-sm">
+                            {property.area || "Location"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Price and Status */}
+                      <div className="flex items-center justify-between">
+                        <div className="text-2xl text-gold">
+                          {formatPrice(property)}
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-gold/30 text-gold"
+                        >
+                          {property.sale_status || "Available"}
+                        </Badge>
+                      </div>
+
+                      {/* Developer */}
+                      <div className="pt-4 border-t border-beige">
+                        <div className="text-sm text-warm-gray">
+                          {developerName || "Developer"}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-lg font-semibold text-[#8b7355] mb-4">
-                      {formatPrice(property)}
-                    </div>
-                    <Button
-                      className="w-full bg-gold hover:bg-gold/90 text-white"
-                      onClick={() =>
-                        (window.location.href = `/properties/${property.id}`)
-                      }
-                    >
-                      View Details
-                    </Button>
                   </CardContent>
                 </Card>
               ))}
