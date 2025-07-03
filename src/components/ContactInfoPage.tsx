@@ -16,6 +16,7 @@ import {
   Globe,
   ChevronRight,
   Home,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -56,6 +57,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const offices = [
     {
@@ -152,32 +154,97 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
   ];
 
   const handleInputChange = (field: string, value: string) => {
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Validate required fields
+      if (
+        !formData.name.trim() ||
+        !formData.email.trim() ||
+        !formData.subject.trim() ||
+        !formData.message.trim() ||
+        !formData.inquiryType
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      // Validate phone number if provided
+      if (formData.phone && formData.phone.length < 8) {
+        throw new Error("Phone number must be at least 8 characters");
+      }
 
-    // Reset form after success message
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-        preferredContact: "",
-        inquiryType: "",
+      console.log("📧 Submitting detailed message form:", formData);
+
+      // Call the Message Us API
+      const backendUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      const response = await fetch(`${backendUrl}/api/email/message-us`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+          inquiryType: formData.inquiryType,
+        }),
       });
-    }, 3000);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors
+        if (result.details && Array.isArray(result.details)) {
+          const errorMessages = result.details
+            .map((detail: any) => detail.msg)
+            .join(", ");
+          throw new Error(errorMessages);
+        }
+        throw new Error(result.message || "Failed to send message");
+      }
+
+      console.log("✅ Message form submitted successfully:", result);
+
+      // Show success message
+      setIsSubmitted(true);
+
+      // Reset form after 5 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+          preferredContact: "",
+          inquiryType: "",
+        });
+      }, 5000);
+    } catch (error) {
+      console.error("❌ Error submitting message form:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to send message. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedOfficeData =

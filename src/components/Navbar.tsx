@@ -186,8 +186,7 @@ export function Navbar({
               onMouseLeave={handleDropdownLeave}
             >
               <Button
-                onClick={() => handleNavigation("/join-us")}
-                className={`bg-gold hover:bg-gold/90 text-[#8b7355] px-6 py-2 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] flex items-center ${
+                className={`bg-gold hover:bg-gold/90 text-[#8b7355] px-6 py-2 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] flex items-center cursor-default ${
                   activeDropdown === "join-us"
                     ? "scale-105 shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)]"
                     : "hover:scale-105"
@@ -284,14 +283,11 @@ export function Navbar({
                 {/* Mobile Join Options */}
                 <div className="pt-4 border-t border-gold/10 space-y-2">
                   {/* Main Join Us Button */}
-                  <button
-                    onClick={() => handleNavigation("/join-us")}
-                    className="w-full text-left px-4 py-3 text-[#8b7355] hover:text-gold hover:bg-beige/50 transition-all duration-300 rounded-xl"
-                  >
+                  <div className="w-full text-left px-4 py-3 text-[#8b7355] cursor-default rounded-xl">
                     <span className="text-sm font-medium tracking-wide">
                       Join Us
                     </span>
-                  </button>
+                  </div>
 
                   {/* Sub-options */}
                   <div className="px-4 py-2 text-[#8b7355] text-xs font-medium opacity-70">

@@ -2,7 +2,15 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle2 } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 export function ContactUs() {
   const [formData, setFormData] = useState({
@@ -13,26 +21,96 @@ export function ContactUs() {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", email: "", phone: "", message: "" });
-    }, 3000);
-    console.log("Form submitted:", formData);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Validate required fields
+      if (
+        !formData.name.trim() ||
+        !formData.email.trim() ||
+        !formData.message.trim()
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      // Validate phone number if provided
+      if (formData.phone && formData.phone.length < 8) {
+        throw new Error("Phone number must be at least 8 characters");
+      }
+
+      console.log("📧 Submitting contact form:", formData);
+
+      // Call the Contact Us API (use local backend)
+      const backendUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      const response = await fetch(`${backendUrl}/api/email/contact-us`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          message: formData.message.trim(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors
+        if (result.details && Array.isArray(result.details)) {
+          const errorMessages = result.details
+            .map((detail: any) => detail.msg)
+            .join(", ");
+          throw new Error(errorMessages);
+        }
+        throw new Error(result.message || "Failed to send message");
+      }
+
+      console.log("✅ Contact form submitted successfully:", result);
+
+      // Show success message
+      setIsSubmitted(true);
+
+      // Reset form after 5 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      }, 5000);
+    } catch (error) {
+      console.error("❌ Error submitting contact form:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to send message. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -121,6 +199,16 @@ export function ContactUs() {
 
               {/* Right Side - Contact Form */}
               <div className="p-8 lg:p-12">
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-center">
+                      <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0" />
+                      <p className="text-red-700 text-sm">{error}</p>
+                    </div>
+                  </div>
+                )}
+
                 {isSubmitted ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -234,10 +322,20 @@ export function ContactUs() {
                     <div className="mt-8">
                       <Button
                         type="submit"
-                        className="w-full bg-[#8b7355] hover:bg-[#8b7355]/90 text-white rounded-xl h-12 transition-all duration-300 hover:shadow-lg"
+                        disabled={isLoading}
+                        className="w-full bg-[#8b7355] hover:bg-[#8b7355]/90 disabled:bg-[#8b7355]/50 disabled:cursor-not-allowed text-white rounded-xl h-12 transition-all duration-300 hover:shadow-lg"
                       >
-                        <Send className="w-4 h-4 mr-2" />
-                        Send Message
+                        {isLoading ? (
+                          <>
+                            <div className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Send Message
+                          </>
+                        )}
                       </Button>
 
                       <p className="text-[rgba(0,0,0,1)] text-xs text-center mt-4">

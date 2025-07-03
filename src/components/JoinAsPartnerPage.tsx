@@ -44,19 +44,68 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Partner application submitted:", formData);
-    // Handle form submission here
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      experience: "",
-      portfolio: "",
-      message: "",
-    });
+
+    try {
+      console.log("📧 Submitting partner application:", formData);
+
+      // Call the Join Partner API
+      const backendUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      const response = await fetch(`${backendUrl}/api/email/join-partner`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          company: formData.company.trim(),
+          experience: formData.experience.trim(),
+          portfolio: formData.portfolio.trim(),
+          message: formData.message.trim(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        console.log("✅ Partner application sent successfully:", result);
+        alert(
+          "Thank you for your application! We will review it and contact you within 48 hours."
+        );
+
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          company: "",
+          experience: "",
+          portfolio: "",
+          message: "",
+        });
+      } else {
+        console.error("❌ Failed to send partner application:", result);
+        if (result.details && Array.isArray(result.details)) {
+          const errorMessages = result.details
+            .map((error: any) => error.msg)
+            .join(", ");
+          alert(`Please check your input: ${errorMessages}`);
+        } else {
+          alert(
+            result.message || "Failed to send application. Please try again."
+          );
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error submitting partner application:", error);
+      alert(
+        "An error occurred while submitting your application. Please try again."
+      );
+    }
   };
 
   const partnerBenefits = [
@@ -377,17 +426,20 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
                       htmlFor="portfolio"
                       className="block text-sm text-[#8b7355] mb-2"
                     >
-                      Portfolio/Website
+                      Portfolio/Website (Optional)
                     </label>
                     <Input
                       id="portfolio"
                       name="portfolio"
-                      type="url"
+                      type="text"
                       value={formData.portfolio}
                       onChange={handleInputChange}
-                      placeholder="https://yourwebsite.com"
+                      placeholder="www.blacklionapp.xyz, instagram.com/username, or https://yoursite.com"
                       className="w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
                     />
+                    <p className="text-xs text-warm-gray mt-1">
+                      Share your website, social media, or portfolio link
+                    </p>
                   </div>
                 </div>
 

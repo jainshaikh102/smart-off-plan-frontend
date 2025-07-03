@@ -48,20 +48,73 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Franchise application submitted:", formData);
-    // Handle form submission here
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      location: "",
-      investment: "",
-      experience: "",
-      timeline: "",
-      message: "",
-    });
+
+    try {
+      console.log("📧 Submitting franchisee application:", formData);
+
+      // Call the Become Franchisee API
+      const backendUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      const response = await fetch(
+        `${backendUrl}/api/email/become-franchisee`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
+            location: formData.location.trim(),
+            investment: formData.investment.trim(),
+            experience: formData.experience.trim(),
+            timeline: formData.timeline.trim(),
+            message: formData.message.trim(),
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        console.log("✅ Franchisee application sent successfully:", result);
+        alert(
+          "Thank you for your application! Our franchise team will review it and contact you within 72 hours."
+        );
+
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          location: "",
+          investment: "",
+          experience: "",
+          timeline: "",
+          message: "",
+        });
+      } else {
+        console.error("❌ Failed to send franchisee application:", result);
+        if (result.details && Array.isArray(result.details)) {
+          const errorMessages = result.details
+            .map((error: any) => error.msg)
+            .join(", ");
+          alert(`Please check your input: ${errorMessages}`);
+        } else {
+          alert(
+            result.message || "Failed to send application. Please try again."
+          );
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error submitting franchisee application:", error);
+      alert(
+        "An error occurred while submitting your application. Please try again."
+      );
+    }
   };
 
   const franchiseBenefits = [
