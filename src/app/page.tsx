@@ -153,10 +153,14 @@ export default function HomePage() {
   };
 
   const handleDeveloperSelect = (developer: any) => {
-    setSelectedDeveloper(developer);
-    setSelectedProject(null);
-    setSelectedArea(null);
-    setCurrentPage("developer-properties");
+    if (developer && developer.name) {
+      // Navigate to the specific developer page using the developer name
+      const developerName = encodeURIComponent(developer.name);
+      window.location.href = `/developer/${developerName}`;
+    } else {
+      // Handle "View All Developers" button - navigate to developers page
+      window.location.href = `/developers`;
+    }
   };
 
   const handleAreaSelect = (area: any) => {

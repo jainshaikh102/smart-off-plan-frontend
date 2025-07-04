@@ -458,28 +458,6 @@ export function AllPropertiesPage({
       {/* Header */}
       <header className="bg-white border-b border-beige shadow-sm flex-shrink-0">
         <div className="container py-6">
-          {/* Breadcrumb */}
-          {/* <div className="flex items-center space-x-2 mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="text-warm-gray hover:text-gold"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Home
-            </Button>
-            <ChevronRight className="w-4 h-4 text-warm-gray" />
-            <span className="text-[#8b7355]">Properties</span>
-            {selectedDeveloper && (
-              <>
-                <ChevronRight className="w-4 h-4 text-warm-gray" />
-                <span className="text-gold">{selectedDeveloper.name}</span>
-              </>
-            )}
-          </div> */}
-
-          {/* Title */}
           <h1 className="text-4xl text-[#8b7355] mb-2">
             {selectedDeveloper ? selectedDeveloper.name : "All Properties"}
           </h1>

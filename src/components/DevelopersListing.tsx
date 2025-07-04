@@ -1,17 +1,18 @@
 import { useState, useMemo, useEffect } from "react";
-import axios from "axios";
 import {
   Building2,
+  Star,
   TrendingUp,
   Users,
   Award,
   Search,
   Filter,
+  SlidersHorizontal,
   X,
   Loader2,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import {
@@ -21,12 +22,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useRouter } from "next/navigation";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface Developer {
-  id: number;
+  _id: string;
+  externalId: number;
   name: string;
-  website?: string;
+  email: string | null;
+  logo: string | null;
+  office_address: string | null;
+  website: string | null;
+  working_hours: string | null;
+  description: string | null;
+  projects: number;
+  image: string | null;
+  active: boolean;
+  partnership_status: string;
+  rating: number | null;
+  specialities: string[];
+  completeDeveloperData?: any;
+  lastFetchedAt: string;
+  cacheExpiresAt: string;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface DevelopersListingProps {
@@ -43,91 +62,47 @@ export function DevelopersListing({
   maxItems,
 }: DevelopersListingProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("name");
+  const [selectedTier, setSelectedTier] = useState("all");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [sortBy, setSortBy] = useState("rating");
+  const [minRating, setMinRating] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const router = useRouter();
 
   // API state management
-  const [apiDevelopers, setApiDevelopers] = useState<Developer[]>([]);
+  const [developers, setDevelopers] = useState<Developer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const filteredDevelopers = useMemo(() => {
-    let filtered = apiDevelopers.filter((developer) => {
-      const matchesSearch = developer.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-
-      return matchesSearch;
-    });
-
-    // Sort filtered results
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "rating":
-        default:
-          return a.name.localeCompare(b.name); // Default to name sorting since API doesn't have rating
-      }
-    });
-
-    // Apply maxItems limit if specified
-    if (maxItems) {
-      filtered = filtered.slice(0, maxItems);
-    }
-
-    return filtered;
-  }, [searchTerm, sortBy, maxItems, apiDevelopers]);
-
-  const hasActiveFilters = searchTerm !== "";
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setSortBy("name");
-    setFiltersOpen(false);
-  };
-
   // Fetch developers from API
   const fetchDevelopers = async () => {
-    setLoading(true);
-    setError(null);
-
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+      setLoading(true);
+      setError(null);
 
-      if (!apiBaseUrl) {
-        throw new Error("API base URL not configured");
-      }
-      if (!apiKey) {
-        throw new Error("API key not configured");
-      }
-      const response = await axios.get(`${apiBaseUrl}/v1/developers`, {
-        headers: {
-          "X-API-Key": apiKey,
-          accept: "application/json",
-        },
-      });
-      const data = response.data;
+      console.log("🏢 Fetching developers from API...");
 
-      if (Array.isArray(data)) {
-        setApiDevelopers(data);
+      const response = await fetch("/api/developers");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      if (data.success && Array.isArray(data.data)) {
+        console.log(`✅ Fetched ${data.data.length} developers successfully`);
+        setDevelopers(data.data);
       } else {
-        setApiDevelopers([]);
+        console.warn("⚠️ No developers data found in response");
+        setDevelopers([]);
       }
     } catch (err) {
       console.error("❌ Error fetching developers:", err);
-      if (axios.isAxiosError(err)) {
-        setError(
-          `Failed to fetch developers: ${err.response?.status || err.message}`
-        );
-      } else {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch developers"
-        );
-      }
-      setApiDevelopers([]);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch developers"
+      );
+      setDevelopers([]);
     } finally {
       setLoading(false);
     }
@@ -138,15 +113,121 @@ export function DevelopersListing({
     fetchDevelopers();
   }, []);
 
-  // Handle developer selection and navigation
-  const handleDeveloperSelect = (developer: Developer) => {
-    window.location.href = `/developer/${encodeURIComponent(developer.name)}`;
+  // Helper function to map partnership_status to display tier
+  const getTierFromPartnershipStatus = (status: string): string => {
+    switch (status) {
+      case "partner":
+        return "Premium";
+      case "pending":
+        return "Featured";
+      case "non-partner":
+        return "Partner";
+      default:
+        return "Partner";
+    }
+  };
+
+  const allSpecialties = useMemo(() => {
+    const specialties = new Set<string>();
+    developers.forEach((dev) => {
+      if (dev.specialities && Array.isArray(dev.specialities)) {
+        dev.specialities.forEach((specialty) => specialties.add(specialty));
+      }
+    });
+    return Array.from(specialties).sort();
+  }, [developers]);
+
+  const filteredDevelopers = useMemo(() => {
+    let filtered = developers.filter((developer) => {
+      const matchesSearch =
+        developer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (developer.specialities &&
+          Array.isArray(developer.specialities) &&
+          developer.specialities.some((specialty: string) =>
+            specialty.toLowerCase().includes(searchTerm.toLowerCase())
+          ));
+
+      // Map partnership_status to tier for filtering
+      const tier = getTierFromPartnershipStatus(developer.partnership_status);
+      const matchesTier = selectedTier === "all" || tier === selectedTier;
+
+      const matchesSpecialty =
+        selectedSpecialty === "all" ||
+        (developer.specialities &&
+          developer.specialities.includes(selectedSpecialty));
+
+      const matchesRating =
+        minRating === "all" ||
+        (developer.rating !== null &&
+          developer.rating >= parseFloat(minRating));
+
+      return matchesSearch && matchesTier && matchesSpecialty && matchesRating;
+    });
+
+    // Sort filtered results
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "projects":
+          return b.projects - a.projects;
+        case "rating":
+        default:
+          // Handle null ratings by treating them as 0
+          const ratingA = a.rating || 0;
+          const ratingB = b.rating || 0;
+          return ratingB - ratingA;
+      }
+    });
+
+    // Apply maxItems limit if specified
+    if (maxItems) {
+      filtered = filtered.slice(0, maxItems);
+    }
+
+    return filtered;
+  }, [
+    developers,
+    searchTerm,
+    selectedTier,
+    selectedSpecialty,
+    sortBy,
+    minRating,
+    maxItems,
+  ]);
+
+  const hasActiveFilters =
+    selectedTier !== "all" ||
+    selectedSpecialty !== "all" ||
+    minRating !== "all" ||
+    searchTerm !== "";
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedTier("all");
+    setSelectedSpecialty("all");
+    setSortBy("rating");
+    setMinRating("all");
+    setFiltersOpen(false);
+  };
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case "Premium":
+        return "bg-gold/15 text-gold border-gold/30";
+      case "Featured":
+        return "bg-soft-brown/15 text-soft-brown border-soft-brown/30";
+      case "Partner":
+        return "bg-beige text-soft-brown border-soft-brown/20";
+      default:
+        return "bg-beige text-soft-brown border-soft-brown/20";
+    }
   };
 
   // Simple display mode for home page
   if (displayMode === "simple") {
     return (
-      <section className="section-padding bg-[#F6F2ED]">
+      <section className="section-padding bg-gradient-to-br from-beige to-ivory bg-[rgba(0,0,0,0)]">
         <div className="container">
           {showTitle && (
             <div className="text-center mb-16 bg-[rgba(30,26,26,0)]">
@@ -161,75 +242,67 @@ export function DevelopersListing({
           )}
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
+            <div className="flex justify-center items-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-gold" />
-              <span className="ml-2 text-[#8b7355]">Loading developers...</span>
+              <span className="ml-3 text-soft-brown">
+                Loading developers...
+              </span>
             </div>
           ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-500 mb-4">{error}</p>
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-beige rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <X className="w-12 h-12 text-warm-gray" />
+              </div>
+              <h3 className="text-soft-brown mb-4">
+                Failed to load developers
+              </h3>
+              <p className="text-warm-gray mb-6 max-w-md mx-auto">{error}</p>
               <Button
                 onClick={fetchDevelopers}
-                variant="outline"
-                className="border-gold text-gold hover:bg-gold hover:text-white"
+                className="bg-gold hover:bg-gold/90 text-white rounded-xl px-6 py-3"
               >
                 Try Again
               </Button>
             </div>
-          ) : apiDevelopers.length > 0 ? (
-            <div className="overflow-x-auto pb-4 flex justify-center">
-              <div className="flex gap-8 w-max px-4 py-[0px] mx-[10px] my-[0px]">
-                {(maxItems
-                  ? apiDevelopers.slice(0, maxItems)
-                  : apiDevelopers
-                ).map((developer) => (
-                  <div
-                    key={developer.id}
-                    onClick={() => handleDeveloperSelect(developer)}
-                    className="group cursor-pointer flex-shrink-0 transition-all duration-300 hover:-translate-y-2 text-center"
-                  >
-                    <div className="relative mb-3">
-                      <div className="w-20 h-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_2px_12px_-2px_rgba(139,115,85,0.08)] group-hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.15)] group-hover:bg-white transition-all duration-300 overflow-hidden p-3 flex items-center justify-center">
-                        <Building2 className="w-8 h-8 text-gold" />
-                      </div>
-                    </div>
-                    <h4 className="text-[rgba(30,26,26,1)] text-sm group-hover:text-gold transition-colors duration-300 leading-tight w-24 mx-auto text-[16px]">
-                      {developer.name}
-                    </h4>
-                  </div>
-                ))}
-              </div>
-            </div>
           ) : (
-            <div className="text-center py-12">
-              <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-600 mb-2">
-                No Developers Found
-              </h3>
-              <p className="text-sm text-gray-500 mb-4">
-                No developers are currently available.
-              </p>
-              <Button
-                onClick={fetchDevelopers}
-                variant="outline"
-                className="border-gold text-gold hover:bg-gold hover:text-white"
-              >
-                Refresh
-              </Button>
-            </div>
-          )}
+            <>
+              <div className="overflow-x-auto pb-4">
+                <div className="flex gap-8 w-max px-[82px] py-[0px] mx-[10px] my-[0px]">
+                  {filteredDevelopers.map((developer) => (
+                    <div
+                      key={developer._id}
+                      onClick={() => onPartnerSelect?.(developer)}
+                      className="group cursor-pointer flex-shrink-0 transition-all duration-300 hover:-translate-y-2 text-center"
+                    >
+                      <div className="relative mb-3">
+                        <div className="w-20 h-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_2px_12px_-2px_rgba(139,115,85,0.08)] group-hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.15)] group-hover:bg-white transition-all duration-300 overflow-hidden p-3">
+                          <ImageWithFallback
+                            src={developer.logo || developer.image || ""}
+                            alt={`${developer.name} logo`}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      </div>
+                      <h4 className="text-[rgba(30,26,26,1)] text-sm group-hover:text-gold transition-colors duration-300 leading-tight w-24 mx-auto text-[16px]">
+                        {developer.name}
+                      </h4>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {showTitle && (
-            <div className="text-center mt-12">
-              <Button
-                // onClick={() => onPartnerSelect?.(null)}
-                onClick={() => router.push(`/developers`)}
-                className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-3 rounded-xl"
-              >
-                View All Developers
-                <Building2 className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
+              {showTitle && (
+                <div className="text-center mt-12">
+                  <Button
+                    onClick={() => onPartnerSelect?.(null)}
+                    className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-3 rounded-xl"
+                  >
+                    View All Developers
+                    <Building2 className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -256,7 +329,7 @@ export function DevelopersListing({
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-warm-gray hover:text-[#8b7355] transition-colors"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-warm-gray hover:text-soft-brown transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -269,39 +342,186 @@ export function DevelopersListing({
                 variant="outline"
                 size="sm"
                 onClick={() => setFiltersOpen(!filtersOpen)}
-                className={`border-[#8b7355]/30 text-[#8b7355] hover:bg-[#8b7355] hover:text-white rounded-xl ${
-                  filtersOpen ? "bg-[#8b7355] text-white" : ""
+                className={`border-soft-brown/30 text-soft-brown hover:bg-soft-brown hover:text-white rounded-xl ${
+                  filtersOpen ? "bg-soft-brown text-white" : ""
                 }`}
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
                 {hasActiveFilters && !filtersOpen && (
-                  <Badge className="ml-2 bg-gold text-[#8b7355] text-xs">
+                  <Badge className="ml-2 bg-gold text-soft-brown text-xs">
                     Active
                   </Badge>
                 )}
               </Button>
 
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px] rounded-xl border-[#8b7355]/30 text-[#8b7355] bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-[#8b7355]/50">
+                <SelectTrigger className="w-[180px] rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
                   <SelectValue placeholder="Select sort order" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#8b7355]/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+                <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+                  <SelectItem
+                    value="rating"
+                    className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                  >
+                    Sort by Rating
+                  </SelectItem>
                   <SelectItem
                     value="name"
-                    className="text-[#8b7355] hover:bg-beige focus:bg-beige cursor-pointer"
+                    className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
                   >
                     Sort by Name
+                  </SelectItem>
+                  <SelectItem
+                    value="projects"
+                    className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                  >
+                    Sort by Projects
+                  </SelectItem>
+                  <SelectItem
+                    value="active"
+                    className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                  >
+                    Sort by Active Projects
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
+          {/* Filter Panel */}
+          {filtersOpen && (
+            <Card className="p-6 bg-beige rounded-3xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] border-0 mb-8">
+              {hasActiveFilters && (
+                <div className="flex justify-end mb-6">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-warm-gray hover:text-soft-brown"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Clear All
+                  </Button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Tier Filter */}
+                <div>
+                  <label className="block text-soft-brown mb-2 text-sm">
+                    Partnership Tier
+                  </label>
+                  <Select value={selectedTier} onValueChange={setSelectedTier}>
+                    <SelectTrigger className="w-full rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
+                      <SelectValue placeholder="All Tiers" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+                      <SelectItem
+                        value="all"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        All Tiers
+                      </SelectItem>
+                      <SelectItem
+                        value="Premium"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        Premium Partners
+                      </SelectItem>
+                      <SelectItem
+                        value="Featured"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        Featured Partners
+                      </SelectItem>
+                      <SelectItem
+                        value="Partner"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        Partners
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Specialty Filter */}
+                <div>
+                  <label className="block text-soft-brown mb-2 text-sm">
+                    Specialty
+                  </label>
+                  <Select
+                    value={selectedSpecialty}
+                    onValueChange={setSelectedSpecialty}
+                  >
+                    <SelectTrigger className="w-full rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
+                      <SelectValue placeholder="All Specialties" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+                      <SelectItem
+                        value="all"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        All Specialties
+                      </SelectItem>
+                      {allSpecialties.map((specialty) => (
+                        <SelectItem
+                          key={specialty}
+                          value={specialty}
+                          className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                        >
+                          {specialty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Rating Filter */}
+                <div>
+                  <label className="block text-soft-brown mb-2 text-sm">
+                    Minimum Rating
+                  </label>
+                  <Select value={minRating} onValueChange={setMinRating}>
+                    <SelectTrigger className="w-full rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
+                      <SelectValue placeholder="Any Rating" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+                      <SelectItem
+                        value="all"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        Any Rating
+                      </SelectItem>
+                      <SelectItem
+                        value="4.5"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        4.5+ Stars
+                      </SelectItem>
+                      <SelectItem
+                        value="4.0"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        4.0+ Stars
+                      </SelectItem>
+                      <SelectItem
+                        value="3.5"
+                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
+                      >
+                        3.5+ Stars
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {/* Results Summary */}
           <div className="flex items-center justify-between text-sm text-warm-gray mb-6">
             <div>
-              Showing {filteredDevelopers.length} of {apiDevelopers.length}{" "}
+              Showing {filteredDevelopers.length} of {developers.length}{" "}
               developers
               {hasActiveFilters && (
                 <span className="ml-2">
@@ -315,7 +535,7 @@ export function DevelopersListing({
               )}
             </div>
             {searchTerm && (
-              <div className="text-[#8b7355]">
+              <div className="text-soft-brown">
                 Search results for "{searchTerm}"
               </div>
             )}
@@ -324,64 +544,135 @@ export function DevelopersListing({
 
         {/* Developers Grid */}
         {loading ? (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex justify-center items-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-gold" />
-            <span className="ml-2 text-[#8b7355]">Loading developers...</span>
+            <span className="ml-3 text-soft-brown">Loading developers...</span>
           </div>
         ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500 mb-4">{error}</p>
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-beige rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <X className="w-12 h-12 text-warm-gray" />
+            </div>
+            <h3 className="text-soft-brown mb-4">Failed to load developers</h3>
+            <p className="text-warm-gray mb-6 max-w-md mx-auto">{error}</p>
             <Button
               onClick={fetchDevelopers}
-              variant="outline"
-              className="border-gold text-gold hover:bg-gold hover:text-white"
+              className="bg-gold hover:bg-gold/90 text-white rounded-xl px-6 py-3"
             >
               Try Again
             </Button>
           </div>
         ) : filteredDevelopers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredDevelopers.map((developer) => (
-              <Card
-                key={developer.id}
-                onClick={() => handleDeveloperSelect(developer)}
-                className="group cursor-pointer p-6 bg-white rounded-3xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] hover:shadow-[0_12px_40px_-4px_rgba(139,115,85,0.15),0_6px_20px_-4px_rgba(139,115,85,0.1)] transition-all duration-300 border-0 hover:-translate-y-2"
-              >
-                <div className="space-y-5">
-                  {/* Header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-14 h-14 bg-beige rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <Building2 className="w-8 h-8 text-gold" />
+            {filteredDevelopers.map((developer) => {
+              const tier = getTierFromPartnershipStatus(
+                developer.partnership_status
+              );
+              return (
+                <Card
+                  key={developer._id}
+                  onClick={() => onPartnerSelect?.(developer)}
+                  className="group cursor-pointer p-6 bg-white rounded-3xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] hover:shadow-[0_12px_40px_-4px_rgba(139,115,85,0.15),0_6px_20px_-4px_rgba(139,115,85,0.1)] transition-all duration-300 border-0 hover:-translate-y-2"
+                >
+                  <div className="space-y-5">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-14 h-14 bg-beige rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                          <ImageWithFallback
+                            src={developer.logo || developer.image || ""}
+                            alt={`${developer.name} logo`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-[rgba(30,26,26,1)] mb-1 group-hover:text-gold transition-colors duration-300 leading-tight text-lg font-medium">
+                            {developer.name}
+                          </h3>
+                          <Badge className={`${getTierColor(tier)} text-xs`}>
+                            {tier} Partner
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-[rgba(30,26,26,1)] mb-1 group-hover:text-gold transition-colors duration-300 leading-tight text-lg font-medium">
-                          {developer.name}
-                        </h3>
-                        <Badge className="bg-gold/15 text-gold border-gold/30 text-xs">
-                          Developer Partner
-                        </Badge>
+                      <div className="flex items-center space-x-1 flex-shrink-0">
+                        <Star className="w-4 h-4 text-gold fill-gold" />
+                        <span className="text-soft-brown font-medium text-sm">
+                          {developer.rating || "N/A"}
+                        </span>
                       </div>
                     </div>
+
+                    {/* Description */}
+                    <p className="text-[rgba(30,26,26,0.8)] text-sm leading-relaxed">
+                      {developer.description || "No description available."}
+                    </p>
+
+                    {/* Key Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-3 bg-beige rounded-xl">
+                        <div className="text-lg text-soft-brown mb-1">
+                          {developer.projects}
+                        </div>
+                        <p className="text-warm-gray text-xs">Projects</p>
+                      </div>
+                      <div className="text-center p-3 bg-beige rounded-xl">
+                        <div className="text-lg text-gold mb-1">
+                          {developer.active ? "Active" : "Inactive"}
+                        </div>
+                        <p className="text-warm-gray text-xs">Status</p>
+                      </div>
+                    </div>
+
+                    {/* Specialties */}
+                    <div>
+                      <p className="text-warm-gray text-xs mb-2">Specialties</p>
+                      <div className="flex flex-wrap gap-1">
+                        {developer.specialities &&
+                        developer.specialities.length > 0 ? (
+                          <>
+                            {developer.specialities
+                              .slice(0, 2)
+                              .map((specialty, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="border-soft-brown/20 text-warm-gray text-xs"
+                                >
+                                  {specialty}
+                                </Badge>
+                              ))}
+                            {developer.specialities.length > 2 && (
+                              <Badge
+                                variant="outline"
+                                className="border-soft-brown/20 text-warm-gray text-xs"
+                              >
+                                +{developer.specialities.length - 2}
+                              </Badge>
+                            )}
+                          </>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-soft-brown/20 text-warm-gray text-xs"
+                          >
+                            General Development
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <Button
+                      size="sm"
+                      className="w-full bg-beige hover:bg-gold text-soft-brown rounded-xl group-hover:bg-soft-brown group-hover:text-white transition-all duration-300"
+                    >
+                      View Properties
+                      <TrendingUp className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
-
-                  {/* Description */}
-                  <p className="text-[rgba(30,26,26,0.8)] text-sm leading-relaxed">
-                    Trusted developer partner offering premium off-plan
-                    properties in Dubai.
-                  </p>
-
-                  {/* Action Button */}
-                  <Button
-                    size="sm"
-                    className="w-full bg-beige hover:bg-gold text-[#8b7355] rounded-xl group-hover:bg-[#8b7355] group-hover:text-white transition-all duration-300"
-                  >
-                    View Properties
-                    <TrendingUp className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         ) : (
           /* No Results State */
@@ -389,14 +680,14 @@ export function DevelopersListing({
             <div className="w-24 h-24 bg-beige rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Search className="w-12 h-12 text-warm-gray" />
             </div>
-            <h3 className="text-[#8b7355] mb-4">No developers found</h3>
+            <h3 className="text-soft-brown mb-4">No developers found</h3>
             <p className="text-warm-gray mb-6 max-w-md mx-auto">
               We couldn't find any developers matching your search criteria. Try
               adjusting your filters or search terms.
             </p>
             <Button
               onClick={clearFilters}
-              className="bg-gold hover:bg-gold/90 text-[#8b7355] rounded-xl px-6 py-3"
+              className="bg-gold hover:bg-gold/90 text-soft-brown rounded-xl px-6 py-3"
             >
               Clear All Filters
             </Button>
@@ -422,7 +713,7 @@ export function DevelopersListing({
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-[#8b7355] text-[#8b7355] hover:bg-[#8b7355] hover:text-white rounded-xl px-6 py-2"
+                  className="border-soft-brown text-soft-brown hover:bg-soft-brown hover:text-white rounded-xl px-6 py-2"
                 >
                   Learn More
                 </Button>

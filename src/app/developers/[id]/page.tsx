@@ -34,12 +34,12 @@ export default function DeveloperDetailRoute() {
 
   return (
     <div className="min-h-screen bg-ivory">
-      <Navbar
+      {/* <Navbar
         onNavigate={handlePageNavigation}
         onLogoClick={handleLogoClick}
         currentPage="developers"
-      />
-      <DeveloperDetailPage 
+      /> */}
+      <DeveloperDetailPage
         developer={mockDeveloper}
         onBack={handleBack}
         onProjectSelect={handleProjectSelect}
