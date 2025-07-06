@@ -42,65 +42,84 @@ interface Property {
 interface FeaturedProjectsProps {
   onProjectSelect?: (project: any) => void;
   onViewAllProjects?: () => void;
+  // Optional props for shared data to avoid multiple API calls
+  allProperties?: any[];
+  propertiesLoading?: boolean;
+  propertiesError?: string | null;
 }
 
 export function FeaturedProjects({
   onProjectSelect,
   onViewAllProjects,
+  allProperties: sharedAllProperties,
+  propertiesLoading,
+  propertiesError,
 }: FeaturedProjectsProps) {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [localProperties, setLocalProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Fetch featured properties from database
+  // Use shared properties if available, otherwise use local state
+  const effectiveAllProperties = sharedAllProperties || localProperties;
+  const effectiveLoading =
+    propertiesLoading !== undefined ? propertiesLoading : loading;
+  const effectiveError =
+    propertiesError !== undefined ? propertiesError : error;
+
+  // Filter for featured properties and limit to 3
+  const featuredProperties = effectiveAllProperties
+    .filter((property: any) => property.featured === true)
+    .slice(0, 3);
+
+  // Fetch all properties and filter for featured (fallback when shared props not available)
   const fetchProperties = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Fetch featured properties using dedicated endpoint
-      const response = await axios.get(`/api/properties/featured`, {
-        params: {
-          limit: 3, // Already limited to 3 in the API call
-        },
-      });
+      // Use main properties API instead of dedicated featured endpoint
+      const response = await axios.get(`/api/properties`);
 
       const data = response.data;
+      let allProperties: Property[] = [];
+
       // Handle API response structure
       if (data.success && data.data) {
-        const featuredProperties = Array.isArray(data.data) ? data.data : [];
-        setProperties(featuredProperties);
+        allProperties = data.data.items || data.data || [];
       } else if (Array.isArray(data)) {
-        // Direct array response
-        setProperties(data);
-      } else {
-        setProperties([]);
+        allProperties = data;
       }
+
+      // Filter for featured properties and limit to 3
+      const featuredProps = allProperties
+        .filter((property: Property) => property.featured === true)
+        .slice(0, 3);
+
+      setLocalProperties(featuredProps);
     } catch (err) {
-      console.error("❌ Error fetching featured properties:", err);
+      console.error("❌ Error fetching properties for featured section:", err);
       if (axios.isAxiosError(err)) {
         setError(
-          `Failed to fetch featured properties: ${
-            err.response?.status || err.message
-          }`
+          `Failed to fetch properties: ${err.response?.status || err.message}`
         );
       } else {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch featured properties"
+          err instanceof Error ? err.message : "Failed to fetch properties"
         );
       }
-      setProperties([]);
+      setLocalProperties([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProperties();
-  }, []);
+    // Only fetch properties if not provided via props
+    if (!sharedAllProperties) {
+      fetchProperties();
+    }
+  }, [sharedAllProperties]);
 
   // Get image URL from JSON string
   const getImageUrl = (coverImageUrl?: string) => {
@@ -153,10 +172,10 @@ export function FeaturedProjects({
         )}
 
         {/* Projects Grid - Enhanced detailed cards */}
-        {!loading && !error && (
+        {!effectiveLoading && !effectiveError && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {properties.length > 0 ? (
-              properties.slice(0, 3).map((property) => (
+            {featuredProperties.length > 0 ? (
+              featuredProperties.map((property) => (
                 <Card
                   key={property.id}
                   className="overflow-hidden bg-white shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] hover:-translate-y-0.5 transition-all duration-300 rounded-lg border-0 h-full flex flex-col"
@@ -286,19 +305,21 @@ export function FeaturedProjects({
         )}
 
         {/* View All Featured Button */}
-        {!loading && !error && properties.length > 0 && (
-          <div className="text-center mt-12">
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-[#FEFDFB] hover:bg-[#8b7355]/90 mt-auto text-[#8b7355] hover:text-white"
-              onClick={() => router.push(`/featured`)}
-            >
-              View All Featured Projects
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
-        )}
+        {!effectiveLoading &&
+          !effectiveError &&
+          featuredProperties.length > 0 && (
+            <div className="text-center mt-12">
+              <Button
+                variant="outline"
+                size="lg"
+                className="bg-[#FEFDFB] hover:bg-[#8b7355]/90 mt-auto text-[#8b7355] hover:text-white"
+                onClick={() => router.push(`/properties`)}
+              >
+                View All Featured Projects
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          )}
       </div>
     </section>
   );

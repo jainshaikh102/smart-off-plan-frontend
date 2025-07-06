@@ -130,15 +130,29 @@ interface Filters {
 
 interface PropertyFiltersTestingProps {
   onPropertySelect: (property: Property) => void;
+  // Optional props for shared data to avoid multiple API calls
+  allProperties?: any[];
+  propertiesLoading?: boolean;
+  propertiesError?: string | null;
 }
 
 export function PropertyFiltersTesting({
   onPropertySelect,
+  allProperties: sharedAllProperties,
+  propertiesLoading,
+  propertiesError,
 }: PropertyFiltersTestingProps) {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [localProperties, setLocalProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Use shared properties if available, otherwise use local state
+  const effectiveProperties = sharedAllProperties || localProperties;
+  const effectiveLoading =
+    propertiesLoading !== undefined ? propertiesLoading : loading;
+  const effectiveError =
+    propertiesError !== undefined ? propertiesError : error;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hoveredPropertyId, setHoveredPropertyId] = useState<number | null>(
     null
@@ -190,13 +204,13 @@ export function PropertyFiltersTesting({
 
       if (data.success && data.data) {
         const items = data.data.items || data.data || [];
-        setProperties(items);
+        setLocalProperties(items);
         setFilteredProperties(items);
       } else if (Array.isArray(data)) {
-        setProperties(data);
+        setLocalProperties(data);
         setFilteredProperties(data);
       } else {
-        setProperties([]);
+        setLocalProperties([]);
         setFilteredProperties([]);
       }
     } catch (err) {
@@ -210,7 +224,7 @@ export function PropertyFiltersTesting({
           err instanceof Error ? err.message : "Failed to fetch properties"
         );
       }
-      setProperties([]);
+      setLocalProperties([]);
       setFilteredProperties([]);
     } finally {
       setLoading(false);
@@ -289,10 +303,16 @@ export function PropertyFiltersTesting({
   };
 
   useEffect(() => {
-    fetchProperties();
+    // Only fetch properties if not provided via props
+    if (!sharedAllProperties) {
+      fetchProperties();
+    } else {
+      // Use shared properties directly
+      setFilteredProperties(sharedAllProperties);
+    }
     fetchStatuses();
     fetchRegions();
-  }, []);
+  }, [sharedAllProperties]);
 
   // Handle region change - update map view to selected region
   const handleRegionChange = (regionName: string) => {
@@ -334,7 +354,7 @@ export function PropertyFiltersTesting({
 
   // Apply filters
   useEffect(() => {
-    let result = [...properties];
+    let result = [...effectiveProperties];
 
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
@@ -408,7 +428,7 @@ export function PropertyFiltersTesting({
     }
 
     setFilteredProperties(result);
-  }, [properties, filters]);
+  }, [effectiveProperties, filters]);
 
   const handleFilterChange = (
     key: keyof Filters,
@@ -631,50 +651,12 @@ export function PropertyFiltersTesting({
                   <Card className="border-gold/40 bg-[#FDFCF9]">
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-xl">
-                        <Banknote className="w-6 h-6 text-gold" />
-                        <span>Price Configuration</span>
+                        <TrendingUp className="w-5 h-5 text-gold" />
+                        <span> Price Range (AED)</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-beige/50">
-                        <div className="flex items-center space-x-3">
-                          <DollarSign className="w-5 h-5 text-gold" />
-                          <div>
-                            <Label className="text-[#8b7355] font-medium">
-                              Price Display Mode
-                            </Label>
-                            <p className="text-xs text-warm-gray mt-1">
-                              Choose how prices are displayed
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <Label className="text-sm text-warm-gray">
-                            Total Price
-                          </Label>
-                          <Switch
-                            checked={filters.priceDisplayMode === "perSqFt"}
-                            onCheckedChange={(checked) =>
-                              handleFilterChange(
-                                "priceDisplayMode",
-                                checked ? "perSqFt" : "total"
-                              )
-                            }
-                          />
-                          <Label className="text-sm text-warm-gray">
-                            Per Sq Ft
-                          </Label>
-                        </div>
-                      </div>
-
                       <div className="space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="w-5 h-5 text-gold" />
-                          <Label className="text-[#8b7355] font-medium text-lg">
-                            Price Range (AED)
-                          </Label>
-                        </div>
-
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs text-warm-gray uppercase tracking-wide">
@@ -742,71 +724,7 @@ export function PropertyFiltersTesting({
                     </CardContent>
                   </Card>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card className="border-beige/60">
-                      <CardHeader>
-                        <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                          <Ruler className="w-5 h-5 text-gold" />
-                          <span>Area Range</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
-                            <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                              Min Sq Ft
-                            </Label>
-                            <Input
-                              type="number"
-                              value={filters.areaRange[0]}
-                              onChange={(e) =>
-                                handleFilterChange("areaRange", [
-                                  Number(e.target.value),
-                                  filters.areaRange[1],
-                                ])
-                              }
-                              className="border-beige/50 focus:border-gold rounded-lg"
-                              placeholder="0"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                              Max Sq Ft
-                            </Label>
-                            <Input
-                              type="number"
-                              value={filters.areaRange[1]}
-                              onChange={(e) =>
-                                handleFilterChange("areaRange", [
-                                  filters.areaRange[0],
-                                  Number(e.target.value),
-                                ])
-                              }
-                              className="border-beige/50 focus:border-gold rounded-lg"
-                              placeholder="5,000"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 p-3 bg-beige/20 rounded-lg">
-                          <div className="flex justify-between text-sm text-warm-gray">
-                            <span>0 sq ft</span>
-                            <span>8,000 sq ft</span>
-                          </div>
-                          <Slider
-                            value={filters.areaRange}
-                            onValueChange={(value) =>
-                              handleFilterChange("areaRange", value)
-                            }
-                            max={8000}
-                            min={0}
-                            step={50}
-                            className="w-full"
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-
+                  <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                     <Card className="border-beige/60">
                       <CardHeader>
                         <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
@@ -972,15 +890,15 @@ export function PropertyFiltersTesting({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="lg:col-span-1">
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-              {loading ? (
+              {effectiveLoading ? (
                 <div className="text-center py-12">
                   <div className="text-warm-gray mb-4">
                     Loading properties...
                   </div>
                 </div>
-              ) : error ? (
+              ) : effectiveError ? (
                 <div className="text-center py-12">
-                  <div className="text-warm-gray mb-4">{error}</div>
+                  <div className="text-warm-gray mb-4">{effectiveError}</div>
                   <Button
                     onClick={() => fetchProperties()}
                     className="bg-gold hover:bg-gold/90 text-charcoal"

@@ -1,33 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { SplashScreen } from "@/components/SplashScreen";
 import { HeroSection } from "@/components/HeroSection";
 import { FeaturedProjects } from "@/components/FeaturedProjects";
 // import { PropertyFilters } from "@/components/PropertyFilters";
 import dynamic from "next/dynamic";
-
-// Dynamically import PropertyFiltersTesting to avoid SSR issues with Leaflet
-const PropertyFiltersTesting = dynamic(
-  () =>
-    import("@/components/PropertyFiltersTesting").then((mod) => ({
-      default: mod.PropertyFiltersTesting,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="section-padding bg-white">
-        <div className="container">
-          <div className="text-center py-12">
-            <div className="text-warm-gray mb-4">
-              Loading map and filters...
-            </div>
-          </div>
-        </div>
-      </div>
-    ),
-  }
-);
 import { DevelopersListing } from "@/components/DevelopersListing";
 import { PropertyListings } from "@/components/PropertyListings";
 import { MarketInfo } from "@/components/MarketInfo";
@@ -57,6 +36,28 @@ import { TermsOfServicePage } from "@/components/TermsOfServicePage";
 import { CookiePolicyPage } from "@/components/CookiePolicyPage";
 import { AreaDetailPage } from "@/components/AreaDetailPage";
 
+// Dynamically import PropertyFiltersTesting to avoid SSR issues with Leaflet
+const PropertyFiltersTesting = dynamic(
+  () =>
+    import("@/components/PropertyFiltersTesting").then((mod) => ({
+      default: mod.PropertyFiltersTesting,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="section-padding bg-white">
+        <div className="container">
+          <div className="text-center py-12">
+            <div className="text-warm-gray mb-4">
+              Loading map and filters...
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+  }
+);
+
 export default function HomePage() {
   // Enhanced splash screen state management for smooth transitions
   const [showSplash, setShowSplash] = useState(true);
@@ -70,6 +71,11 @@ export default function HomePage() {
   const [selectedDeveloper, setSelectedDeveloper] = useState<any>(null);
   const [selectedArea, setSelectedArea] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState("home");
+
+  // Shared properties state to avoid multiple API calls
+  const [allProperties, setAllProperties] = useState<any[]>([]);
+  const [propertiesLoading, setPropertiesLoading] = useState(true);
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
 
   // Session management for splash screen
   useEffect(() => {
@@ -162,6 +168,49 @@ export default function HomePage() {
       window.location.href = `/developers`;
     }
   };
+
+  // Fetch all properties once and share across components
+  const fetchAllProperties = async () => {
+    setPropertiesLoading(true);
+    setPropertiesError(null);
+
+    try {
+      console.log("🏠 HomePage: Fetching all properties for shared use");
+      const response = await axios.get("/api/properties");
+      const data = response.data;
+
+      let properties: any[] = [];
+      if (data.success && data.data) {
+        properties = data.data.items || data.data || [];
+      } else if (Array.isArray(data)) {
+        properties = data;
+      }
+
+      console.log(
+        `✅ HomePage: Fetched ${properties.length} properties for shared use`
+      );
+      setAllProperties(properties);
+    } catch (err) {
+      console.error("❌ HomePage: Error fetching shared properties:", err);
+      if (axios.isAxiosError(err)) {
+        setPropertiesError(
+          `Failed to fetch properties: ${err.response?.status || err.message}`
+        );
+      } else {
+        setPropertiesError(
+          err instanceof Error ? err.message : "Failed to fetch properties"
+        );
+      }
+      setAllProperties([]);
+    } finally {
+      setPropertiesLoading(false);
+    }
+  };
+
+  // Fetch properties when component mounts
+  useEffect(() => {
+    fetchAllProperties();
+  }, []);
 
   const handleAreaSelect = (area: any) => {
     setSelectedArea(area);
@@ -331,11 +380,21 @@ export default function HomePage() {
             <HeroSection />
 
             {/* Featured Projects */}
-            <FeaturedProjects onProjectSelect={handleProjectSelect} />
+            <FeaturedProjects
+              onProjectSelect={handleProjectSelect}
+              allProperties={allProperties}
+              propertiesLoading={propertiesLoading}
+              propertiesError={propertiesError}
+            />
 
             {/* Property Filters & Map */}
             {/* <PropertyFilters onPropertySelect={handleProjectSelect} /> */}
-            <PropertyFiltersTesting onPropertySelect={handleProjectSelect} />
+            <PropertyFiltersTesting
+              onPropertySelect={handleProjectSelect}
+              allProperties={allProperties}
+              propertiesLoading={propertiesLoading}
+              propertiesError={propertiesError}
+            />
 
             {/* Partners Section */}
             <DevelopersListing
@@ -348,10 +407,18 @@ export default function HomePage() {
             <PropertyListings
               onProjectSelect={handleProjectSelect}
               onLoadMore={() => handlePageNavigation("all-properties")}
+              allProperties={allProperties}
+              propertiesLoading={propertiesLoading}
+              propertiesError={propertiesError}
             />
 
             {/* Market Information */}
-            <MarketInfo onAreaSelect={handleAreaSelect} />
+            <MarketInfo
+              onAreaSelect={handleAreaSelect}
+              allProperties={allProperties}
+              propertiesLoading={propertiesLoading}
+              propertiesError={propertiesError}
+            />
 
             {/* About Company */}
             <AboutCompany />

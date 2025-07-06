@@ -72,7 +72,7 @@ export function AboutCompany() {
           <div className="order-1 lg:order-2">
             <div className="max-w-xl">
               {/* Header */}
-              <h2 className="mb-6 text-[rgba(30,26,26,1)]">
+              <h2 className="mb-6 text-[rgba(30,26,26,1)] text-nowrap">
                 Why Choose Smart Off Plan?
               </h2>
 

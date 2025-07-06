@@ -29,47 +29,72 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface MarketInfoProps {
   onAreaSelect?: (area: any) => void;
+  // Optional props for shared data to avoid multiple API calls
+  allProperties?: any[];
+  propertiesLoading?: boolean;
+  propertiesError?: string | null;
 }
 
-export function MarketInfo({ onAreaSelect }: MarketInfoProps) {
+export function MarketInfo({
+  onAreaSelect,
+  allProperties: sharedAllProperties,
+  propertiesLoading,
+  propertiesError,
+}: MarketInfoProps) {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [allAreas, setAllAreas] = useState<any[]>([]);
-  const [allProperties, setAllProperties] = useState<any[]>([]);
+  const [localAllProperties, setLocalAllProperties] = useState<any[]>([]);
   const [areasWithProperties, setAreasWithProperties] = useState<any[]>([]);
   const [areasLoading, setAreasLoading] = useState(true);
-  const [propertiesLoading, setPropertiesLoading] = useState(false);
+  const [localPropertiesLoading, setLocalPropertiesLoading] = useState(false);
   const router = useRouter();
+
+  // Use shared properties if available, otherwise use local state
+  const effectiveAllProperties = sharedAllProperties || localAllProperties;
+  const effectivePropertiesLoading =
+    propertiesLoading !== undefined
+      ? propertiesLoading
+      : localPropertiesLoading;
 
   // Fetch all areas and properties
   useEffect(() => {
     const fetchData = async () => {
       try {
         setAreasLoading(true);
-        setPropertiesLoading(true);
 
-        // Fetch areas and properties in parallel
-        const [areasResponse, propertiesResponse] = await Promise.all([
-          axios.get("/api/areas"),
-          axios.get("/api/properties"),
-        ]);
+        // Only fetch properties if not provided via props
+        if (!sharedAllProperties) {
+          setLocalPropertiesLoading(true);
+        }
+
+        // Fetch areas and optionally properties
+        const requests = [axios.get("/api/areas")];
+        if (!sharedAllProperties) {
+          requests.push(axios.get("/api/properties"));
+        }
+
+        const responses = await Promise.all(requests);
+        const areasResponse = responses[0];
+        const propertiesResponse = responses[1];
 
         // Process areas
         if (areasResponse.data.success) {
           setAllAreas(areasResponse.data.data);
         }
 
-        // Process properties
-        let properties = [];
-        if (propertiesResponse.data.success && propertiesResponse.data.data) {
-          properties =
-            propertiesResponse.data.data.items ||
-            propertiesResponse.data.data ||
-            [];
-        } else if (Array.isArray(propertiesResponse.data)) {
-          properties = propertiesResponse.data;
+        // Process properties only if not provided via props
+        let properties = effectiveAllProperties;
+        if (!sharedAllProperties && propertiesResponse) {
+          if (propertiesResponse.data.success && propertiesResponse.data.data) {
+            properties =
+              propertiesResponse.data.data.items ||
+              propertiesResponse.data.data ||
+              [];
+          } else if (Array.isArray(propertiesResponse.data)) {
+            properties = propertiesResponse.data;
+          }
+          setLocalAllProperties(properties);
         }
-
-        setAllProperties(properties);
 
         // Calculate property counts per area using frontend filtering
         if (areasResponse.data.success && properties.length > 0) {
@@ -79,12 +104,21 @@ export function MarketInfo({ onAreaSelect }: MarketInfoProps) {
         console.error("❌ Error fetching data:", error);
       } finally {
         setAreasLoading(false);
-        setPropertiesLoading(false);
+        if (!sharedAllProperties) {
+          setLocalPropertiesLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, []);
+  }, [sharedAllProperties]);
+
+  // Recalculate area property counts when shared properties change
+  useEffect(() => {
+    if (sharedAllProperties && allAreas.length > 0) {
+      calculateAreaPropertyCounts(allAreas, sharedAllProperties);
+    }
+  }, [sharedAllProperties, allAreas]);
 
   // Calculate property counts per area using frontend filtering
   const calculateAreaPropertyCounts = (areas: any[], properties: any[]) => {
@@ -236,7 +270,7 @@ export function MarketInfo({ onAreaSelect }: MarketInfoProps) {
 
   // Get properties for a specific area using frontend filtering
   const getPropertiesByArea = (areaName: string) => {
-    return allProperties.filter((property) => {
+    return effectiveAllProperties.filter((property: any) => {
       const propertyArea = property.area?.toLowerCase().trim();
       const searchArea = areaName?.toLowerCase().trim();
 
@@ -286,7 +320,7 @@ export function MarketInfo({ onAreaSelect }: MarketInfoProps) {
   return (
     <section
       id="market-info"
-      className="section-padding bg-gradient-to-br from-ivory via-beige/30 to-ivory"
+      className="section-padding bg-gradient-to-b from-ivory via-beige/30 to-white"
     >
       <div className="container">
         {/* Section Header */}
@@ -566,7 +600,7 @@ export function MarketInfo({ onAreaSelect }: MarketInfoProps) {
 
         {/* Global Recognition */}
         <div className="mt-16 text-center">
-          <div className="inline-flex items-center space-x-2 bg-beige/50 rounded-full px-6 py-3 mb-6">
+          <div className="inline-flex items-center space-x-2 bg-[#f8f5f1] rounded-full px-6 py-3 mb-6">
             <Globe className="w-5 h-5 text-gold" />
             <span className="text-[#8b7355] font-medium">
               Global Recognition

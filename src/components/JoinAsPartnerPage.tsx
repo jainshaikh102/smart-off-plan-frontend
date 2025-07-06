@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import {
   ArrowLeft,
+  Handshake,
   Heart,
   Users,
   TrendingUp,
@@ -198,7 +199,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gold rounded-2xl flex items-center justify-center">
-                <Heart className="w-8 h-8 text-[#8b7355]" />
+                <Handshake className="w-8 h-8 text-[#8b7355]" />
               </div>
             </div>
             <h1 className="text-white mb-6 text-[48px]">Join As A Partner</h1>

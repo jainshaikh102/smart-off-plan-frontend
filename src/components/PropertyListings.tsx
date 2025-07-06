@@ -54,18 +54,32 @@ interface Project {
 interface PropertyListingsProps {
   onProjectSelect: (project: Project) => void;
   onLoadMore: () => void;
+  // Optional props for shared data to avoid multiple API calls
+  allProperties?: any[];
+  propertiesLoading?: boolean;
+  propertiesError?: string | null;
 }
 
 export function PropertyListings({
   onProjectSelect,
   onLoadMore,
+  allProperties,
+  propertiesLoading,
+  propertiesError,
 }: PropertyListingsProps) {
   const [sortBy, setSortBy] = useState("completion");
   const [properties, setProperties] = useState<Project[]>([]);
-  const [allProperties, setAllProperties] = useState<Project[]>([]); // Store original data
+  const [localAllProperties, setLocalAllProperties] = useState<Project[]>([]); // Store original data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Use shared properties if available, otherwise use local state
+  const effectiveAllProperties = allProperties || localAllProperties;
+  const effectiveLoading =
+    propertiesLoading !== undefined ? propertiesLoading : loading;
+  const effectiveError =
+    propertiesError !== undefined ? propertiesError : error;
 
   // Filter properties to only show those with completion dates within 12 months
   const filterPropertiesWithin12Months = (properties: Project[]) => {
@@ -109,7 +123,7 @@ export function PropertyListings({
       const filteredProperties =
         filterPropertiesWithin12Months(allPropertiesData);
 
-      setAllProperties(filteredProperties); // Store filtered data
+      setLocalAllProperties(filteredProperties); // Store filtered data
       // Initial sorting will be applied by useEffect
     } catch (err) {
       console.error("❌ Error fetching properties:", err);
@@ -122,7 +136,7 @@ export function PropertyListings({
           err instanceof Error ? err.message : "Failed to fetch properties"
         );
       }
-      setAllProperties([]);
+      setLocalAllProperties([]);
       setProperties([]);
     } finally {
       setLoading(false);
@@ -183,18 +197,25 @@ export function PropertyListings({
     }
   };
 
-  // Apply sorting when sortBy changes
+  // Apply sorting when sortBy changes or when shared properties are provided
   useEffect(() => {
-    if (allProperties.length > 0) {
-      const sortedProperties = sortProperties(allProperties, sortBy);
+    if (effectiveAllProperties.length > 0) {
+      // Filter for 12-month completion when using shared properties
+      const filteredProperties = allProperties
+        ? filterPropertiesWithin12Months(effectiveAllProperties)
+        : effectiveAllProperties;
+
+      const sortedProperties = sortProperties(filteredProperties, sortBy);
       setProperties(sortedProperties);
     }
-  }, [sortBy, allProperties]);
+  }, [sortBy, effectiveAllProperties, allProperties]);
 
-  // Fetch properties on component mount
+  // Fetch properties on component mount only if shared properties are not provided
   useEffect(() => {
-    fetchPropertiesForCompletion();
-  }, []);
+    if (!allProperties) {
+      fetchPropertiesForCompletion();
+    }
+  }, [allProperties]);
 
   // Get image URL from JSON string
   const getImageUrl = (coverImageUrl?: string) => {
@@ -366,15 +387,15 @@ export function PropertyListings({
         <div className="mb-8">
           <div className="bg-white rounded-xl p-4 shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-              {loading ? (
+              {effectiveLoading ? (
                 <div className="flex items-center">
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   <span className="text-[rgba(30,26,26,0.5)]">
                     Loading properties...
                   </span>
                 </div>
-              ) : error ? (
-                <p className="text-red-500 mb-2 sm:mb-0">{error}</p>
+              ) : effectiveError ? (
+                <p className="text-red-500 mb-2 sm:mb-0">{effectiveError}</p>
               ) : (
                 <>
                   <p className="text-[rgba(30,26,26,0.5)] mb-2 sm:mb-0">
@@ -402,11 +423,11 @@ export function PropertyListings({
         </div>
 
         {/* Properties Horizontal Scroll */}
-        {loading ? (
+        {effectiveLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-gold" />
           </div>
-        ) : error ? (
+        ) : effectiveError ? (
           <div className="text-center py-12">
             <p className="text-red-500 mb-4">{error}</p>
             <Button

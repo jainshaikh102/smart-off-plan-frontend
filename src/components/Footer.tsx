@@ -43,18 +43,18 @@ export function Footer() {
               <ul className="space-y-3">
                 <li>
                   <button
-                    onClick={() => router.push("/properties")}
+                    onClick={() => router.push("/")}
                     className="text-tan hover:text-gold transition-colors text-sm"
                   >
-                    Properties
+                    Home
                   </button>
                 </li>
                 <li>
                   <button
-                    onClick={() => router.push("/developers")}
+                    onClick={() => router.push("/properties")}
                     className="text-tan hover:text-gold transition-colors text-sm"
                   >
-                    Developers
+                    Projects
                   </button>
                 </li>
                 <li>
@@ -90,34 +90,18 @@ export function Footer() {
               <ul className="space-y-3">
                 <li>
                   <button
-                    onClick={() => router.push("/services/off-plan-investment")}
+                    onClick={() => router.push("/services/company-formation")}
                     className="text-tan hover:text-gold transition-colors text-sm"
                   >
-                    Off-Plan Investment
+                    Company Formation
                   </button>
                 </li>
                 <li>
                   <button
-                    onClick={() => router.push("/services/market-analysis")}
+                    onClick={() => router.push("/services/mortgages")}
                     className="text-tan hover:text-gold transition-colors text-sm"
                   >
-                    Market Analysis
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => router.push("/services/property-management")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
-                  >
-                    Property Management
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => router.push("/services/legal-assistance")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
-                  >
-                    Legal Assistance
+                    Mortgages
                   </button>
                 </li>
                 <li>
@@ -133,21 +117,29 @@ export function Footer() {
 
             {/* Contact Info */}
             <div>
-              <h4 className="mb-6 text-white">Contact Info</h4>
+              <h4 className="mb-6 text-white">Get In Touch</h4>
               <div className="space-y-4">
                 <div>
-                  <p className="text-tan text-sm">Phone</p>
-                  <p className="text-white text-sm">+971 4 123 4567</p>
+                  {/* <p className="text-tan text-sm">Phone</p> */}
+                  <p className="text-tan text-sm">📞 +971 4 123 4567</p>
                 </div>
                 <div>
-                  <p className="text-tan text-sm">Email</p>
-                  <p className="text-white text-sm">info@smartoffplan.ae</p>
+                  {/* <p className="text-tan text-sm">Email</p> */}
+                  <p className="text-tan text-sm">📧 info@smartoffplan.ae</p>
                 </div>
                 <div>
-                  <p className="text-tan text-sm">Address</p>
-                  <p className="text-white text-sm">
-                    Dubai, United Arab Emirates
+                  {/* <p className="text-tan text-sm">Address</p> */}
+                  <p className="text-tan text-sm">
+                    📍 Business Bay, Dubai, UAE
                   </p>
+                </div>
+              </div>
+
+              <div>
+                <h5 className="text-white mb-3">Working Hours</h5>
+                <div className="text-tan text-sm">
+                  <div>Mon - Fri: 9:00 AM - 7:00 PM</div>
+                  <div>Sat: 10:00 AM - 4:00 PM</div>
                 </div>
               </div>
             </div>
@@ -159,7 +151,7 @@ export function Footer() {
           {/* Bottom Footer */}
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-tan text-sm">
-              © 2024 Smart Off Plan. All rights reserved.
+              © 2024 Smart Off Plan. All rights reserved. Powered by Blacklion
             </div>
             <div className="flex space-x-8 mt-4 md:mt-0">
               <button
