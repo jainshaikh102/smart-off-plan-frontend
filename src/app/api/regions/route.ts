@@ -4,17 +4,15 @@ export async function GET(request: NextRequest) {
   try {
     console.log("🌍 Frontend regions API called");
 
-    // Reelly API configuration
-    const reallyApiUrl = "https://search-listings-production.up.railway.app/v1/regions";
-    const apiKey = "reelly-680ffbdd-FEuCzeraBCN5dtByJeLb8AeCesrTvlFz";
+    // Backend URL - using database-only approach
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
+    const backendApiUrl = `${backendUrl}/api/regions`;
 
-    console.log("🔗 Calling Reelly API:", reallyApiUrl);
+    console.log("🔗 Calling backend API:", backendApiUrl);
 
-    const response = await fetch(reallyApiUrl, {
+    const response = await fetch(backendApiUrl, {
       method: "GET",
       headers: {
-        "X-API-Key": apiKey,
-        "accept": "application/json",
         "Content-Type": "application/json",
       },
       next: { revalidate: 3600 }, // Cache for 1 hour since regions don't change frequently
@@ -22,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       console.error(
-        "❌ Reelly API error:",
+        "❌ Backend API error:",
         response.status,
         response.statusText
       );
@@ -38,7 +36,10 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
     console.log("✅ Successfully fetched regions from Reelly API");
-    console.log("📊 Regions count:", Array.isArray(data) ? data.length : "Unknown");
+    console.log(
+      "📊 Regions count:",
+      Array.isArray(data) ? data.length : "Unknown"
+    );
 
     // Return the data directly as it comes from Reelly API
     return NextResponse.json(data);
