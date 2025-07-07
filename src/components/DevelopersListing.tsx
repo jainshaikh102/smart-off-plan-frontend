@@ -603,8 +603,16 @@ export function DevelopersListing({
                     </div>
 
                     {/* Description */}
-                    <p className="text-[rgba(30,26,26,0.8)] text-sm leading-relaxed">
+                    {/* <p className="text-[rgba(30,26,26,0.8)] text-sm leading-relaxed">
                       {developer.description || "No description available."}
+                    </p> */}
+
+                    <p className="text-[rgba(30,26,26,0.8)] text-sm leading-relaxed line-clamp-4">
+                      {developer.description || "No description available."}
+                      {developer.description &&
+                        (developer.description.split("\n").length > 4 ||
+                          developer.description.length > 200) &&
+                        "..."}
                     </p>
 
                     {/* Key Stats */}
