@@ -64,10 +64,18 @@ export function Footer() {
                 </li>
                 <li>
                   <button
-                    onClick={() => router.push("/services")}
+                    // onClick={() => router.push("/properties")}
                     className="text-tan hover:text-gold transition-colors text-sm"
                   >
-                    Services
+                    Units Listing
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => router.push("/developers")}
+                    className="text-tan hover:text-gold transition-colors text-sm"
+                  >
+                    Developers
                   </button>
                 </li>
                 <li>

@@ -136,7 +136,7 @@ export default function ServicesRoute() {
           </div>
         </section>
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
