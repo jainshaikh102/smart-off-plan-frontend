@@ -156,7 +156,7 @@ export function Footer() {
           {/* Bottom Footer */}
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-tan text-sm">
-              © 2024 Smart Off Plan. All rights reserved. Powered by Blacklion
+              © 2024 Smart Off Plan. All rights reserved. Powered by Blacklion.
             </div>
             <div className="flex space-x-8 mt-4 md:mt-0">
               <button
