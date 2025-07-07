@@ -18,7 +18,7 @@ export function Footer() {
             {/* Company Info */}
             <div>
               <h3 className="mb-6 text-white">Smart Off Plan</h3>
-              <p className="text-tan text-sm mb-6 leading-relaxed">
+              <p className="text-[#d2c7b8] text-sm mb-6 leading-relaxed">
                 Your trusted partner for Dubai developments. Connecting
                 international investors with premium off-plan opportunities.
               </p>
@@ -49,7 +49,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Home
                   </button>
@@ -57,7 +57,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/properties")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Projects
                   </button>
@@ -65,7 +65,7 @@ export function Footer() {
                 <li>
                   <button
                     // onClick={() => router.push("/properties")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Units Listing
                   </button>
@@ -73,7 +73,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/developers")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Developers
                   </button>
@@ -81,7 +81,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/about")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     About Us
                   </button>
@@ -89,7 +89,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/contact")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Contact
                   </button>
@@ -104,7 +104,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/services/company-formation")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Company Formation
                   </button>
@@ -112,7 +112,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/services/mortgages")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Mortgages
                   </button>
@@ -120,7 +120,7 @@ export function Footer() {
                 <li>
                   <button
                     onClick={() => router.push("/services/golden-visa")}
-                    className="text-tan hover:text-gold transition-colors text-sm"
+                    className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
                   >
                     Golden Visa
                   </button>
@@ -133,16 +133,18 @@ export function Footer() {
               <h4 className="mb-6 text-white">Get In Touch</h4>
               <div className="space-y-4">
                 <div>
-                  {/* <p className="text-tan text-sm">Phone</p> */}
-                  <p className="text-tan text-sm">📞 +971 4 123 4567</p>
+                  {/* <p className="text-[#d2c7b8] text-sm">Phone</p> */}
+                  <p className="text-[#d2c7b8] text-sm">📞 +971 4 123 4567</p>
                 </div>
                 <div>
-                  {/* <p className="text-tan text-sm">Email</p> */}
-                  <p className="text-tan text-sm">📧 info@smartoffplan.ae</p>
+                  {/* <p className="text-[#d2c7b8] text-sm">Email</p> */}
+                  <p className="text-[#d2c7b8] text-sm">
+                    📧 info@smartoffplan.ae
+                  </p>
                 </div>
                 <div>
-                  {/* <p className="text-tan text-sm">Address</p> */}
-                  <p className="text-tan text-sm">
+                  {/* <p className="text-[#d2c7b8] text-sm">Address</p> */}
+                  <p className="text-[#d2c7b8] text-sm">
                     📍 Business Bay, Dubai, UAE
                   </p>
                 </div>
@@ -150,7 +152,7 @@ export function Footer() {
 
               <div>
                 <h5 className="text-white mb-3">Working Hours</h5>
-                <div className="text-tan text-sm">
+                <div className="text-[#d2c7b8] text-sm">
                   <div>Mon - Fri: 9:00 AM - 7:00 PM</div>
                   <div>Sat: 10:00 AM - 4:00 PM</div>
                 </div>
@@ -163,25 +165,25 @@ export function Footer() {
 
           {/* Bottom Footer */}
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-tan text-sm">
+            <div className="text-[#d2c7b8] text-sm">
               © 2024 Smart Off Plan. All rights reserved. Powered by Blacklion.
             </div>
             <div className="flex space-x-8 mt-4 md:mt-0">
               <button
                 onClick={() => handlePageNavigation("privacy-policy")}
-                className="text-tan hover:text-gold transition-colors text-sm"
+                className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
               >
                 Privacy Policy
               </button>
               <button
                 onClick={() => handlePageNavigation("terms-of-service")}
-                className="text-tan hover:text-gold transition-colors text-sm"
+                className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
               >
                 Terms of Service
               </button>
               <button
                 onClick={() => handlePageNavigation("cookie-policy")}
-                className="text-tan hover:text-gold transition-colors text-sm"
+                className="text-[#d2c7b8] hover:text-gold transition-colors text-sm"
               >
                 Cookie Policy
               </button>
