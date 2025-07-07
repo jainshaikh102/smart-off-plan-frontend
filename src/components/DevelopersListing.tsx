@@ -266,7 +266,7 @@ export function DevelopersListing({
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto pb-4">
+              <div className="overflow-x-auto pb-4 flex item justify-center">
                 <div className="flex gap-8 w-max px-[82px] py-[0px] mx-[10px] my-[0px]">
                   {filteredDevelopers.map((developer) => (
                     <div

@@ -1,5 +1,6 @@
 "use client";
 
+import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function Footer() {
@@ -23,16 +24,20 @@ export function Footer() {
               </p>
               <div className="flex space-x-4">
                 <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-gold hover:text-[#8b7355] transition-all duration-300 cursor-pointer">
-                  <span className="text-sm">f</span>
+                  {/* <span className="text-sm">f</span> */}
+                  <Facebook />
                 </div>
                 <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-gold hover:text-[#8b7355] transition-all duration-300 cursor-pointer">
-                  <span className="text-sm">t</span>
+                  {/* <span className="text-sm">t</span> */}
+                  <Twitter />
                 </div>
                 <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-gold hover:text-[#8b7355] transition-all duration-300 cursor-pointer">
-                  <span className="text-sm">in</span>
+                  {/* <span className="text-sm">in</span> */}
+                  <Linkedin />
                 </div>
                 <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-gold hover:text-[#8b7355] transition-all duration-300 cursor-pointer">
-                  <span className="text-sm">ig</span>
+                  {/* <span className="text-sm">ig</span> */}
+                  <Instagram />
                 </div>
               </div>
             </div>
