@@ -111,10 +111,7 @@ export function AllPropertiesPage({
   selectedDeveloper,
 }: AllPropertiesPageProps) {
   // State management
-  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
-  const [sortedProperties, setSortedProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("featured");
@@ -222,34 +219,77 @@ export function AllPropertiesPage({
     { value: "beyond_24m", label: "Beyond 24 Months" },
   ];
 
-  // Fetch properties from API using axios with pagination
-  const fetchProperties = async () => {
+  // Fetch properties from API with server-side pagination
+  const fetchProperties = async (page: number = 1, limit: number = 12) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.get("/api/properties");
-      const data = response.data;
-
-      let fetchedProperties: Property[] = [];
-      if (data.success && data.data) {
-        fetchedProperties = data.data.items || data.data || [];
-      } else if (Array.isArray(data)) {
-        fetchedProperties = data;
-      }
-
-      setAllProperties(fetchedProperties);
-      setFilteredProperties(fetchedProperties);
-      setPagination({
-        page: 1,
-        limit: pagination.limit,
-        total: fetchedProperties.length,
-        totalPages: Math.ceil(fetchedProperties.length / pagination.limit),
+      // Build query parameters for server-side pagination and filtering
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
       });
 
-      // Set initial page properties
-      setProperties(fetchedProperties.slice(0, pagination.limit));
-      setCurrentPage(1);
+      // Add sorting parameter
+      if (sortBy) {
+        params.append("sort", sortBy);
+      }
+
+      // Add filter parameters
+      if (filters.searchTerm) {
+        params.append("search", filters.searchTerm);
+      }
+      if (filters.priceRange[0] > 0) {
+        params.append("min_price", filters.priceRange[0].toString());
+      }
+      if (filters.priceRange[1] < 10000000) {
+        params.append("max_price", filters.priceRange[1].toString());
+      }
+      if (filters.developmentStatus.length > 0) {
+        params.append(
+          "development_status",
+          filters.developmentStatus.join(",")
+        );
+      }
+      if (filters.salesStatus.length > 0) {
+        params.append("sales_status", filters.salesStatus.join(","));
+      }
+
+      const response = await axios.get(`/api/properties?${params.toString()}`);
+      const data = response.data;
+
+      if (data.success && data.data) {
+        const fetchedProperties = data.data || [];
+
+        // Update properties for current page
+        setProperties(fetchedProperties);
+
+        // Update pagination info from server response
+        if (data.pagination) {
+          setPagination({
+            page: data.pagination.page,
+            limit: data.pagination.limit,
+            total: data.pagination.total,
+            totalPages: data.pagination.totalPages,
+          });
+          setCurrentPage(data.pagination.page);
+        }
+
+        console.log(
+          `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
+            data.pagination?.totalPages || 1
+          })`
+        );
+        console.log("📊 Pagination info:", data.pagination);
+        console.log(
+          "🔍 API URL called:",
+          `/api/properties?${params.toString()}`
+        );
+      } else {
+        setProperties([]);
+        setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
+      }
     } catch (err) {
       console.error("❌ Error fetching properties:", err);
       if (axios.isAxiosError(err)) {
@@ -261,161 +301,35 @@ export function AllPropertiesPage({
           err instanceof Error ? err.message : "Failed to fetch properties"
         );
       }
-      setAllProperties([]);
       setProperties([]);
+      setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle page change with client-side slicing
+  // Handle page change with server-side pagination
   const handlePageChange = (page: number) => {
     if (page < 1 || page > pagination.totalPages) {
       console.warn(`⚠️ Invalid page number: ${page}`);
       return;
     }
 
-    setCurrentPage(page);
-    const startIndex = (page - 1) * pagination.limit;
-    const endIndex = startIndex + pagination.limit;
-    setProperties(sortedProperties.slice(startIndex, endIndex));
-    setPagination((prev) => ({ ...prev, page }));
+    // Fetch new page from server
+    fetchProperties(page, pagination.limit);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Apply filters
+  // Apply filters and sorting - trigger new API call with server-side filtering
   useEffect(() => {
-    let result = [...allProperties];
-
-    // Search term filter
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchLower) ||
-          p.area.toLowerCase().includes(searchLower) ||
-          p.developer.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Price filtering - handle database structure with min_price/max_price
-    // Treat null min_price as 0 for filtering
-    result = result.filter((p) => {
-      const minPrice = p.min_price ?? 0; // Treat null as 0
-      const maxPrice = p.max_price ?? minPrice; // Use min_price if max_price is null
-
-      return (
-        minPrice >= filters.priceRange[0] && maxPrice <= filters.priceRange[1]
-      );
-    });
-
-    if (filters.completionTimeframe !== "all" && filters.completionTimeframe) {
-      const now = new Date();
-      result = result.filter((p) => {
-        if (!p.completion_datetime) return false;
-        const completion = new Date(p.completion_datetime);
-        const monthsDiff =
-          (completion.getFullYear() - now.getFullYear()) * 12 +
-          completion.getMonth() -
-          now.getMonth();
-
-        switch (filters.completionTimeframe) {
-          case "within_6m":
-            return monthsDiff <= 6;
-          case "within_12m":
-            return monthsDiff <= 12;
-          case "within_24m":
-            return monthsDiff <= 24;
-          case "beyond_24m":
-            return monthsDiff > 24;
-          default:
-            return true;
-        }
-      });
-    }
-
-    if (filters.developmentStatus.length > 0) {
-      result = result.filter((p) =>
-        filters.developmentStatus.includes(p.development_status)
-      );
-    }
-
-    if (filters.salesStatus.length > 0) {
-      result = result.filter(
-        (p) =>
-          filters.salesStatus.includes(p.sale_status) ||
-          filters.salesStatus.includes(p.status)
-      );
-    }
-
-    setFilteredProperties(result);
-  }, [allProperties, filters]);
-
-  // Apply sorting
-  useEffect(() => {
-    let sortedResult = [...filteredProperties];
-
-    switch (sortBy) {
-      case "featured":
-        // Featured properties first, then non-featured
-        sortedResult.sort((a, b) => {
-          if (a.featured && !b.featured) return -1;
-          if (!a.featured && b.featured) return 1;
-          return 0;
-        });
-        break;
-
-      case "price-low":
-        // Price: Low to High (using min_price, treat null as 0)
-        sortedResult.sort((a, b) => {
-          const priceA = a.min_price ?? 0;
-          const priceB = b.min_price ?? 0;
-          return priceA - priceB;
-        });
-        break;
-
-      case "price-high":
-        // Price: High to Low (using min_price, treat null as 0)
-        sortedResult.sort((a, b) => {
-          const priceA = a.min_price ?? 0;
-          const priceB = b.min_price ?? 0;
-          return priceB - priceA;
-        });
-        break;
-
-      case "location":
-        // Location: Area A-Z (alphabetical by area)
-        sortedResult.sort((a, b) => {
-          const areaA = a.area?.toLowerCase() || "";
-          const areaB = b.area?.toLowerCase() || "";
-          return areaA.localeCompare(areaB);
-        });
-        break;
-
-      default:
-        // No sorting
-        break;
-    }
-
-    setSortedProperties(sortedResult);
-
-    // Update pagination based on sorted results
-    const newTotalPages = Math.ceil(sortedResult.length / pagination.limit);
-    setPagination((prev) => ({
-      ...prev,
-      total: sortedResult.length,
-      totalPages: newTotalPages,
-      page: 1, // Reset to first page when sorting changes
-    }));
-
-    // Set properties for first page
-    setProperties(sortedResult.slice(0, pagination.limit));
-    setCurrentPage(1);
-  }, [filteredProperties, sortBy, pagination.limit]);
+    // Reset to page 1 when filters change and fetch new data
+    fetchProperties(1, pagination.limit);
+  }, [filters, sortBy]); // Re-fetch when filters or sorting changes
 
   // Load properties and statuses when component mounts
   useEffect(() => {
-    fetchProperties();
+    console.log("🚀 AllPropertiesPage: Initial load - fetching first page");
+    fetchProperties(1, 12); // Explicitly pass page 1 and limit 12
     fetchStatuses();
   }, []);
 
