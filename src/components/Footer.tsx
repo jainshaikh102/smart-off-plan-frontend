@@ -134,7 +134,7 @@ export function Footer() {
               <div className="space-y-4">
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Phone</p> */}
-                  <p className="text-[#d2c7b8] text-sm">📞 +971 4 123 4567</p>
+                  <p className="text-[#d2c7b8] text-sm">📞 +9715432181237</p>
                 </div>
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Email</p> */}

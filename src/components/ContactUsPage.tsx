@@ -49,7 +49,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       icon: Phone,
       title: "Phone",
-      primary: "+971 4 123 4567",
+      primary: "+9715432181237",
       secondary: "+971 50 123 4567",
       description: "Call us for immediate assistance",
       color: "text-gold",
@@ -108,7 +108,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       title: "Dubai Office",
       address: "Business Bay, Dubai, UAE",
-      phone: "+971 4 123 4567",
+      phone: "+9715432181237",
       email: "dubai@smartoffplan.ae",
       hours: "Mon-Fri: 9AM-7PM, Sat: 10AM-4PM",
     },

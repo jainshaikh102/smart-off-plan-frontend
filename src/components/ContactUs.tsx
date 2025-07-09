@@ -149,7 +149,7 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Call Us</h4>
-                        <p className="text-tan">+971 4 123 4567</p>
+                        <p className="text-tan">+9715432181237</p>
                       </div>
                     </div>
 

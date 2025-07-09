@@ -90,6 +90,8 @@ interface Filters {
   completionTimeframe: string;
   developmentStatus: string[];
   salesStatus: string[];
+  unitType: string[];
+  bedrooms: string[];
 }
 
 interface PaginationInfo {
@@ -120,6 +122,8 @@ export function AllPropertiesPage({
 
   // Dynamic filter options state
   const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
+  const [unitType, setUnitType] = useState<string[]>([]);
+  const [bedrooms, setBedrooms] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
   // Applied filters (used for API calls)
@@ -130,6 +134,8 @@ export function AllPropertiesPage({
     completionTimeframe: "all",
     developmentStatus: [],
     salesStatus: [],
+    unitType: [],
+    bedrooms: [],
   });
 
   // Dialog filters (temporary state while user is selecting filters)
@@ -140,6 +146,8 @@ export function AllPropertiesPage({
     completionTimeframe: "all",
     developmentStatus: [],
     salesStatus: [],
+    unitType: [],
+    bedrooms: [],
   });
 
   // Pagination state
@@ -172,6 +180,8 @@ export function AllPropertiesPage({
       completionTimeframe: "all",
       developmentStatus: [],
       salesStatus: [],
+      unitType: [],
+      bedrooms: [],
     };
     setDialogFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
@@ -189,6 +199,8 @@ export function AllPropertiesPage({
     if (appliedFilters.completionTimeframe !== "all") count++;
     if (appliedFilters.developmentStatus.length > 0) count++;
     if (appliedFilters.salesStatus.length > 0) count++;
+    if (appliedFilters.unitType.length > 0) count++;
+    if (appliedFilters.bedrooms.length > 0) count++;
 
     return count;
   };
@@ -229,6 +241,63 @@ export function AllPropertiesPage({
         );
         setSalesStatuses(statuses);
       }
+
+      // Fetch unit types from API
+      const unitTypesResponse = await axios.get("/api/properties/unit-types");
+      if (unitTypesResponse.data.success && unitTypesResponse.data.data) {
+        const types = unitTypesResponse.data.data.map(
+          (item: any) => item.name || item
+        );
+        setUnitType(types);
+      } else {
+        // Fallback to hardcoded unit types
+        setUnitType([
+          "Apartments",
+          "Attached Villa",
+          "Cabins",
+          "Chalet",
+          "Chalets",
+          "Duplex",
+          "Duplex Penthouse",
+          "Duplex Villa",
+          "Fractional Duplex",
+          "Fractional Loft",
+          "Full Floor",
+          "Half Floor",
+          "Hotel Apartments",
+          "Loft",
+          "Mansion",
+          "Penthouse",
+          "Penthouse Loft",
+          "Pent Suite Villa",
+          "Plot",
+          "Plots",
+          "Semi-Detached",
+          "Sky Duplex",
+          "Sky Mansion",
+          "Sky Palace",
+          "Sky Villa",
+          "Suite",
+          "Townhouse",
+          "Triplex",
+          "Villa",
+          "Villas",
+        ]);
+      }
+
+      // Fetch bedroom options from API
+      const bedroomsResponse = await axios.get(
+        "/api/properties/bedroom-options"
+      );
+      if (bedroomsResponse.data.success && bedroomsResponse.data.data) {
+        const options = bedroomsResponse.data.data.map(
+          (item: any) => item.name || item
+        );
+        setBedrooms(options);
+      } else {
+        // Fallback to hardcoded bedroom options
+        setBedrooms(["Studio", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
+      }
     } catch (error) {
       console.error("❌ Error fetching statuses:", error);
       // Fallback to hardcoded values
@@ -240,10 +309,88 @@ export function AllPropertiesPage({
         "Announced",
         "Start of sales",
       ]);
+      setUnitType([
+        "Apartments",
+        "Attached Villa",
+        "Cabins",
+        "Chalet",
+        "Chalets",
+        "Duplex",
+        "Duplex Penthouse",
+        "Duplex Villa",
+        "Fractional Duplex",
+        "Fractional Loft",
+        "Full Floor",
+        "Half Floor",
+        "Hotel Apartments",
+        "Loft",
+        "Mansion",
+        "Penthouse",
+        "Penthouse Loft",
+        "Pent Suite Villa",
+        "Plot",
+        "Plots",
+        "Semi-Detached",
+        "Sky Duplex",
+        "Sky Mansion",
+        "Sky Palace",
+        "Sky Villa",
+        "Suite",
+        "Townhouse",
+        "Triplex",
+        "Villa",
+        "Villas",
+      ]);
+      setBedrooms([
+        "1,5 bedroom",
+        "1,5 bedroom + pool",
+        "1 bedroom",
+        "1 bedroom junior",
+        "1 bedroom + multipurpose room",
+        "1 bedroom + pool",
+        "2,5 bedroom",
+        "2 bedroom",
+        "2 bedroom + garden",
+        "2 bedroom + multipurpose room",
+        "2 bedroom + pool",
+        "2 bedroom + Pool",
+        "3,5 bedroom",
+        "3 bedroom",
+        "3 bedroom + multipurpose room",
+        "3 bedroom + pool",
+        "4 bedroom",
+        "4 bedroom + basement",
+        "4 bedroom + multipurpose room",
+        "4 bedroom + pool",
+        "5 bedroom",
+        "5 bedroom + basement",
+        "5 bedroom+pool",
+        "6,5 bedroom",
+        "6 bedroom",
+        "6 Bedroom",
+        "6 bedroom + basement",
+        "6 bedroom + pool",
+        "7 bedroom",
+        "7 Bedroom",
+        "7 bedroom + pool",
+        "8 bedroom",
+        "9 bedroom",
+        "Full building",
+        "Full floor",
+        "Guest room",
+        "Junior Suite",
+        "Merged Studios",
+        "Studio",
+        "Studio + Pool",
+        "Studio + S",
+        "Suite",
+        "Suite+pool",
+      ]);
     } finally {
       setStatusesLoading(false);
     }
   };
+
   const completionTimeframes = [
     { value: "all", label: "All Projects" },
     { value: "within_6m", label: "Within 6 Months" },
@@ -305,6 +452,13 @@ export function AllPropertiesPage({
       if (appliedFilters.salesStatus.length > 0) {
         params.append("sale_status", appliedFilters.salesStatus.join(","));
       }
+      if (appliedFilters.unitType.length > 0) {
+        params.append("unit_type", appliedFilters.unitType.join(","));
+      }
+
+      if (appliedFilters.bedrooms.length > 0) {
+        params.append("bedrooms", appliedFilters.bedrooms.join(","));
+      }
 
       // Add completion timeframe parameter - map frontend values to backend values
       if (
@@ -334,11 +488,7 @@ export function AllPropertiesPage({
 
       if (data.success && data.data) {
         const fetchedProperties = data.data || [];
-
-        // Update properties for current page
         setProperties(fetchedProperties);
-
-        // Update pagination info from server response
         if (data.pagination) {
           setPagination({
             page: data.pagination.page,
@@ -348,7 +498,6 @@ export function AllPropertiesPage({
           });
           setCurrentPage(data.pagination.page);
         }
-
         console.log(
           `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
             data.pagination?.totalPages || 1
@@ -722,6 +871,98 @@ export function AllPropertiesPage({
                                 />
                                 <label className="text-sm text-warm-gray cursor-pointer flex-1">
                                   {status}
+                                </label>
+                              </div>
+                            ))
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Unit Type  */}
+                      <Card className="border-beige/60 shadow-sm">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
+                            <Hammer className="w-5 h-5 text-gold" />
+                            <span>Unit Type</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {statusesLoading ? (
+                            <div className="text-sm text-warm-gray">
+                              Loading statuses...
+                            </div>
+                          ) : (
+                            unitType.map((type: string) => (
+                              <div
+                                key={type}
+                                className="flex items-center space-x-3"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={dialogFilters.unitType.includes(
+                                    type
+                                  )}
+                                  onChange={(e) => {
+                                    const newUnitType = e.target.checked
+                                      ? [...dialogFilters.unitType, type]
+                                      : dialogFilters.unitType.filter(
+                                          (t: string) => t !== type
+                                        );
+                                    handleDialogFilterChange(
+                                      "unitType",
+                                      newUnitType
+                                    ); // Update unitType
+                                  }}
+                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
+                                />
+                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
+                                  {type}
+                                </label>
+                              </div>
+                            ))
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Bedrooms */}
+                      <Card className="border-beige/60 shadow-sm">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
+                            <Hammer className="w-5 h-5 text-gold" />
+                            <span>Bedrooms</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {statusesLoading ? (
+                            <div className="text-sm text-warm-gray">
+                              Loading statuses...
+                            </div>
+                          ) : (
+                            bedrooms.map((type: string) => (
+                              <div
+                                key={type}
+                                className="flex items-center space-x-3"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={dialogFilters.bedrooms.includes(
+                                    type
+                                  )}
+                                  onChange={(e) => {
+                                    const newBedrooms = e.target.checked
+                                      ? [...dialogFilters.bedrooms, type]
+                                      : dialogFilters.bedrooms.filter(
+                                          (t: string) => t !== type
+                                        );
+                                    handleDialogFilterChange(
+                                      "bedrooms",
+                                      newBedrooms
+                                    );
+                                  }}
+                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
+                                />
+                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
+                                  {type}
                                 </label>
                               </div>
                             ))

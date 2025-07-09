@@ -2780,7 +2780,7 @@ export function PropertyDetailPage({
                   </div>
                   <div>
                     <div className="text-[#8b7355] font-medium">
-                      +971 4 123 4567
+                      +9715432181237
                     </div>
                     <div className="text-xs text-warm-gray">Available 24/7</div>
                   </div>

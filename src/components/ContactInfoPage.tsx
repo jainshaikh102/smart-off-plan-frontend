@@ -65,7 +65,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       name: "Business Bay Headquarters",
       shortName: "Business Bay",
       address: "Level 42, Business Bay Tower, Business Bay, Dubai, UAE",
-      phone: "+971 4 123 4567",
+      phone: "+9715432181237",
       email: "info@smartoffplan.ae",
       hours: "Mon-Fri: 9:00 AM - 7:00 PM, Sat: 10:00 AM - 4:00 PM",
       image:
@@ -106,7 +106,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: Phone,
       title: "Call Us",
       description: "Speak directly with our property experts",
-      value: "+971 4 123 4567",
+      value: "+9715432181237",
       action: "tel:+97141234567",
       color: "text-gold",
       bgColor: "from-gold/10 to-gold/5",
