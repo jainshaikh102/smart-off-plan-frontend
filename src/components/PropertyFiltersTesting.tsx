@@ -10,18 +10,6 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-
-// Fix for default markers in react-leaflet
-// delete (L.Icon.Default.prototype as any)._getIconUrl;
-// L.Icon.Default.mergeOptions({
-//   iconRetinaUrl:
-//     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-//   iconUrl:
-//     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-//   shadowUrl:
-//     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-// });
-
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
@@ -33,7 +21,6 @@ import {
 } from "./ui/select";
 import { Slider } from "./ui/slider";
 import { Badge } from "./ui/badge";
-import { ScrollArea } from "./ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -42,41 +29,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Separator } from "./ui/separator";
 import {
   MapPin,
   Search,
-  ZoomIn,
-  ZoomOut,
-  Layers,
-  Maximize2,
-  Heart,
-  Bed,
-  Bath,
-  Square,
-  Filter,
-  X,
   SlidersHorizontal,
   RotateCcw,
-  DollarSign,
-  Ruler,
-  Building,
-  Home,
-  Calendar,
   TrendingUp,
   Clock,
   ShoppingCart,
   Banknote,
-  Check,
   Hammer,
-  Home as HomeIcon,
+  Building,
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useRouter } from "next/navigation";
-import "leaflet/dist/leaflet.css";
 
 interface Property {
   id: number;
@@ -108,110 +76,191 @@ interface Property {
   __v: number;
 }
 
-interface Region {
-  name: string;
-  bbox_ne_lat: number;
-  bbox_ne_lng: number;
-  bbox_sw_lat: number;
-  bbox_sw_lng: number;
-}
-
 interface Filters {
   searchTerm: string;
   priceRange: [number, number];
   priceDisplayMode: "total" | "perSqFt";
-  areaRange: [number, number];
   completionTimeframe: string;
   developmentStatus: string[];
-  unitType: string[];
-  bedrooms: number[];
   salesStatus: string[];
 }
 
 interface PropertyFiltersTestingProps {
   onPropertySelect: (property: Property) => void;
-  // Optional props for shared data to avoid multiple API calls
-  allProperties?: any[];
-  propertiesLoading?: boolean;
-  propertiesError?: string | null;
 }
 
 export function PropertyFiltersTesting({
   onPropertySelect,
-  allProperties: sharedAllProperties,
-  propertiesLoading,
-  propertiesError,
 }: PropertyFiltersTestingProps) {
-  const [localProperties, setLocalProperties] = useState<Property[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Use shared properties if available, otherwise use local state
-  const effectiveProperties = sharedAllProperties || localProperties;
-  const effectiveLoading =
-    propertiesLoading !== undefined ? propertiesLoading : loading;
-  const effectiveError =
-    propertiesError !== undefined ? propertiesError : error;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [hoveredPropertyId, setHoveredPropertyId] = useState<number | null>(
+
+  // Infinite scroll pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalProperties, setTotalProperties] = useState(0);
+
+  const mapRef = useRef<L.Map | null>(null);
+
+  // Applied filters (used for API calls)
+  const [appliedFilters, setAppliedFilters] = useState<Filters>({
+    searchTerm: "",
+    priceRange: [0, 20000000],
+    priceDisplayMode: "total",
+    completionTimeframe: "all",
+    developmentStatus: [],
+    salesStatus: [],
+  });
+
+  // Dialog filters (temporary state while user is selecting filters)
+  const [dialogFilters, setDialogFilters] = useState<Filters>({
+    searchTerm: "",
+    priceRange: [0, 20000000],
+    priceDisplayMode: "total",
+    completionTimeframe: "all",
+    developmentStatus: [],
+    salesStatus: [],
+  });
+
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null
   );
-  const [mapHoveredPropertyId, setMapHoveredPropertyId] = useState<
-    number | null
-  >(null);
 
+  const [hoveredProperty, setHoveredProperty] = useState<Property | null>(null);
+  const [sortBy, setSortBy] = useState("featured");
   // Dynamic filter options state
   const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
-
-  // Regions state
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [selectedRegion, setSelectedRegion] = useState<string>("Dubai");
-  const [regionsLoading, setRegionsLoading] = useState(false);
-  const mapRef = useRef<L.Map | null>(null);
-
-  const [filters, setFilters] = useState<Filters>({
-    searchTerm: "",
-    priceRange: [0, 20000000],
-    priceDisplayMode: "total",
-    areaRange: [0, 8000],
-    completionTimeframe: "all",
-    developmentStatus: [],
-    unitType: [],
-    bedrooms: [],
-    salesStatus: [],
-  });
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
-    null
-  );
-  const [hoveredProperty, setHoveredProperty] = useState<Property | null>(null);
-  const [defaultMapView, setDefaultMapView] = useState({
-    center: [25.2048, 55.2708] as [number, number],
-    zoom: 11,
-  });
-  // const mapRef = useRef<any>(null);
   const router = useRouter();
 
-  const fetchProperties = async () => {
-    setLoading(true);
-    setError(null);
+  // Ref for infinite scroll trigger
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const fetchProperties = async (
+    page: number = 1,
+    limit: number = 12,
+    append: boolean = false
+  ) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
 
     try {
-      const response = await axios.get(`/api/properties`);
+      // Build query parameters for server-side pagination and filtering
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+
+      // Add sorting parameter - map frontend values to backend values
+      if (sortBy) {
+        let backendSortValue = sortBy;
+        switch (sortBy) {
+          case "price-low":
+            backendSortValue = "price_min_to_max";
+            break;
+          case "price-high":
+            backendSortValue = "price_max_to_min";
+            break;
+          case "location":
+            backendSortValue = "name_asc"; // Location sorting by area name
+            break;
+          case "featured":
+            backendSortValue = "featured";
+            break;
+          default:
+            backendSortValue = "featured"; // Default to featured
+        }
+        params.append("sort", backendSortValue);
+      }
+
+      // Add filter parameters (use appliedFilters for API calls)
+      if (appliedFilters.searchTerm) {
+        params.append("name", appliedFilters.searchTerm);
+      }
+      if (appliedFilters.priceRange[0] > 0) {
+        params.append("min_price", appliedFilters.priceRange[0].toString());
+      }
+      if (appliedFilters.priceRange[1] < 20000000) {
+        params.append("max_price", appliedFilters.priceRange[1].toString());
+      }
+      if (appliedFilters.developmentStatus.length > 0) {
+        params.append(
+          "development_status",
+          appliedFilters.developmentStatus.join(",")
+        );
+      }
+      if (appliedFilters.salesStatus.length > 0) {
+        params.append("sale_status", appliedFilters.salesStatus.join(","));
+      }
+
+      // Add completion timeframe parameter - map frontend values to backend values
+      if (
+        appliedFilters.completionTimeframe &&
+        appliedFilters.completionTimeframe !== "all"
+      ) {
+        let backendTimeframeValue = appliedFilters.completionTimeframe;
+        switch (appliedFilters.completionTimeframe) {
+          case "within_6m":
+            backendTimeframeValue = "6_months";
+            break;
+          case "within_12m":
+            backendTimeframeValue = "12_months";
+            break;
+          case "within_24m":
+            backendTimeframeValue = "24_months";
+            break;
+          case "beyond_24m":
+            backendTimeframeValue = "beyond_24_months";
+            break;
+        }
+        params.append("completion_period", backendTimeframeValue);
+      }
+
+      const response = await axios.get(`/api/properties?${params.toString()}`);
       const data = response.data;
 
       if (data.success && data.data) {
-        const items = data.data.items || data.data || [];
-        setLocalProperties(items);
-        setFilteredProperties(items);
-      } else if (Array.isArray(data)) {
-        setLocalProperties(data);
-        setFilteredProperties(data);
+        const fetchedProperties = data.data || [];
+
+        // Update properties - append for infinite scroll or replace for new search
+        if (append) {
+          setProperties((prev) => [...prev, ...fetchedProperties]);
+        } else {
+          setProperties(fetchedProperties);
+        }
+
+        // Update pagination info from server response
+        if (data.pagination) {
+          setCurrentPage(data.pagination.page);
+          setTotalProperties(data.pagination.total);
+          setHasMore(data.pagination.page < data.pagination.totalPages);
+        }
+
+        console.log(
+          `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
+            data.pagination?.totalPages || 1
+          })`
+        );
+        console.log("📊 Pagination info:", data.pagination);
+        console.log(
+          "🔍 API URL called:",
+          `/api/properties?${params.toString()}`
+        );
       } else {
-        setLocalProperties([]);
-        setFilteredProperties([]);
+        if (!append) {
+          setProperties([]);
+          setCurrentPage(1);
+          setTotalProperties(0);
+          setHasMore(false);
+        }
       }
     } catch (err) {
       console.error("❌ Error fetching properties:", err);
@@ -224,10 +273,18 @@ export function PropertyFiltersTesting({
           err instanceof Error ? err.message : "Failed to fetch properties"
         );
       }
-      setLocalProperties([]);
-      setFilteredProperties([]);
+      if (!append) {
+        setProperties([]);
+        setCurrentPage(1);
+        setTotalProperties(0);
+        setHasMore(false);
+      }
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -268,82 +325,6 @@ export function PropertyFiltersTesting({
     }
   };
 
-  // Fetch regions from API
-  const fetchRegions = async () => {
-    setRegionsLoading(true);
-    try {
-      const response = await axios.get("/api/regions");
-      if (response.data && Array.isArray(response.data)) {
-        setRegions(response.data);
-      } else if (response.data.success && response.data.data) {
-        setRegions(response.data.data);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching regions:", error);
-      // Fallback to default regions
-      setRegions([
-        {
-          name: "Dubai",
-          bbox_ne_lat: 25.3373,
-          bbox_ne_lng: 55.5177,
-          bbox_sw_lat: 24.7136,
-          bbox_sw_lng: 54.8566,
-        },
-        {
-          name: "Abu Dhabi",
-          bbox_ne_lat: 25.249089,
-          bbox_ne_lng: 56.018126,
-          bbox_sw_lat: 22.631514,
-          bbox_sw_lng: 51.421236,
-        },
-      ] as Region[]);
-    } finally {
-      setRegionsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Only fetch properties if not provided via props
-    if (!sharedAllProperties) {
-      fetchProperties();
-    } else {
-      // Use shared properties directly
-      setFilteredProperties(sharedAllProperties);
-    }
-    fetchStatuses();
-    fetchRegions();
-  }, [sharedAllProperties]);
-
-  // Handle region change - update map view to selected region
-  const handleRegionChange = (regionName: string) => {
-    setSelectedRegion(regionName);
-    const region = regions.find((r) => r.name === regionName);
-    if (region && mapRef.current) {
-      // Calculate center from bounding box
-      const centerLat = (region.bbox_ne_lat + region.bbox_sw_lat) / 2;
-      const centerLng = (region.bbox_ne_lng + region.bbox_sw_lng) / 2;
-
-      // Calculate appropriate zoom level based on bounding box size
-      const latDiff = region.bbox_ne_lat - region.bbox_sw_lat;
-      const lngDiff = region.bbox_ne_lng - region.bbox_sw_lng;
-      const maxDiff = Math.max(latDiff, lngDiff);
-
-      // Estimate zoom level (this is a rough calculation)
-      let zoom = 10;
-      if (maxDiff < 0.1) zoom = 13;
-      else if (maxDiff < 0.5) zoom = 11;
-      else if (maxDiff < 1) zoom = 10;
-      else if (maxDiff < 2) zoom = 9;
-      else zoom = 8;
-
-      const map = mapRef.current;
-      map.setView([centerLat, centerLng], zoom, {
-        animate: true,
-        duration: 1.0,
-      });
-    }
-  };
-
   const completionTimeframes = [
     { value: "all", label: "All Projects" },
     { value: "within_6m", label: "Within 6 Months" },
@@ -352,103 +333,95 @@ export function PropertyFiltersTesting({
     { value: "beyond_24m", label: "Beyond 24 Months" },
   ];
 
-  // Apply filters
+  // Load more properties for infinite scroll
+  const loadMoreProperties = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = currentPage + 1;
+      fetchProperties(nextPage, 12, true);
+    }
+  };
+
   useEffect(() => {
-    let result = [...effectiveProperties];
+    console.log(
+      "🚀 PropertyFiltersTesting: Initial load - fetching first page"
+    );
+    fetchProperties(1, 12);
+    fetchStatuses();
+  }, []);
 
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchLower) ||
-          p.area.toLowerCase().includes(searchLower) ||
-          p.developer.toLowerCase().includes(searchLower)
-      );
-    }
+  // Apply filters and sorting - trigger new API call with server-side filtering
+  useEffect(() => {
+    // Reset pagination and fetch new data when filters change
+    setCurrentPage(1);
+    setHasMore(true);
+    fetchProperties(1, 12, false);
+  }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
 
-    // Price filtering - handle database structure with min_price/max_price
-    result = result.filter((p) => {
-      // Use min_price for filtering if available, otherwise skip price filter for this property
-      if (p.min_price !== undefined && p.min_price !== null) {
-        return (
-          p.min_price >= filters.priceRange[0] &&
-          (p.max_price || p.min_price) <= filters.priceRange[1]
-        );
-      }
-      // If no price data, include in results (don't filter out)
-      return true;
-    });
-
-    // Area filtering - skip for now since we don't have area size data in the current interface
-    // This can be implemented when area size data is available in the Property interface
-    if (filters.areaRange[0] > 0 || filters.areaRange[1] < 8000) {
-      // For now, we'll include all properties since we don't have area size data
-      // TODO: Add area size field to Property interface when available
-    }
-
-    if (filters.completionTimeframe !== "all" && filters.completionTimeframe) {
-      const now = new Date();
-      result = result.filter((p) => {
-        if (!p.completion_datetime) return false;
-        const completion = new Date(p.completion_datetime);
-        const monthsDiff =
-          (completion.getFullYear() - now.getFullYear()) * 12 +
-          completion.getMonth() -
-          now.getMonth();
-
-        switch (filters.completionTimeframe) {
-          case "within_6m":
-            return monthsDiff <= 6;
-          case "within_12m":
-            return monthsDiff <= 12;
-          case "within_24m":
-            return monthsDiff <= 24;
-          case "beyond_24m":
-            return monthsDiff > 24;
-          default:
-            return true;
+  // Infinite scroll effect
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMoreProperties();
         }
-      });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "100px",
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
     }
 
-    if (filters.developmentStatus.length > 0) {
-      result = result.filter((p) =>
-        filters.developmentStatus.includes(p.development_status)
-      );
-    }
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, loadingMore, loading]);
 
-    // Unit type and bedrooms filtering removed since these fields are not in the current Property interface
-
-    if (filters.salesStatus.length > 0) {
-      result = result.filter(
-        (p) =>
-          filters.salesStatus.includes(p.sale_status) ||
-          filters.salesStatus.includes(p.status)
-      );
-    }
-
-    setFilteredProperties(result);
-  }, [effectiveProperties, filters]);
-
-  const handleFilterChange = (
+  // Filter helper functions for dialog filters (temporary state)
+  const handleDialogFilterChange = (
     key: keyof Filters,
     value: Filters[keyof Filters]
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setDialogFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Filter helper functions for applied filters (search term only - immediate effect)
+  const handleSearchChange = (searchTerm: string) => {
+    setAppliedFilters((prev) => ({ ...prev, searchTerm }));
   };
 
   const resetFilters = () => {
-    setFilters({
+    const defaultFilters = {
       searchTerm: "",
-      priceRange: [0, 20000000],
-      priceDisplayMode: "total",
-      areaRange: [0, 8000],
+      priceRange: [0, 20000000] as [number, number],
+      priceDisplayMode: "total" as const,
       completionTimeframe: "all",
       developmentStatus: [],
-      unitType: [],
-      bedrooms: [],
       salesStatus: [],
-    });
+    };
+    setDialogFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
+  };
+
+  const handleApplyFilters = () => {
+    // Apply the dialog filters to the applied filters (this will trigger the API call)
+    setAppliedFilters({ ...dialogFilters });
+    setIsDialogOpen(false);
+  };
+
+  // Initialize dialog filters when dialog opens
+  const handleDialogOpen = (open: boolean) => {
+    if (open) {
+      // Copy current applied filters to dialog filters when opening
+      setDialogFilters({ ...appliedFilters });
+    }
+    setIsDialogOpen(open);
   };
 
   // Handle property hover from list - zoom to property and show popup
@@ -481,17 +454,16 @@ export function PropertyFiltersTesting({
   const getActiveFilterCount = () => {
     let count = 0;
 
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 20000000) count++;
-    if (filters.areaRange[0] > 0 || filters.areaRange[1] < 8000) count++;
-    if (filters.completionTimeframe !== "all") count++;
-    if (filters.developmentStatus.length > 0) count++;
-    if (filters.salesStatus.length > 0) count++;
+    if (
+      appliedFilters.priceRange[0] > 0 ||
+      appliedFilters.priceRange[1] < 20000000
+    )
+      count++;
+    if (appliedFilters.completionTimeframe !== "all") count++;
+    if (appliedFilters.developmentStatus.length > 0) count++;
+    if (appliedFilters.salesStatus.length > 0) count++;
 
     return count;
-  };
-
-  const handleApplyFilters = () => {
-    setIsDialogOpen(false);
   };
 
   // Parse coordinates from database structure to { lat, lng }
@@ -548,17 +520,6 @@ export function PropertyFiltersTesting({
     }
   };
 
-  // useEffect(() => {
-  //   delete (L.Icon.Default.prototype as any)._getIconUrl;
-  //   L.Icon.Default.mergeOptions({
-  //     iconRetinaUrl:
-  //       "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  //     iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  //     shadowUrl:
-  //       "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-  //   });
-  // }, []);
-
   // MapEvents component for handling map interactions
   function MapEvents() {
     useMapEvents({
@@ -589,17 +550,15 @@ export function PropertyFiltersTesting({
               <input
                 type="text"
                 placeholder="Search by property name or location..."
-                value={filters.searchTerm}
-                onChange={(e) =>
-                  handleFilterChange("searchTerm", e.target.value)
-                }
+                value={appliedFilters.searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full h-12 pl-12 pr-4 border border-beige rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold bg-white text-[#8b7355]"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
@@ -668,11 +627,11 @@ export function PropertyFiltersTesting({
                               </span>
                               <Input
                                 type="number"
-                                value={filters.priceRange[0]}
+                                value={dialogFilters.priceRange[0]}
                                 onChange={(e) =>
-                                  handleFilterChange("priceRange", [
+                                  handleDialogFilterChange("priceRange", [
                                     Number(e.target.value),
-                                    filters.priceRange[1],
+                                    dialogFilters.priceRange[1],
                                   ])
                                 }
                                 className="pl-12 border-beige/50 focus:border-gold rounded-lg"
@@ -690,10 +649,10 @@ export function PropertyFiltersTesting({
                               </span>
                               <Input
                                 type="number"
-                                value={filters.priceRange[1]}
+                                value={dialogFilters.priceRange[1]}
                                 onChange={(e) =>
-                                  handleFilterChange("priceRange", [
-                                    filters.priceRange[0],
+                                  handleDialogFilterChange("priceRange", [
+                                    dialogFilters.priceRange[0],
                                     Number(e.target.value),
                                   ])
                                 }
@@ -710,9 +669,12 @@ export function PropertyFiltersTesting({
                             <span>AED 20M</span>
                           </div>
                           <Slider
-                            value={filters.priceRange}
+                            value={dialogFilters.priceRange}
                             onValueChange={(value) =>
-                              handleFilterChange("priceRange", value)
+                              handleDialogFilterChange(
+                                "priceRange",
+                                value as [number, number]
+                              )
                             }
                             max={20000000}
                             min={0}
@@ -724,7 +686,7 @@ export function PropertyFiltersTesting({
                     </CardContent>
                   </Card>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="border-beige/60">
                       <CardHeader>
                         <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
@@ -735,12 +697,15 @@ export function PropertyFiltersTesting({
                       <CardContent>
                         <div className="space-y-2">
                           <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                            Completion Timeframe
+                            Completion Period
                           </Label>
                           <Select
-                            value={filters.completionTimeframe}
+                            value={dialogFilters.completionTimeframe}
                             onValueChange={(value) =>
-                              handleFilterChange("completionTimeframe", value)
+                              handleDialogFilterChange(
+                                "completionTimeframe",
+                                value
+                              )
                             }
                           >
                             <SelectTrigger className="border-beige/50 focus:border-gold rounded-lg">
@@ -762,7 +727,7 @@ export function PropertyFiltersTesting({
                     </Card>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <Card className="border-beige/60 shadow-sm">
                       <CardHeader className="pb-4">
                         <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
@@ -772,29 +737,30 @@ export function PropertyFiltersTesting({
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {statusesLoading ? (
-                          <div className="text-center py-4">
-                            <div className="text-warm-gray text-sm">
-                              Loading statuses...
-                            </div>
+                          <div className="text-sm text-warm-gray">
+                            Loading statuses...
                           </div>
-                        ) : developmentStatuses.length > 0 ? (
-                          developmentStatuses.map((status) => (
+                        ) : (
+                          developmentStatuses.map((status: string) => (
                             <div
                               key={status}
                               className="flex items-center space-x-3"
                             >
                               <input
                                 type="checkbox"
-                                checked={filters.developmentStatus.includes(
+                                checked={dialogFilters.developmentStatus.includes(
                                   status
                                 )}
                                 onChange={(e) => {
                                   const newStatus = e.target.checked
-                                    ? [...filters.developmentStatus, status]
-                                    : filters.developmentStatus.filter(
-                                        (s) => s !== status
+                                    ? [
+                                        ...dialogFilters.developmentStatus,
+                                        status,
+                                      ]
+                                    : dialogFilters.developmentStatus.filter(
+                                        (s: string) => s !== status
                                       );
-                                  handleFilterChange(
+                                  handleDialogFilterChange(
                                     "developmentStatus",
                                     newStatus
                                   );
@@ -806,12 +772,6 @@ export function PropertyFiltersTesting({
                               </label>
                             </div>
                           ))
-                        ) : (
-                          <div className="text-center py-4">
-                            <div className="text-warm-gray text-sm">
-                              No development statuses available
-                            </div>
-                          </div>
                         )}
                       </CardContent>
                     </Card>
@@ -825,27 +785,30 @@ export function PropertyFiltersTesting({
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {statusesLoading ? (
-                          <div className="text-center py-4">
-                            <div className="text-warm-gray text-sm">
-                              Loading statuses...
-                            </div>
+                          <div className="text-sm text-warm-gray">
+                            Loading statuses...
                           </div>
-                        ) : salesStatuses.length > 0 ? (
-                          salesStatuses.map((status) => (
+                        ) : (
+                          salesStatuses.map((status: string) => (
                             <div
                               key={status}
                               className="flex items-center space-x-3"
                             >
                               <input
                                 type="checkbox"
-                                checked={filters.salesStatus.includes(status)}
+                                checked={dialogFilters.salesStatus.includes(
+                                  status
+                                )}
                                 onChange={(e) => {
                                   const newStatus = e.target.checked
-                                    ? [...filters.salesStatus, status]
-                                    : filters.salesStatus.filter(
-                                        (s) => s !== status
+                                    ? [...dialogFilters.salesStatus, status]
+                                    : dialogFilters.salesStatus.filter(
+                                        (s: string) => s !== status
                                       );
-                                  handleFilterChange("salesStatus", newStatus);
+                                  handleDialogFilterChange(
+                                    "salesStatus",
+                                    newStatus
+                                  );
                                 }}
                                 className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
                               />
@@ -854,12 +817,6 @@ export function PropertyFiltersTesting({
                               </label>
                             </div>
                           ))
-                        ) : (
-                          <div className="text-center py-4">
-                            <div className="text-warm-gray text-sm">
-                              No sales statuses available
-                            </div>
-                          </div>
                         )}
                       </CardContent>
                     </Card>
@@ -873,7 +830,7 @@ export function PropertyFiltersTesting({
               className="text-warm-gray hover:text-gold rounded-xl"
               onClick={resetFilters}
             >
-              <X className="w-4 h-4 mr-2" />
+              {/* <X className="w-4 h-4 mr-2" /> */}
               Clear
             </Button>
           </div>
@@ -882,32 +839,50 @@ export function PropertyFiltersTesting({
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <span className="text-[#8b7355]">
-              {filteredProperties.length} properties found
+              {totalProperties} properties found • Showing {properties.length}
             </span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {/* Sort By */}
+            <div className="flex items-center space-x-2">
+              <Label className="text-sm text-[#8b7355]">Sort by:</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48 border-beige/50 focus:border-gold rounded-lg">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="location">Location</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="lg:col-span-1">
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-              {effectiveLoading ? (
+              {loading ? (
                 <div className="text-center py-12">
                   <div className="text-warm-gray mb-4">
                     Loading properties...
                   </div>
                 </div>
-              ) : effectiveError ? (
+              ) : error ? (
                 <div className="text-center py-12">
-                  <div className="text-warm-gray mb-4">{effectiveError}</div>
+                  <div className="text-warm-gray mb-4">{error}</div>
                   <Button
-                    onClick={() => fetchProperties()}
+                    onClick={() => fetchProperties(1, 12)}
                     className="bg-gold hover:bg-gold/90 text-charcoal"
                   >
                     Retry
                   </Button>
                 </div>
-              ) : filteredProperties.length > 0 ? (
-                filteredProperties.map((property) => (
+              ) : properties.length > 0 ? (
+                properties.map((property) => (
                   <div
                     key={property.id}
                     className={`border rounded-lg p-3 transition-all duration-300 cursor-pointer border-[#F6F2ED] hover:border-[#D4A373]/50 hover:shadow-md ${
@@ -975,7 +950,7 @@ export function PropertyFiltersTesting({
                         size="sm"
                         className="text-muted-foreground hover:text-gold p-1"
                       >
-                        <Heart className="w-4 h-4" />
+                        {/* <Heart className="w-4 h-4" /> */}
                       </Button>
                     </div>
                   </div>
@@ -991,6 +966,32 @@ export function PropertyFiltersTesting({
                   >
                     Reset Filters
                   </Button>
+                </div>
+              )}
+
+              {/* Infinite scroll trigger and loading indicator */}
+              {properties.length > 0 && (
+                <div className="mt-6">
+                  {/* Intersection observer trigger */}
+                  <div ref={loadMoreRef} className="h-4" />
+
+                  {/* Loading more indicator */}
+                  {loadingMore && (
+                    <div className="text-center py-4">
+                      <div className="text-warm-gray text-sm">
+                        Loading more properties...
+                      </div>
+                    </div>
+                  )}
+
+                  {/* End of results indicator */}
+                  {!hasMore && !loadingMore && properties.length > 0 && (
+                    <div className="text-center py-4">
+                      <div className="text-warm-gray text-sm">
+                        You've reached the end of the results
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1016,7 +1017,7 @@ export function PropertyFiltersTesting({
                   />
                   <ZoomControl position="topright" />
 
-                  {filteredProperties
+                  {properties
                     .filter((property) => property.coordinates)
                     .map((property) => {
                       const coords = parseCoordinates(property.coordinates);
@@ -1073,91 +1074,15 @@ export function PropertyFiltersTesting({
                                       {property.developer}
                                     </div>
                                   </div>
-
-                                  {/* <Badge
-                                    className={`mt-2 text-xs tracking-wide ${
-                                      property.development_status ===
-                                      "Completed"
-                                        ? "bg-[#8b7355] text-white"
-                                        : property.development_status ===
-                                          "Under construction"
-                                        ? "bg-[#FF6900] text-white"
-                                        : property.development_status ===
-                                          "Presale"
-                                        ? "bg-[#D4AF37] text-white"
-                                        : "" // Fallback for unexpected values
-                                    }`}
-                                  >
-                                    {property.development_status ||
-                                      property.development_status ||
-                                      "Available"}
-                                  </Badge> */}
                                 </div>
-
-                                {/* <div>
-                                  <h4 className="text-sm font-semibold text-[#8b7355]">
-                                    {property.name}
-                                  </h4>
-                                  <p className="text-xs text-warm-gray">
-                                    {property.area}
-                                  </p>
-                                  <p className="text-xs text-deep-blue">
-                                    {property.min_price && property.max_price
-                                      ? `${property.price_currency} ${(
-                                          property.min_price / 1000000
-                                        ).toFixed(1)}M - ${(
-                                          property.max_price / 1000000
-                                        ).toFixed(1)}M`
-                                      : property.min_price
-                                      ? `${property.price_currency} ${(
-                                          property.min_price / 1000000
-                                        ).toFixed(1)}M+`
-                                      : "Price on Request"}
-                                  </p>
-                                  <p className="text-xs text-warm-gray mt-1">
-                                    {property.developer}
-                                  </p>
-                                </div> */}
                               </div>
                             </Popup>
                           )}
                         </Marker>
                       );
                     })}
-
                   <MapEvents />
                 </MapContainer>
-
-                {/* Region selector */}
-                <div className="absolute top-4 left-4 bg-white/95 rounded-lg p-3 border border-beige shadow-lg z-[1000] min-w-[200px]">
-                  <div className="text-[#8b7355] text-xs font-medium mb-2">
-                    Select Region
-                  </div>
-                  <Select
-                    value={selectedRegion}
-                    onValueChange={handleRegionChange}
-                    disabled={regionsLoading}
-                  >
-                    <SelectTrigger className="w-full h-8 text-xs border-beige/50 focus:border-gold">
-                      <SelectValue
-                        placeholder={
-                          regionsLoading ? "Loading..." : "Select region"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {regions.map((region) => (
-                        <SelectItem
-                          key={region.name}
-                          value={region.name}
-                          className="text-xs"
-                        >
-                          {region.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </CardContent>
             </Card>
           </div>

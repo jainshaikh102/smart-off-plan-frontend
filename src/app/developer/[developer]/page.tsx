@@ -110,7 +110,18 @@ export default function DeveloperPage() {
   const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
+  // Applied filters (used for filtering logic)
+  const [appliedFilters, setAppliedFilters] = useState<Filters>({
+    searchTerm: "",
+    priceRange: [0, 20000000],
+    priceDisplayMode: "total",
+    completionTimeframe: "all",
+    developmentStatus: [],
+    salesStatus: [],
+  });
+
+  // Dialog filters (temporary state while user is selecting filters)
+  const [dialogFilters, setDialogFilters] = useState<Filters>({
     searchTerm: "",
     priceRange: [0, 20000000],
     priceDisplayMode: "total",
@@ -128,39 +139,61 @@ export default function DeveloperPage() {
     totalPages: 0,
   });
 
-  // Filter helper functions
-  const handleFilterChange = (
+  // Filter helper functions for dialog filters (temporary state)
+  const handleDialogFilterChange = (
     key: keyof Filters,
     value: Filters[keyof Filters]
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setDialogFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Filter helper functions for applied filters (search term only - immediate effect)
+  const handleSearchChange = (searchTerm: string) => {
+    setAppliedFilters((prev) => ({ ...prev, searchTerm }));
   };
 
   const resetFilters = () => {
-    setFilters({
+    const defaultFilters = {
       searchTerm: "",
-      priceRange: [0, 20000000],
-      priceDisplayMode: "total",
+      priceRange: [0, 20000000] as [number, number],
+      priceDisplayMode: "total" as const,
       completionTimeframe: "all",
       developmentStatus: [],
       salesStatus: [],
-    });
+    };
+    setDialogFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
   };
 
   // Count active filters (excluding search term as it's visible in the search bar)
   const getActiveFilterCount = () => {
     let count = 0;
 
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 20000000) count++;
-    if (filters.completionTimeframe !== "all") count++;
-    if (filters.developmentStatus.length > 0) count++;
-    if (filters.salesStatus.length > 0) count++;
+    if (
+      appliedFilters.priceRange[0] > 0 ||
+      appliedFilters.priceRange[1] < 20000000
+    )
+      count++;
+    if (appliedFilters.completionTimeframe !== "all") count++;
+    if (appliedFilters.developmentStatus.length > 0) count++;
+    if (appliedFilters.salesStatus.length > 0) count++;
 
     return count;
   };
 
   const handleApplyFilters = () => {
+    // Apply the dialog filters to the applied filters (this will trigger the filtering)
+    setAppliedFilters({ ...dialogFilters });
     setIsDialogOpen(false);
+  };
+
+  // Initialize dialog filters when dialog opens
+  const handleDialogOpen = (open: boolean) => {
+    if (open) {
+      // Copy current applied filters to dialog filters when opening
+      setDialogFilters({ ...appliedFilters });
+    }
+    setIsDialogOpen(open);
   };
 
   // Completion timeframes options
@@ -268,8 +301,8 @@ export default function DeveloperPage() {
     let result = [...allProperties];
 
     // Search term filter
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
+    if (appliedFilters.searchTerm) {
+      const searchLower = appliedFilters.searchTerm.toLowerCase();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(searchLower) ||
@@ -285,11 +318,15 @@ export default function DeveloperPage() {
       const maxPrice = p.max_price ?? minPrice; // Use min_price if max_price is null
 
       return (
-        minPrice >= filters.priceRange[0] && maxPrice <= filters.priceRange[1]
+        minPrice >= appliedFilters.priceRange[0] &&
+        maxPrice <= appliedFilters.priceRange[1]
       );
     });
 
-    if (filters.completionTimeframe !== "all" && filters.completionTimeframe) {
+    if (
+      appliedFilters.completionTimeframe !== "all" &&
+      appliedFilters.completionTimeframe
+    ) {
       const now = new Date();
       result = result.filter((p) => {
         if (!p.completion_datetime) return false;
@@ -299,7 +336,7 @@ export default function DeveloperPage() {
           completion.getMonth() -
           now.getMonth();
 
-        switch (filters.completionTimeframe) {
+        switch (appliedFilters.completionTimeframe) {
           case "within_6m":
             return monthsDiff <= 6;
           case "within_12m":
@@ -314,22 +351,22 @@ export default function DeveloperPage() {
       });
     }
 
-    if (filters.developmentStatus.length > 0) {
+    if (appliedFilters.developmentStatus.length > 0) {
       result = result.filter((p) =>
-        filters.developmentStatus.includes(p.development_status)
+        appliedFilters.developmentStatus.includes(p.development_status)
       );
     }
 
-    if (filters.salesStatus.length > 0) {
+    if (appliedFilters.salesStatus.length > 0) {
       result = result.filter(
         (p) =>
-          filters.salesStatus.includes(p.sale_status) ||
-          filters.salesStatus.includes(p.status)
+          appliedFilters.salesStatus.includes(p.sale_status) ||
+          appliedFilters.salesStatus.includes(p.status)
       );
     }
 
     setFilteredProperties(result);
-  }, [allProperties, filters]);
+  }, [allProperties, appliedFilters]);
 
   // Apply sorting
   useEffect(() => {
@@ -503,10 +540,8 @@ export default function DeveloperPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray w-5 h-5" />
                 <Input
                   placeholder="Search properties..."
-                  value={filters.searchTerm}
-                  onChange={(e) =>
-                    handleFilterChange("searchTerm", e.target.value)
-                  }
+                  value={appliedFilters.searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10 bg-white border-beige focus:border-gold rounded-xl"
                 />
               </div>
@@ -515,7 +550,7 @@ export default function DeveloperPage() {
             {/* Controls */}
             <div className="flex items-center space-x-3">
               {/* Filters */}
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
@@ -589,9 +624,11 @@ export default function DeveloperPage() {
                               Total Price
                             </Label>
                             <Switch
-                              checked={filters.priceDisplayMode === "perSqFt"}
+                              checked={
+                                dialogFilters.priceDisplayMode === "perSqFt"
+                              }
                               onCheckedChange={(checked) =>
-                                handleFilterChange(
+                                handleDialogFilterChange(
                                   "priceDisplayMode",
                                   checked ? "perSqFt" : "total"
                                 )
@@ -622,11 +659,11 @@ export default function DeveloperPage() {
                                 </span>
                                 <Input
                                   type="number"
-                                  value={filters.priceRange[0]}
+                                  value={dialogFilters.priceRange[0]}
                                   onChange={(e) =>
-                                    handleFilterChange("priceRange", [
+                                    handleDialogFilterChange("priceRange", [
                                       Number(e.target.value),
-                                      filters.priceRange[1],
+                                      dialogFilters.priceRange[1],
                                     ])
                                   }
                                   className="pl-12 border-beige/50 focus:border-gold rounded-lg"
@@ -644,10 +681,10 @@ export default function DeveloperPage() {
                                 </span>
                                 <Input
                                   type="number"
-                                  value={filters.priceRange[1]}
+                                  value={dialogFilters.priceRange[1]}
                                   onChange={(e) =>
-                                    handleFilterChange("priceRange", [
-                                      filters.priceRange[0],
+                                    handleDialogFilterChange("priceRange", [
+                                      dialogFilters.priceRange[0],
                                       Number(e.target.value),
                                     ])
                                   }
@@ -664,9 +701,9 @@ export default function DeveloperPage() {
                               <span>AED 20M</span>
                             </div>
                             <Slider
-                              value={filters.priceRange}
+                              value={dialogFilters.priceRange}
                               onValueChange={(value) =>
-                                handleFilterChange(
+                                handleDialogFilterChange(
                                   "priceRange",
                                   value as [number, number]
                                 )
@@ -695,9 +732,12 @@ export default function DeveloperPage() {
                             Completion Timeframe
                           </Label>
                           <Select
-                            value={filters.completionTimeframe}
+                            value={dialogFilters.completionTimeframe}
                             onValueChange={(value) =>
-                              handleFilterChange("completionTimeframe", value)
+                              handleDialogFilterChange(
+                                "completionTimeframe",
+                                value
+                              )
                             }
                           >
                             <SelectTrigger className="border-beige/50 focus:border-gold rounded-lg">
@@ -740,16 +780,19 @@ export default function DeveloperPage() {
                               >
                                 <input
                                   type="checkbox"
-                                  checked={filters.developmentStatus.includes(
+                                  checked={dialogFilters.developmentStatus.includes(
                                     status
                                   )}
                                   onChange={(e) => {
                                     const newStatus = e.target.checked
-                                      ? [...filters.developmentStatus, status]
-                                      : filters.developmentStatus.filter(
-                                          (s) => s !== status
+                                      ? [
+                                          ...dialogFilters.developmentStatus,
+                                          status,
+                                        ]
+                                      : dialogFilters.developmentStatus.filter(
+                                          (s: string) => s !== status
                                         );
-                                    handleFilterChange(
+                                    handleDialogFilterChange(
                                       "developmentStatus",
                                       newStatus
                                     );
@@ -786,14 +829,16 @@ export default function DeveloperPage() {
                               >
                                 <input
                                   type="checkbox"
-                                  checked={filters.salesStatus.includes(status)}
+                                  checked={dialogFilters.salesStatus.includes(
+                                    status
+                                  )}
                                   onChange={(e) => {
                                     const newStatus = e.target.checked
-                                      ? [...filters.salesStatus, status]
-                                      : filters.salesStatus.filter(
-                                          (s) => s !== status
+                                      ? [...dialogFilters.salesStatus, status]
+                                      : dialogFilters.salesStatus.filter(
+                                          (s: string) => s !== status
                                         );
-                                    handleFilterChange(
+                                    handleDialogFilterChange(
                                       "salesStatus",
                                       newStatus
                                     );

@@ -122,7 +122,18 @@ export function AllPropertiesPage({
   const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
+  // Applied filters (used for API calls)
+  const [appliedFilters, setAppliedFilters] = useState<Filters>({
+    searchTerm: "",
+    priceRange: [0, 20000000],
+    priceDisplayMode: "total",
+    completionTimeframe: "all",
+    developmentStatus: [],
+    salesStatus: [],
+  });
+
+  // Dialog filters (temporary state while user is selecting filters)
+  const [dialogFilters, setDialogFilters] = useState<Filters>({
     searchTerm: "",
     priceRange: [0, 20000000],
     priceDisplayMode: "total",
@@ -140,39 +151,61 @@ export function AllPropertiesPage({
     totalPages: 0,
   });
 
-  // Filter helper functions
-  const handleFilterChange = (
+  // Filter helper functions for dialog filters (temporary state)
+  const handleDialogFilterChange = (
     key: keyof Filters,
     value: Filters[keyof Filters]
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setDialogFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Filter helper functions for applied filters (search term only - immediate effect)
+  const handleSearchChange = (searchTerm: string) => {
+    setAppliedFilters((prev) => ({ ...prev, searchTerm }));
   };
 
   const resetFilters = () => {
-    setFilters({
+    const defaultFilters = {
       searchTerm: "",
-      priceRange: [0, 20000000],
-      priceDisplayMode: "total",
+      priceRange: [0, 20000000] as [number, number],
+      priceDisplayMode: "total" as const,
       completionTimeframe: "all",
       developmentStatus: [],
       salesStatus: [],
-    });
+    };
+    setDialogFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
   };
 
   // Count active filters (excluding search term as it's visible in the search bar)
   const getActiveFilterCount = () => {
     let count = 0;
 
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 20000000) count++;
-    if (filters.completionTimeframe !== "all") count++;
-    if (filters.developmentStatus.length > 0) count++;
-    if (filters.salesStatus.length > 0) count++;
+    if (
+      appliedFilters.priceRange[0] > 0 ||
+      appliedFilters.priceRange[1] < 20000000
+    )
+      count++;
+    if (appliedFilters.completionTimeframe !== "all") count++;
+    if (appliedFilters.developmentStatus.length > 0) count++;
+    if (appliedFilters.salesStatus.length > 0) count++;
 
     return count;
   };
 
   const handleApplyFilters = () => {
+    // Apply the dialog filters to the applied filters (this will trigger the API call)
+    setAppliedFilters({ ...dialogFilters });
     setIsDialogOpen(false);
+  };
+
+  // Initialize dialog filters when dialog opens
+  const handleDialogOpen = (open: boolean) => {
+    if (open) {
+      // Copy current applied filters to dialog filters when opening
+      setDialogFilters({ ...appliedFilters });
+    }
+    setIsDialogOpen(open);
   };
 
   // Fetch development and sales statuses from API
@@ -231,29 +264,69 @@ export function AllPropertiesPage({
         limit: limit.toString(),
       });
 
-      // Add sorting parameter
+      // Add sorting parameter - map frontend values to backend values
       if (sortBy) {
-        params.append("sort", sortBy);
+        let backendSortValue = sortBy;
+        switch (sortBy) {
+          case "price-low":
+            backendSortValue = "price_min_to_max";
+            break;
+          case "price-high":
+            backendSortValue = "price_max_to_min";
+            break;
+          case "location":
+            backendSortValue = "name_asc"; // Location sorting by area name
+            break;
+          case "featured":
+            backendSortValue = "featured";
+            break;
+          default:
+            backendSortValue = "featured"; // Default to featured
+        }
+        params.append("sort", backendSortValue);
       }
 
-      // Add filter parameters
-      if (filters.searchTerm) {
-        params.append("search", filters.searchTerm);
+      // Add filter parameters (use appliedFilters for API calls)
+      if (appliedFilters.searchTerm) {
+        params.append("name", appliedFilters.searchTerm);
       }
-      if (filters.priceRange[0] > 0) {
-        params.append("min_price", filters.priceRange[0].toString());
+      if (appliedFilters.priceRange[0] > 0) {
+        params.append("min_price", appliedFilters.priceRange[0].toString());
       }
-      if (filters.priceRange[1] < 10000000) {
-        params.append("max_price", filters.priceRange[1].toString());
+      if (appliedFilters.priceRange[1] < 10000000) {
+        params.append("max_price", appliedFilters.priceRange[1].toString());
       }
-      if (filters.developmentStatus.length > 0) {
+      if (appliedFilters.developmentStatus.length > 0) {
         params.append(
           "development_status",
-          filters.developmentStatus.join(",")
+          appliedFilters.developmentStatus.join(",")
         );
       }
-      if (filters.salesStatus.length > 0) {
-        params.append("sales_status", filters.salesStatus.join(","));
+      if (appliedFilters.salesStatus.length > 0) {
+        params.append("sale_status", appliedFilters.salesStatus.join(","));
+      }
+
+      // Add completion timeframe parameter - map frontend values to backend values
+      if (
+        appliedFilters.completionTimeframe &&
+        appliedFilters.completionTimeframe !== "all"
+      ) {
+        let backendTimeframeValue = appliedFilters.completionTimeframe;
+        switch (appliedFilters.completionTimeframe) {
+          case "within_6m":
+            backendTimeframeValue = "6_months";
+            break;
+          case "within_12m":
+            backendTimeframeValue = "12_months";
+            break;
+          case "within_24m":
+            backendTimeframeValue = "24_months";
+            break;
+          case "beyond_24m":
+            backendTimeframeValue = "beyond_24_months";
+            break;
+        }
+        params.append("completion_period", backendTimeframeValue);
       }
 
       const response = await axios.get(`/api/properties?${params.toString()}`);
@@ -322,9 +395,9 @@ export function AllPropertiesPage({
 
   // Apply filters and sorting - trigger new API call with server-side filtering
   useEffect(() => {
-    // Reset to page 1 when filters change and fetch new data
+    // Reset to page 1 when applied filters change and fetch new data
     fetchProperties(1, pagination.limit);
-  }, [filters, sortBy]); // Re-fetch when filters or sorting changes
+  }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
 
   // Load properties and statuses when component mounts
   useEffect(() => {
@@ -388,10 +461,8 @@ export function AllPropertiesPage({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray w-5 h-5" />
                 <Input
                   placeholder="Search properties..."
-                  value={filters.searchTerm}
-                  onChange={(e) =>
-                    handleFilterChange("searchTerm", e.target.value)
-                  }
+                  value={appliedFilters.searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10 bg-white border-beige focus:border-gold rounded-xl"
                 />
               </div>
@@ -400,7 +471,7 @@ export function AllPropertiesPage({
             {/* Controls */}
             <div className="flex items-center space-x-3">
               {/* Filters */}
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
@@ -474,9 +545,11 @@ export function AllPropertiesPage({
                               Total Price
                             </Label>
                             <Switch
-                              checked={filters.priceDisplayMode === "perSqFt"}
+                              checked={
+                                dialogFilters.priceDisplayMode === "perSqFt"
+                              }
                               onCheckedChange={(checked) =>
-                                handleFilterChange(
+                                handleDialogFilterChange(
                                   "priceDisplayMode",
                                   checked ? "perSqFt" : "total"
                                 )
@@ -507,11 +580,11 @@ export function AllPropertiesPage({
                                 </span>
                                 <Input
                                   type="number"
-                                  value={filters.priceRange[0]}
+                                  value={dialogFilters.priceRange[0]}
                                   onChange={(e) =>
-                                    handleFilterChange("priceRange", [
+                                    handleDialogFilterChange("priceRange", [
                                       Number(e.target.value),
-                                      filters.priceRange[1],
+                                      dialogFilters.priceRange[1],
                                     ])
                                   }
                                   className="pl-12 border-beige/50 focus:border-gold rounded-lg"
@@ -529,10 +602,10 @@ export function AllPropertiesPage({
                                 </span>
                                 <Input
                                   type="number"
-                                  value={filters.priceRange[1]}
+                                  value={dialogFilters.priceRange[1]}
                                   onChange={(e) =>
-                                    handleFilterChange("priceRange", [
-                                      filters.priceRange[0],
+                                    handleDialogFilterChange("priceRange", [
+                                      dialogFilters.priceRange[0],
                                       Number(e.target.value),
                                     ])
                                   }
@@ -549,9 +622,9 @@ export function AllPropertiesPage({
                               <span>AED 20M</span>
                             </div>
                             <Slider
-                              value={filters.priceRange}
+                              value={dialogFilters.priceRange}
                               onValueChange={(value) =>
-                                handleFilterChange(
+                                handleDialogFilterChange(
                                   "priceRange",
                                   value as [number, number]
                                 )
@@ -580,9 +653,12 @@ export function AllPropertiesPage({
                             Completion Timeframe
                           </Label>
                           <Select
-                            value={filters.completionTimeframe}
+                            value={dialogFilters.completionTimeframe}
                             onValueChange={(value) =>
-                              handleFilterChange("completionTimeframe", value)
+                              handleDialogFilterChange(
+                                "completionTimeframe",
+                                value
+                              )
                             }
                           >
                             <SelectTrigger className="border-beige/50 focus:border-gold rounded-lg">
@@ -625,16 +701,19 @@ export function AllPropertiesPage({
                               >
                                 <input
                                   type="checkbox"
-                                  checked={filters.developmentStatus.includes(
+                                  checked={dialogFilters.developmentStatus.includes(
                                     status
                                   )}
                                   onChange={(e) => {
                                     const newStatus = e.target.checked
-                                      ? [...filters.developmentStatus, status]
-                                      : filters.developmentStatus.filter(
-                                          (s) => s !== status
+                                      ? [
+                                          ...dialogFilters.developmentStatus,
+                                          status,
+                                        ]
+                                      : dialogFilters.developmentStatus.filter(
+                                          (s: string) => s !== status
                                         );
-                                    handleFilterChange(
+                                    handleDialogFilterChange(
                                       "developmentStatus",
                                       newStatus
                                     );
@@ -671,14 +750,16 @@ export function AllPropertiesPage({
                               >
                                 <input
                                   type="checkbox"
-                                  checked={filters.salesStatus.includes(status)}
+                                  checked={dialogFilters.salesStatus.includes(
+                                    status
+                                  )}
                                   onChange={(e) => {
                                     const newStatus = e.target.checked
-                                      ? [...filters.salesStatus, status]
-                                      : filters.salesStatus.filter(
-                                          (s) => s !== status
+                                      ? [...dialogFilters.salesStatus, status]
+                                      : dialogFilters.salesStatus.filter(
+                                          (s: string) => s !== status
                                         );
-                                    handleFilterChange(
+                                    handleDialogFilterChange(
                                       "salesStatus",
                                       newStatus
                                     );
@@ -812,9 +893,32 @@ export function AllPropertiesPage({
                     alt={property.name || "Property"}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <Badge className="absolute top-4 right-4 bg-black/70 text-white border-0">
-                    {property.status || "Available"}
-                  </Badge>
+
+                  {property.featured ? (
+                    <Badge className="absolute top-4 left-4 bg-[#D4AF37] text-text border-0">
+                      {property.featured ? "Featured" : ""}
+                    </Badge>
+                  ) : null}
+
+                  {property.development_status ? (
+                    <Badge className="absolute top-4 right-4 bg-black/60 text-white border-0">
+                      {property.development_status}
+                    </Badge>
+                  ) : null}
+
+                  {property.completion_datetime ? (
+                    <Badge className="absolute bottom-4 left-4 bg-gold text-[#8b7355] px-2 py-1 text-xs">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {property.completion_datetime
+                        ? new Date(
+                            property.completion_datetime
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                          })
+                        : "TBD"}
+                    </Badge>
+                  ) : null}
                 </div>
 
                 {/* Property Details */}

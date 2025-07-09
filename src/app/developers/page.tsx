@@ -8,8 +8,13 @@ export default function DevelopersRoute() {
 
   const handleDeveloperSelect = (developer: any) => {
     console.log("Developer selected:", developer);
-    // Navigate to developer detail page
-    router.push(`/developers/${developer.id}`);
+    if (developer && developer.name) {
+      // Navigate to developer detail page using developer name
+      const developerName = encodeURIComponent(developer.name);
+      router.push(`/developer/${developerName}`);
+    } else {
+      console.error("Developer name not found:", developer);
+    }
   };
 
   const handleBack = () => {

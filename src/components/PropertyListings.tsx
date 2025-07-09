@@ -84,30 +84,37 @@ export function PropertyListings({
   // Filter properties to only show those with completion dates within 12 months
   const filterPropertiesWithin12Months = (properties: Project[]) => {
     const now = new Date();
-    const twelveMonthsFromNow = new Date();
-    twelveMonthsFromNow.setMonth(now.getMonth() + 12);
+    const twelveMonthsFromNow = new Date(now);
+    twelveMonthsFromNow.setFullYear(now.getFullYear() + 1);
 
     return properties.filter((property) => {
-      if (!property.completion_datetime) {
-        return false; // Exclude properties without completion dates
-      }
+      if (!property.completion_datetime) return false;
 
       const completionDate = new Date(property.completion_datetime);
 
-      // Check if completion date is within the next 12 months
-      const isWithin12Months =
-        completionDate >= now && completionDate <= twelveMonthsFromNow;
-      return isWithin12Months;
+      return completionDate >= now && completionDate <= twelveMonthsFromNow;
     });
   };
 
-  // Fetch all properties and filter for completion dates within 12 months
+  // Fetch properties with completion dates within 12 months (backend filtering)
   const fetchPropertiesForCompletion = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.get("/api/properties");
+      // Calculate 12 months from now for backend filtering
+      const now = new Date();
+      const twelveMonthsFromNow = new Date(now);
+      twelveMonthsFromNow.setFullYear(now.getFullYear() + 1);
+
+      // Use backend filtering instead of frontend filtering
+      const response = await axios.get("/api/properties", {
+        params: {
+          completion_datetime: twelveMonthsFromNow.toISOString(),
+          limit: 100, // Get more properties since we're filtering on backend
+          page: 1,
+        },
+      });
       const data = response.data;
 
       let allPropertiesData: Project[] = [];
@@ -119,11 +126,8 @@ export function PropertyListings({
         allPropertiesData = data;
       }
 
-      // Filter properties to only show those within 12 months
-      const filteredProperties =
-        filterPropertiesWithin12Months(allPropertiesData);
-
-      setLocalAllProperties(filteredProperties); // Store filtered data
+      // No need for frontend filtering since backend already filtered
+      setLocalAllProperties(allPropertiesData);
       // Initial sorting will be applied by useEffect
     } catch (err) {
       console.error("❌ Error fetching properties:", err);
@@ -200,10 +204,11 @@ export function PropertyListings({
   // Apply sorting when sortBy changes or when shared properties are provided
   useEffect(() => {
     if (effectiveAllProperties.length > 0) {
-      // Filter for 12-month completion when using shared properties
+      // No need for frontend filtering since backend handles completion date filtering
+      // When using shared properties, we still need to filter for 12-month completion
       const filteredProperties = allProperties
         ? filterPropertiesWithin12Months(effectiveAllProperties)
-        : effectiveAllProperties;
+        : effectiveAllProperties; // Backend already filtered, no need to filter again
 
       const sortedProperties = sortProperties(filteredProperties, sortBy);
       setProperties(sortedProperties);
