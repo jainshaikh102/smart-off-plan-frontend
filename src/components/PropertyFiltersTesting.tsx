@@ -830,7 +830,6 @@ export function PropertyFiltersTesting({
               className="text-warm-gray hover:text-gold rounded-xl"
               onClick={resetFilters}
             >
-              {/* <X className="w-4 h-4 mr-2" /> */}
               Clear
             </Button>
           </div>

@@ -175,19 +175,23 @@ export default function HomePage() {
     setPropertiesError(null);
 
     try {
-      console.log("🏠 HomePage: Fetching all properties for shared use");
-      const response = await axios.get("/api/properties");
+      console.log(
+        "🏠 HomePage: Fetching ALL properties for shared use (no pagination)"
+      );
+      // Use the new /all endpoint to get ALL properties without pagination
+      const response = await axios.get("/api/properties/all");
       const data = response.data;
 
       let properties: any[] = [];
       if (data.success && data.data) {
-        properties = data.data.items || data.data || [];
+        // The /all endpoint returns all properties directly in data array (no pagination)
+        properties = data.data || [];
       } else if (Array.isArray(data)) {
         properties = data;
       }
 
       console.log(
-        `✅ HomePage: Fetched ${properties.length} properties for shared use`
+        `✅ HomePage: Fetched ${properties.length} properties for shared use (no pagination)`
       );
       setAllProperties(properties);
     } catch (err) {

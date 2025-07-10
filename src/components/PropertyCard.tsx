@@ -72,7 +72,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Card
       className="group cursor-pointer border border-beige hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden rounded-xl"
-      onClick={() => router.push(`/properties/${property?.id}`)}
+      onClick={() => router.push(`/properties/${property?.externalId}`)}
     >
       {/* Property Image */}
       <div className="relative aspect-[4/3] overflow-hidden">

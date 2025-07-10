@@ -976,7 +976,7 @@ export function PropertyDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-ivory">
+    <div className="min-h-screen bg-white">
       {/* Main Content */}
       <div className="container py-8">
         {/* Property Header */}
@@ -1137,7 +1137,7 @@ export function PropertyDetailPage({
                       className="w-full"
                     >
                       <div className="relative w-full">
-                        <TabsList className="w-full h-auto flex flex-nowrap md:grid md:grid-cols-3 bg-beige/50 rounded-xl p-2 overflow-x-auto gap-2 md:gap-0 mb-8">
+                        <TabsList className="w-full h-auto flex flex-nowrap md:grid md:grid-cols-3 rounded-xl p-2 overflow-x-auto gap-2 md:gap-0 mb-8">
                           <TabsTrigger
                             value="roi"
                             className="flex items-center rounded-lg flex-shrink-0 min-w-[120px] text-sm px-3 py-2"
@@ -1644,38 +1644,31 @@ export function PropertyDetailPage({
               className="w-full"
             >
               <div className="relative w-full">
-                <TabsList className="w-full h-auto flex flex-nowrap md:grid md:grid-cols-5 bg-beige/50 rounded-xl p-2 overflow-x-auto gap-2 md:gap-0">
+                <TabsList className="w-full h-auto flex flex-nowrap md:grid md:grid-cols-4 rounded-xl p-2 overflow-x-auto gap-2 md:gap-0">
                   <TabsTrigger
                     value="overview"
-                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2"
+                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2 "
                   >
                     Overview
                   </TabsTrigger>
                   <TabsTrigger
                     value="floor-plans"
-                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2"
+                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2 "
                   >
                     <span className="hidden sm:inline">Floor Plans</span>
                     <span className="sm:hidden">Plans</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="amenities"
-                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2"
+                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2 "
                   >
                     Amenities
                   </TabsTrigger>
                   <TabsTrigger
                     value="location"
-                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2"
+                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2 "
                   >
                     Location
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="investment"
-                    className="rounded-lg flex-shrink-0 min-w-[100px] text-sm px-3 py-2"
-                  >
-                    <span className="hidden sm:inline">Investment</span>
-                    <span className="sm:hidden">ROI</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -2400,113 +2393,6 @@ export function PropertyDetailPage({
                               </div>
                             );
                           })}
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              {/* Investment Tab */}
-              <TabsContent value="investment" className="space-y-8 mt-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Investment Calculator CTA */}
-                  <Card className="border border-gold/20 shadow-lg bg-gradient-to-br from-gold/5 to-gold/10">
-                    <CardContent className="p-8 text-center">
-                      <div className="w-20 h-20 bg-gold/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                        <Calculator className="w-10 h-10 text-gold" />
-                      </div>
-                      <h3 className="text-[#8b7355] text-xl mb-4">
-                        Investment Calculator
-                      </h3>
-                      <p className="text-warm-gray mb-8 leading-relaxed">
-                        Calculate your potential returns, mortgage options, and
-                        see detailed market analysis for this property.
-                      </p>
-                      <Button
-                        onClick={() => setIsInvestmentCalculatorOpen(true)}
-                        className="w-full bg-gold hover:bg-gold/90 text-charcoal font-medium py-4 rounded-xl mb-6"
-                      >
-                        <TrendingUp className="w-5 h-5 mr-2" />
-                        Open Calculator
-                      </Button>
-
-                      <div className="grid grid-cols-2 gap-4 text-center">
-                        <div className="bg-white/70 rounded-xl p-4">
-                          <div className="text-2xl text-[#8b7355]">
-                            {calculateCashOnCash().toFixed(1)}%
-                          </div>
-                          <div className="text-xs text-warm-gray">
-                            Cash Return
-                          </div>
-                        </div>
-                        <div className="bg-white/70 rounded-xl p-4">
-                          <div className="text-2xl text-[#8b7355]">
-                            {calculateTotalROI().toFixed(0)}%
-                          </div>
-                          <div className="text-xs text-warm-gray">
-                            Total ROI
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Market Insights */}
-                  <Card className="border border-beige shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-[#8b7355]">
-                        Market Insights
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-beige/30 rounded-xl">
-                          <div className="text-2xl text-[#8b7355]">8.5%</div>
-                          <div className="text-xs text-warm-gray">
-                            Avg. Rental Yield
-                          </div>
-                        </div>
-                        <div className="text-center p-4 bg-beige/30 rounded-xl">
-                          <div className="text-2xl text-[#8b7355]">15%</div>
-                          <div className="text-xs text-warm-gray">
-                            Price Appreciation
-                          </div>
-                        </div>
-                        <div className="text-center p-4 bg-beige/30 rounded-xl">
-                          <div className="text-2xl text-[#8b7355]">High</div>
-                          <div className="text-xs text-warm-gray">
-                            Demand Level
-                          </div>
-                        </div>
-                        <div className="text-center p-4 bg-beige/30 rounded-xl">
-                          <div className="text-2xl text-[#8b7355]">A+</div>
-                          <div className="text-xs text-warm-gray">
-                            Location Grade
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <h4 className="text-[#8b7355]">
-                          Investment Advantages
-                        </h4>
-                        <ul className="space-y-3">
-                          {[
-                            "Prime location with high demand",
-                            "Strong rental market",
-                            "Excellent capital appreciation",
-                            "Tax-free investment environment",
-                            "Golden Visa eligibility",
-                          ].map((advantage) => (
-                            <li
-                              key={advantage}
-                              className="flex items-center text-warm-gray"
-                            >
-                              <ThumbsUp className="w-4 h-4 mr-3 text-gold flex-shrink-0" />
-                              <span className="text-sm">{advantage}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
                     </CardContent>
                   </Card>
                 </div>

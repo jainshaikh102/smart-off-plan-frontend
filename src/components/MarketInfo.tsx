@@ -70,7 +70,8 @@ export function MarketInfo({
         // Fetch areas and optionally properties
         const requests = [axios.get("/api/areas")];
         if (!sharedAllProperties) {
-          requests.push(axios.get("/api/properties"));
+          // Use the new /all endpoint to get ALL properties without pagination
+          requests.push(axios.get("/api/properties/all"));
         }
 
         const responses = await Promise.all(requests);
@@ -86,14 +87,15 @@ export function MarketInfo({
         let properties = effectiveAllProperties;
         if (!sharedAllProperties && propertiesResponse) {
           if (propertiesResponse.data.success && propertiesResponse.data.data) {
-            properties =
-              propertiesResponse.data.data.items ||
-              propertiesResponse.data.data ||
-              [];
+            // The /all endpoint returns all properties directly in data array (no pagination)
+            properties = propertiesResponse.data.data || [];
           } else if (Array.isArray(propertiesResponse.data)) {
             properties = propertiesResponse.data;
           }
           setLocalAllProperties(properties);
+          console.log(
+            `🏠 Fetched ${properties.length} properties from /api/properties/all`
+          );
         }
 
         // Calculate property counts per area using frontend filtering

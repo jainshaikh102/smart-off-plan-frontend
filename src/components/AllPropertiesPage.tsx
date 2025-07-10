@@ -87,11 +87,13 @@ interface Filters {
   searchTerm: string;
   priceRange: [number, number];
   priceDisplayMode: "total" | "perSqFt";
+  areaRange: [number, number];
   completionTimeframe: string;
   developmentStatus: string[];
   salesStatus: string[];
   unitType: string[];
   bedrooms: string[];
+  featured: boolean | null; // null = no filter, true = only featured, false = only non-featured
 }
 
 interface PaginationInfo {
@@ -131,11 +133,13 @@ export function AllPropertiesPage({
     searchTerm: "",
     priceRange: [0, 20000000],
     priceDisplayMode: "total",
+    areaRange: [0, 50000],
     completionTimeframe: "all",
     developmentStatus: [],
     salesStatus: [],
     unitType: [],
     bedrooms: [],
+    featured: null, // No featured filter by default
   });
 
   // Dialog filters (temporary state while user is selecting filters)
@@ -143,11 +147,13 @@ export function AllPropertiesPage({
     searchTerm: "",
     priceRange: [0, 20000000],
     priceDisplayMode: "total",
+    areaRange: [0, 50000],
     completionTimeframe: "all",
     developmentStatus: [],
     salesStatus: [],
     unitType: [],
     bedrooms: [],
+    featured: null, // No featured filter by default
   });
 
   // Pagination state
@@ -177,11 +183,13 @@ export function AllPropertiesPage({
       searchTerm: "",
       priceRange: [0, 20000000] as [number, number],
       priceDisplayMode: "total" as const,
+      areaRange: [0, 50000] as [number, number],
       completionTimeframe: "all",
       developmentStatus: [],
       salesStatus: [],
       unitType: [],
       bedrooms: [],
+      featured: null as boolean | null,
     };
     setDialogFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
@@ -196,11 +204,14 @@ export function AllPropertiesPage({
       appliedFilters.priceRange[1] < 20000000
     )
       count++;
+    if (appliedFilters.areaRange[0] > 0 || appliedFilters.areaRange[1] < 50000)
+      count++;
     if (appliedFilters.completionTimeframe !== "all") count++;
     if (appliedFilters.developmentStatus.length > 0) count++;
     if (appliedFilters.salesStatus.length > 0) count++;
     if (appliedFilters.unitType.length > 0) count++;
     if (appliedFilters.bedrooms.length > 0) count++;
+    if (appliedFilters.featured !== null) count++;
 
     return count;
   };
@@ -428,9 +439,12 @@ export function AllPropertiesPage({
             backendSortValue = "featured";
             break;
           default:
-            backendSortValue = "featured"; // Default to featured
+            // Don't default to featured - let backend handle default sorting based on filters
+            backendSortValue = "";
         }
-        params.append("sort", backendSortValue);
+        if (backendSortValue) {
+          params.append("sort", backendSortValue);
+        }
       }
 
       // Add filter parameters (use appliedFilters for API calls)
@@ -440,8 +454,14 @@ export function AllPropertiesPage({
       if (appliedFilters.priceRange[0] > 0) {
         params.append("min_price", appliedFilters.priceRange[0].toString());
       }
-      if (appliedFilters.priceRange[1] < 10000000) {
+      if (appliedFilters.priceRange[1] < 20000000) {
         params.append("max_price", appliedFilters.priceRange[1].toString());
+      }
+      if (appliedFilters.areaRange[0] > 0) {
+        params.append("min_area", appliedFilters.areaRange[0].toString());
+      }
+      if (appliedFilters.areaRange[1] < 50000) {
+        params.append("max_area", appliedFilters.areaRange[1].toString());
       }
       if (appliedFilters.developmentStatus.length > 0) {
         params.append(
@@ -458,6 +478,11 @@ export function AllPropertiesPage({
 
       if (appliedFilters.bedrooms.length > 0) {
         params.append("bedrooms", appliedFilters.bedrooms.join(","));
+      }
+
+      // Add featured filter parameter
+      if (appliedFilters.featured !== null) {
+        params.append("featured", appliedFilters.featured.toString());
       }
 
       // Add completion timeframe parameter - map frontend values to backend values
@@ -673,11 +698,11 @@ export function AllPropertiesPage({
                       <CardHeader>
                         <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-xl">
                           <Banknote className="w-6 h-6 text-gold" />
-                          <span>Price Configuration</span>
+                          <span> Price Range (AED)</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-beige/50">
+                        {/* <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-beige/50">
                           <div className="flex items-center space-x-3">
                             <DollarSign className="w-5 h-5 text-gold" />
                             <div>
@@ -708,15 +733,15 @@ export function AllPropertiesPage({
                               Per Sq Ft
                             </Label>
                           </div>
-                        </div>
+                        </div> */}
 
                         <div className="space-y-4">
-                          <div className="flex items-center space-x-2">
+                          {/* <div className="flex items-center space-x-2">
                             <TrendingUp className="w-5 h-5 text-gold" />
                             <Label className="text-[#8b7355] font-medium text-lg">
                               Price Range (AED)
                             </Label>
-                          </div>
+                          </div> */}
 
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -788,45 +813,201 @@ export function AllPropertiesPage({
                       </CardContent>
                     </Card>
 
-                    {/* Project Completion */}
-                    <Card className="border-beige/60">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Area Range */}
+                      <Card className="border-beige/60">
+                        <CardHeader>
+                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
+                            <Home className="w-5 h-5 text-gold" />
+                            <span>Area Range</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {/* <div className="flex items-center space-x-2">
+                              <Home className="w-5 h-5 text-gold" />
+                              <Label className="text-[#8b7355] font-medium text-lg">
+                                Area Range (sqm)
+                              </Label>
+                            </div> */}
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-xs text-warm-gray uppercase tracking-wide">
+                                  Min Area
+                                </Label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
+                                    sqm
+                                  </span>
+                                  <Input
+                                    type="number"
+                                    value={dialogFilters.areaRange[0]}
+                                    onChange={(e) =>
+                                      handleDialogFilterChange("areaRange", [
+                                        Number(e.target.value),
+                                        dialogFilters.areaRange[1],
+                                      ])
+                                    }
+                                    className="pl-12 border-beige/50 focus:border-gold rounded-lg"
+                                    placeholder="0"
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-xs text-warm-gray uppercase tracking-wide">
+                                  Max Area
+                                </Label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
+                                    sqm
+                                  </span>
+                                  <Input
+                                    type="number"
+                                    value={dialogFilters.areaRange[1]}
+                                    onChange={(e) =>
+                                      handleDialogFilterChange("areaRange", [
+                                        dialogFilters.areaRange[0],
+                                        Number(e.target.value),
+                                      ])
+                                    }
+                                    className="pl-12 border-beige/50 focus:border-gold rounded-lg"
+                                    placeholder="50,000"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm text-warm-gray">
+                                <span>0 sqm</span>
+                                <span>50,000 sqm</span>
+                              </div>
+                              <Slider
+                                value={dialogFilters.areaRange}
+                                onValueChange={(value) =>
+                                  handleDialogFilterChange(
+                                    "areaRange",
+                                    value as [number, number]
+                                  )
+                                }
+                                max={50000}
+                                min={0}
+                                step={50}
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Project Completion */}
+                      <Card className="border-beige/60">
+                        <CardHeader>
+                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
+                            <Clock className="w-5 h-5 text-gold" />
+                            <span>Project Completion</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <Label className="text-xs text-warm-gray uppercase tracking-wide">
+                              Completion Timeframe
+                            </Label>
+                            <Select
+                              value={dialogFilters.completionTimeframe}
+                              onValueChange={(value) =>
+                                handleDialogFilterChange(
+                                  "completionTimeframe",
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-beige/50 focus:border-gold rounded-lg">
+                                <SelectValue placeholder="Select timeframe" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {completionTimeframes.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Featured Properties Filter */}
+                    {/* <Card className="border-beige/60">
                       <CardHeader>
                         <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                          <Clock className="w-5 h-5 text-gold" />
-                          <span>Project Completion</span>
+                          <TrendingUp className="w-5 h-5 text-gold" />
+                          <span>Featured Properties</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-2">
-                          <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                            Completion Timeframe
-                          </Label>
-                          <Select
-                            value={dialogFilters.completionTimeframe}
-                            onValueChange={(value) =>
-                              handleDialogFilterChange(
-                                "completionTimeframe",
-                                value
-                              )
-                            }
-                          >
-                            <SelectTrigger className="border-beige/50 focus:border-gold rounded-lg">
-                              <SelectValue placeholder="Select timeframe" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {completionTimeframes.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="radio"
+                              id="featured-all"
+                              name="featured"
+                              checked={dialogFilters.featured === null}
+                              onChange={() =>
+                                handleDialogFilterChange("featured", null)
+                              }
+                              className="w-5 h-5 text-gold focus:ring-gold"
+                            />
+                            <label
+                              htmlFor="featured-all"
+                              className="text-sm text-warm-gray cursor-pointer flex-1"
+                            >
+                              All Properties
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="radio"
+                              id="featured-only"
+                              name="featured"
+                              checked={dialogFilters.featured === true}
+                              onChange={() =>
+                                handleDialogFilterChange("featured", true)
+                              }
+                              className="w-5 h-5 text-gold focus:ring-gold"
+                            />
+                            <label
+                              htmlFor="featured-only"
+                              className="text-sm text-warm-gray cursor-pointer flex-1"
+                            >
+                              Featured Only
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="radio"
+                              id="featured-exclude"
+                              name="featured"
+                              checked={dialogFilters.featured === false}
+                              onChange={() =>
+                                handleDialogFilterChange("featured", false)
+                              }
+                              className="w-5 h-5 text-gold focus:ring-gold"
+                            />
+                            <label
+                              htmlFor="featured-exclude"
+                              className="text-sm text-warm-gray cursor-pointer flex-1"
+                            >
+                              Non-Featured Only
+                            </label>
+                          </div>
                         </div>
                       </CardContent>
-                    </Card>
+                    </Card> */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Development Status */}
@@ -864,6 +1045,52 @@ export function AllPropertiesPage({
                                         );
                                     handleDialogFilterChange(
                                       "developmentStatus",
+                                      newStatus
+                                    );
+                                  }}
+                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
+                                />
+                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
+                                  {status}
+                                </label>
+                              </div>
+                            ))
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Sales Status */}
+                      <Card className="border-beige/60 shadow-sm">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
+                            <ShoppingCart className="w-5 h-5 text-gold" />
+                            <span>Sales Status</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {statusesLoading ? (
+                            <div className="text-sm text-warm-gray">
+                              Loading statuses...
+                            </div>
+                          ) : (
+                            salesStatuses.map((status: string) => (
+                              <div
+                                key={status}
+                                className="flex items-center space-x-3"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={dialogFilters.salesStatus.includes(
+                                    status
+                                  )}
+                                  onChange={(e) => {
+                                    const newStatus = e.target.checked
+                                      ? [...dialogFilters.salesStatus, status]
+                                      : dialogFilters.salesStatus.filter(
+                                          (s: string) => s !== status
+                                        );
+                                    handleDialogFilterChange(
+                                      "salesStatus",
                                       newStatus
                                     );
                                   }}
@@ -963,52 +1190,6 @@ export function AllPropertiesPage({
                                 />
                                 <label className="text-sm text-warm-gray cursor-pointer flex-1">
                                   {type}
-                                </label>
-                              </div>
-                            ))
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Sales Status */}
-                      <Card className="border-beige/60 shadow-sm">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <ShoppingCart className="w-5 h-5 text-gold" />
-                            <span>Sales Status</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {statusesLoading ? (
-                            <div className="text-sm text-warm-gray">
-                              Loading statuses...
-                            </div>
-                          ) : (
-                            salesStatuses.map((status: string) => (
-                              <div
-                                key={status}
-                                className="flex items-center space-x-3"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={dialogFilters.salesStatus.includes(
-                                    status
-                                  )}
-                                  onChange={(e) => {
-                                    const newStatus = e.target.checked
-                                      ? [...dialogFilters.salesStatus, status]
-                                      : dialogFilters.salesStatus.filter(
-                                          (s: string) => s !== status
-                                        );
-                                    handleDialogFilterChange(
-                                      "salesStatus",
-                                      newStatus
-                                    );
-                                  }}
-                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
-                                />
-                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
-                                  {status}
                                 </label>
                               </div>
                             ))

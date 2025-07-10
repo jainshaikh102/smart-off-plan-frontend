@@ -48,10 +48,9 @@ export default function AreaPage({}: AreaPageProps) {
         setLoading(true);
         console.log("🏙️ Fetching properties for area:", areaName);
 
-        // Fetch properties filtered by area using the dedicated endpoint
-        const encodedAreaName = encodeURIComponent(areaName);
+        // Use the new /all endpoint with area filtering for better performance
         const response = await axios.get(
-          `/api/properties/by-area/${encodedAreaName}`
+          `/api/properties/all?area=${encodeURIComponent(areaName)}`
         );
 
         if (response.data.success) {
