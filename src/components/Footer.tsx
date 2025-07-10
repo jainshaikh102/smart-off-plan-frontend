@@ -1,7 +1,9 @@
 "use client";
 
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import SmartOffPlanLogo from "../../public/Logo.png";
 
 export function Footer() {
   const router = useRouter();
@@ -17,7 +19,17 @@ export function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company Info */}
             <div>
-              <h3 className="mb-6 text-white">Smart Off Plan</h3>
+              {/* <h3 className="mb-6 text-white">Smart Off Plan</h3> */}
+              <button
+                // onClick={onLogoClick || (() => router.push("/"))}
+                className="hover:opacity-80 transition-opacity"
+              >
+                <Image
+                  src={SmartOffPlanLogo}
+                  alt="Smart Off Plan Logo"
+                  className="h-28 w-auto"
+                />
+              </button>
               <p className="text-[#d2c7b8] text-sm mb-6 leading-relaxed">
                 Your trusted partner for Dubai developments. Connecting
                 international investors with premium off-plan opportunities.

@@ -7,6 +7,63 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+// Skeleton Loading Component for Featured Properties
+const FeaturedPropertySkeleton = () => {
+  return (
+    <Card className="overflow-hidden bg-white shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] rounded-lg border-0 h-full flex flex-col animate-pulse">
+      <div className="relative">
+        {/* Image skeleton */}
+        <div className="w-full h-56 bg-gray-200"></div>
+        {/* Badge skeleton */}
+        <div className="absolute top-4 left-4 w-20 h-6 bg-gray-300 rounded"></div>
+        {/* Partner badge skeleton */}
+        <div className="absolute top-4 right-4 w-16 h-6 bg-gray-300 rounded"></div>
+      </div>
+
+      <CardContent className="px-6 pt-4 pb-6 flex flex-col flex-1">
+        <div className="flex flex-col flex-1">
+          {/* Property Name skeleton */}
+          <div className="h-6 bg-gray-200 rounded mb-2 w-3/4"></div>
+
+          {/* Location skeleton */}
+          <div className="flex items-center mb-4">
+            <div className="w-4 h-4 bg-gray-200 rounded mr-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+
+          {/* Price Range skeleton */}
+          <div className="mb-4">
+            <div className="h-6 bg-gray-200 rounded mb-1 w-2/3"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          </div>
+
+          {/* Developer & Status skeleton */}
+          <div className="space-y-2 mb-6 flex-1">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
+                <div className="h-4 bg-gray-200 rounded w-16"></div>
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
+                <div className="h-4 bg-gray-200 rounded w-12"></div>
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-16"></div>
+            </div>
+          </div>
+
+          {/* CTA Button skeleton */}
+          <div className="w-full h-10 bg-gray-200 rounded mt-auto"></div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 interface Property {
   id: number;
   name: string;
@@ -147,20 +204,19 @@ export function FeaturedProjects({
           </p>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-deep-blue"></div>
-            <p className="mt-4 text-muted-foreground">
-              Loading featured properties...
-            </p>
+        {/* Loading State - Show 3 skeleton cards */}
+        {effectiveLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeaturedPropertySkeleton />
+            <FeaturedPropertySkeleton />
+            <FeaturedPropertySkeleton />
           </div>
         )}
 
         {/* Error State */}
-        {error && (
+        {!effectiveLoading && effectiveError && (
           <div className="text-center py-12">
-            <p className="text-red-500 mb-4">{error}</p>
+            <p className="text-red-500 mb-4">{effectiveError}</p>
             <Button
               onClick={() => fetchProperties()}
               variant="outline"

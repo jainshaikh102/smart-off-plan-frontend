@@ -20,6 +20,8 @@ import {
   Target,
   Shield,
   Briefcase,
+  CirclePlus,
+  Building,
 } from "lucide-react";
 
 interface BecomeFranchiseePageProps {
@@ -117,6 +119,17 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
     }
   };
 
+  // Handle smooth scrolling to franchise application form
+  const handleScrollToApplication = () => {
+    const applicationSection = document.getElementById("franchise-application");
+    if (applicationSection) {
+      applicationSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   const franchiseBenefits = [
     {
       icon: Crown,
@@ -154,28 +167,26 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
       description:
         "Continuous operational, technical, and business development support",
     },
+    {
+      icon: CirclePlus,
+      title: "Additional Services",
+      description:
+        "Rights to offer company setup, Golden Visa assistance, and other value-added services.",
+    },
+
+    {
+      icon: Building,
+      title: "Property Management",
+      description:
+        "Full property-management services for your clients, with 50/50 revenue share.",
+    },
   ];
 
   const investmentDetails = [
     {
-      title: "Initial Franchise Fee",
-      amount: "AED 150,000",
+      title: "Franchise Fee",
+      amount: "Inquire",
       description: "One-time franchise licensing fee",
-    },
-    {
-      title: "Setup Investment",
-      amount: "AED 300,000 - 500,000",
-      description: "Office setup, equipment, and initial marketing",
-    },
-    {
-      title: "Working Capital",
-      amount: "AED 200,000",
-      description: "Recommended operating capital for first 6 months",
-    },
-    {
-      title: "Ongoing Royalty",
-      amount: "8% of Revenue",
-      description: "Monthly royalty fee on gross revenue",
     },
   ];
 
@@ -327,15 +338,27 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                   >
                     <div className="flex justify-between items-start mb-3">
                       <h5 className="text-[#8b7355]">{detail.title}</h5>
-                      <span className="text-gold font-semibold text-lg">
+                      <Button
+                        variant={"default"}
+                        className="bg-[#8b7355] hover:bg-[#8b7355]/90 text-white px-6"
+                      >
                         {detail.amount}
-                      </span>
+                      </Button>
                     </div>
                     <p className="text-warm-gray text-sm">
                       {detail.description}
                     </p>
                   </div>
                 ))}
+
+                <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)]">
+                  <div className="flex justify-between items-start mb-3">
+                    <h5 className="text-[#8b7355]">ROI Split</h5>
+                  </div>
+                  <p className="text-warm-gray text-sm">
+                    50/50 revenue share on all services.
+                  </p>
+                </div>
               </div>
 
               <div className="mt-8 bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 rounded-2xl p-6 border border-gold/20">
@@ -344,10 +367,6 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                   Our existing franchisees typically see break-even within 12-18
                   months with potential annual revenues of AED 2-5 million.
                 </p>
-                <Button className="bg-[#8b7355] hover:bg-[#8b7355]/90 text-white px-6">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Request Financial Projections
-                </Button>
               </div>
             </div>
 
@@ -396,7 +415,10 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                   We're currently seeking qualified franchisees for key markets
                   across the UAE and select international locations.
                 </p>
-                <Button className="bg-gold hover:bg-gold/90 text-[#8b7355]">
+                <Button
+                  className="bg-gold hover:bg-gold/90 text-[#8b7355]"
+                  onClick={handleScrollToApplication}
+                >
                   <Globe className="w-4 h-4 mr-2" />
                   Check Territory Availability
                 </Button>
@@ -432,7 +454,10 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
       </section>
 
       {/* Application Form */}
-      <section className="section-padding bg-gradient-to-br from-beige to-ivory">
+      <section
+        id="franchise-application"
+        className="section-padding bg-gradient-to-br from-beige to-ivory"
+      >
         <div className="container">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">

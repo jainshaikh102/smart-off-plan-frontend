@@ -27,6 +27,70 @@ import {
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useRouter } from "next/navigation";
 
+// Skeleton Loading Component for Property Cards
+const PropertyCardSkeleton = () => {
+  return (
+    <Card className="bg-white shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] overflow-hidden rounded-xl border-0 h-full animate-pulse">
+      {/* Image skeleton */}
+      <div className="relative h-48 bg-gray-200">
+        {/* Top left badge skeleton */}
+        <div className="absolute top-3 left-3 w-20 h-6 bg-gray-300 rounded"></div>
+        {/* Top right heart button skeleton */}
+        <div className="absolute top-3 right-3 w-8 h-8 bg-gray-300 rounded-full"></div>
+        {/* Bottom left badge skeleton */}
+        <div className="absolute bottom-3 left-3 w-16 h-5 bg-gray-300 rounded"></div>
+      </div>
+
+      {/* Content skeleton */}
+      <CardContent className="p-4">
+        <div className="mb-3">
+          {/* Property name skeleton */}
+          <div className="h-6 bg-gray-200 rounded mb-1 w-3/4"></div>
+          {/* Location skeleton */}
+          <div className="flex items-center mb-2">
+            <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          {/* Price skeleton */}
+          <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+        </div>
+
+        {/* Stats grid skeleton */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-1">
+              <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
+              <div className="w-8 h-3 bg-gray-200 rounded"></div>
+            </div>
+            <div className="w-6 h-4 bg-gray-200 rounded mx-auto"></div>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-1">
+              <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
+              <div className="w-10 h-3 bg-gray-200 rounded"></div>
+            </div>
+            <div className="w-6 h-4 bg-gray-200 rounded mx-auto"></div>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-1">
+              <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
+              <div className="w-6 h-3 bg-gray-200 rounded"></div>
+            </div>
+            <div className="w-8 h-4 bg-gray-200 rounded mx-auto"></div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          {/* Developer name skeleton */}
+          <div className="h-3 bg-gray-200 rounded mb-2 w-1/2 mx-auto"></div>
+          {/* Button skeleton */}
+          <div className="w-full h-8 bg-gray-200 rounded"></div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 interface Project {
   id: number;
   name: string;
@@ -394,10 +458,10 @@ export function PropertyListings({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between">
               {effectiveLoading ? (
                 <div className="flex items-center">
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {/* <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   <span className="text-[rgba(30,26,26,0.5)]">
                     Loading properties...
-                  </span>
+                  </span> */}
                 </div>
               ) : effectiveError ? (
                 <p className="text-red-500 mb-2 sm:mb-0">{effectiveError}</p>
@@ -429,8 +493,18 @@ export function PropertyListings({
 
         {/* Properties Horizontal Scroll */}
         {effectiveLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gold" />
+          <div className="overflow-x-auto">
+            <div className="flex gap-8 pb-4" style={{ width: "max-content" }}>
+              <div className="flex-shrink-0 w-80">
+                <PropertyCardSkeleton />
+              </div>
+              <div className="flex-shrink-0 w-80">
+                <PropertyCardSkeleton />
+              </div>
+              <div className="flex-shrink-0 w-80">
+                <PropertyCardSkeleton />
+              </div>
+            </div>
           </div>
         ) : effectiveError ? (
           <div className="text-center py-12">

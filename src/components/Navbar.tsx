@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Menu, X, TrendingUp, ChevronDown } from "lucide-react";
-import SmartOffPlanLogo from "../../public/Logo.png";
+import SmartOffPlanLogo from "../../public/LogoBlackText.png";
 import Image from "next/image";
 
 interface NavbarProps {

@@ -220,24 +220,95 @@ export function PropertyDetailPage({
     }));
   }, [project?.min_price, project?.price]);
 
-  // Helper function to clean markdown content for display
-  const cleanDescription = (description: string): string => {
-    if (!description) return "";
+  // Helper function to parse and style markdown content for display
+  const parseDescription = (description: string): JSX.Element[] => {
+    if (!description) return [];
 
-    // Remove markdown headers (##### text)
-    let cleaned = description.replace(/#{1,6}\s+/g, "");
+    // Split by lines and process each line
+    const lines = description.split("\n");
+    const elements: JSX.Element[] = [];
+    let currentParagraph: string[] = [];
+    let key = 0;
 
-    // Remove excessive line breaks and normalize spacing
-    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+    const flushParagraph = () => {
+      if (currentParagraph.length > 0) {
+        const paragraphText = currentParagraph.join(" ").trim();
+        if (paragraphText) {
+          elements.push(
+            <p
+              key={`p-${key++}`}
+              className="text-warm-gray leading-relaxed mb-4"
+            >
+              {paragraphText}
+            </p>
+          );
+        }
+        currentParagraph = [];
+      }
+    };
 
-    // Trim whitespace
-    cleaned = cleaned.trim();
+    lines.forEach((line) => {
+      const trimmedLine = line.trim();
 
-    return cleaned;
+      // Check if line is a heading (starts with #)
+      const headingMatch = trimmedLine.match(/^(#{1,6})\s+(.+)$/);
+
+      if (headingMatch) {
+        // Flush any pending paragraph
+        flushParagraph();
+
+        const headingLevel = headingMatch[1].length;
+        const headingText = headingMatch[2];
+
+        // Style headings based on level
+        let headingClass = "";
+        switch (headingLevel) {
+          case 1:
+            headingClass = "text-2xl text-[#8b7355] font-bold mb-4 mt-6";
+            break;
+          case 2:
+            headingClass = "text-2xl text-[#8b7355] font-semibold mb-3 mt-5";
+            break;
+          case 3:
+            headingClass = "text-2xl text-[#8b7355] font-semibold mb-3 mt-4";
+            break;
+          case 4:
+            headingClass = "text-2xl text-[#8b7355] font-medium mb-2 mt-3";
+            break;
+          case 5:
+            headingClass = "text-2xl text-[#8b7355] font-medium mb-2 mt-3";
+            break;
+          case 6:
+            headingClass = "text-2xl text-[#8b7355] font-normal mb-2 mt-2";
+            break;
+        }
+
+        elements.push(
+          <h3 key={`h-${key++}`} className={headingClass}>
+            {headingText}
+          </h3>
+        );
+      } else if (trimmedLine === "") {
+        // Empty line - flush paragraph if we have content
+        if (currentParagraph.length > 0) {
+          flushParagraph();
+        }
+      } else {
+        // Regular text line - add to current paragraph
+        currentParagraph.push(trimmedLine);
+      }
+    });
+
+    // Flush any remaining paragraph
+    flushParagraph();
+
+    return elements;
   };
 
-  // Get cleaned description
-  const displayDescription = cleanDescription(project?.description || "");
+  // Get parsed description elements
+  const displayDescriptionElements = parseDescription(
+    project?.description || ""
+  );
 
   // Property coordinates
   const propertyCoordinates =
@@ -1677,16 +1748,15 @@ export function PropertyDetailPage({
               <TabsContent value="overview" className="space-y-8 mt-8">
                 {/* Property Description */}
                 <Card className="border border-beige shadow-sm">
-                  <CardHeader>
+                  {/* <CardHeader>
                     <CardTitle className="text-[#8b7355]">
                       About This Property
                     </CardTitle>
-                  </CardHeader>
+                  </CardHeader> */}
                   <CardContent className="space-y-6">
-                    <p className="text-warm-gray leading-relaxed whitespace-pre-line">
-                      {displayDescription ||
-                        "Experience luxury living at its finest with this exceptional property offering. Located in one of Dubai's most prestigious neighborhoods, this development combines modern architecture with world-class amenities. Each residence is thoughtfully designed with premium finishes, spacious layouts, and stunning city skyline views."}
-                    </p>
+                    <div className="space-y-2">
+                      {displayDescriptionElements}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div>

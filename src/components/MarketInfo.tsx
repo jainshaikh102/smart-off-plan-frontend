@@ -27,6 +27,42 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
+// Skeleton Loading Component for Area Cards
+const AreaCardSkeleton = () => {
+  return (
+    <Card className="overflow-hidden rounded-2xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] border-0 h-80 w-72 animate-pulse">
+      <div className="relative h-full">
+        {/* Background Image skeleton */}
+        <div className="absolute inset-0 w-full h-full bg-gray-200"></div>
+
+        {/* Gradient Overlay skeleton */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-400/70 via-gray-500/60 to-gray-300/80"></div>
+
+        {/* Content Overlay skeleton */}
+        <div className="relative h-full flex flex-col justify-between p-6">
+          {/* Top Content skeleton */}
+          <div>
+            <div className="h-6 bg-gray-300 rounded mb-1 w-3/4"></div>
+            <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+          </div>
+
+          {/* Bottom Content skeleton */}
+          <div className="space-y-3">
+            <div className="h-10 bg-gray-300 rounded w-20"></div>
+            <div className="h-5 bg-gray-300 rounded w-32"></div>
+
+            {/* Hover Details skeleton */}
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-gray-300 rounded mr-2"></div>
+              <div className="h-4 bg-gray-300 rounded w-28"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
 interface MarketInfoProps {
   onAreaSelect?: (area: any) => void;
   // Optional props for shared data to avoid multiple API calls
@@ -165,80 +201,6 @@ export function MarketInfo({
     }
   };
 
-  // Fallback market data with comprehensive information for each area (used if API fails)
-  const fallbackAreas = [
-    {
-      name: "Dubai Marina",
-      growth: "+18.5%",
-      avgPrice: "AED 1,450 /sq ft",
-      image:
-        "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      gradient: "from-blue-600/70 via-blue-800/60 to-black/80",
-      description:
-        "Waterfront luxury living with world-class marina views and premium amenities.",
-      marketCap: "AED 45.2B",
-      totalProjects: 156,
-      propertyCount: 156,
-      averageRoi: "8.2%",
-    },
-    {
-      name: "Downtown Dubai",
-      growth: "+22.3%",
-      avgPrice: "AED 1,680 /sq ft",
-      image:
-        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      gradient: "from-amber-600/70 via-orange-700/60 to-black/80",
-      description:
-        "The heart of Dubai with iconic skyscrapers and unmatched urban sophistication.",
-      marketCap: "AED 67.8B",
-      totalProjects: 189,
-      propertyCount: 189,
-      averageRoi: "9.1%",
-    },
-    {
-      name: "Business Bay",
-      growth: "+15.7%",
-      avgPrice: "AED 1,280 /sq ft",
-      image:
-        "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      gradient: "from-emerald-600/70 via-teal-700/60 to-black/80",
-      description:
-        "Dubai's central business district offering modern living and commercial excellence.",
-      marketCap: "AED 38.9B",
-      totalProjects: 134,
-      propertyCount: 134,
-      averageRoi: "8.8%",
-    },
-    {
-      name: "Palm Jumeirah",
-      growth: "+25.2%",
-      avgPrice: "AED 2,100 /sq ft",
-      image:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      gradient: "from-rose-600/70 via-pink-700/60 to-black/80",
-      description:
-        "Ultra-luxury island living with exclusive villas and world-renowned resorts.",
-      marketCap: "AED 89.4B",
-      totalProjects: 78,
-      propertyCount: 78,
-      averageRoi: "7.5%",
-    },
-    {
-      name: "JBR",
-      growth: "+19.8%",
-      avgPrice: "AED 1,520 /sq ft",
-      image:
-        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      gradient: "from-purple-600/70 via-indigo-700/60 to-black/80",
-      description:
-        "Beachfront lifestyle with luxury towers and vibrant beach culture.",
-      marketCap: "AED 52.3B",
-      totalProjects: 98,
-      propertyCount: 98,
-      averageRoi: "8.4%",
-    },
-  ];
-
   const marketStats = [
     {
       title: "Total Market Value",
@@ -300,24 +262,6 @@ export function MarketInfo({
       });
     }
   };
-
-  // Use real areas with properties if available, otherwise fallback to static data
-  const topAreas =
-    areasWithProperties.length > 0
-      ? areasWithProperties.map((area) => ({
-          name: area.name,
-          propertyCount: area.propertyCount,
-          growth: "+12.5%", // Default growth rate
-          avgPrice: "AED 1,200 /sq ft", // Default price
-          image:
-            "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-          gradient: "from-blue-600/70 via-blue-800/60 to-black/80",
-          description: `Discover ${area.propertyCount} premium properties in ${area.name}`,
-          marketCap: "AED 25.2B",
-          totalProjects: area.propertyCount,
-          averageRoi: "7.5%",
-        }))
-      : fallbackAreas;
 
   return (
     <section
@@ -461,25 +405,29 @@ export function MarketInfo({
 
           {/* Areas Carousel */}
           <div className="relative">
-            {/* Loading State */}
-            {(areasLoading || propertiesLoading) && (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex items-center space-x-3">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold"></div>
-                  <span className="text-warm-gray">
-                    {areasLoading
-                      ? "Loading areas..."
-                      : "Loading properties..."}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Areas Display */}
-            {!areasLoading && (
+            {/* Loading State - Show skeleton cards */}
+            {areasLoading || propertiesLoading ? (
               <div className="overflow-x-auto pb-4">
                 <div className="flex gap-8 min-w-max">
-                  {topAreas.map((area, index) => (
+                  <div className="flex-shrink-0">
+                    <AreaCardSkeleton />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <AreaCardSkeleton />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <AreaCardSkeleton />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <AreaCardSkeleton />
+                  </div>
+                </div>
+              </div>
+            ) : areasWithProperties.length > 0 ? (
+              /* Areas Display - Only show when data is loaded and available */
+              <div className="overflow-x-auto pb-4">
+                <div className="flex gap-8 min-w-max">
+                  {areasWithProperties.map((area, index) => (
                     <div
                       key={index}
                       className="group cursor-pointer transition-all duration-300 hover:-translate-y-2 flex-shrink-0"
@@ -489,15 +437,13 @@ export function MarketInfo({
                         <div className="relative h-full">
                           {/* Background Image */}
                           <ImageWithFallback
-                            src={area.image}
+                            src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                             alt={area.name}
                             className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                           />
 
                           {/* Gradient Overlay */}
-                          <div
-                            className={`absolute inset-0 bg-gradient-to-t ${area.gradient}`}
-                          ></div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-blue-600/70 via-blue-800/60 to-black/80"></div>
 
                           {/* Content Overlay */}
                           <div className="relative h-full flex flex-col justify-between p-6 text-white">
@@ -507,18 +453,17 @@ export function MarketInfo({
                                 {area.name}
                               </h4>
                               <p className="text-white/70 text-sm mt-1">
-                                {area.propertyCount || area.totalProjects}{" "}
-                                Properties
+                                {area.propertyCount} Properties
                               </p>
                             </div>
 
                             {/* Bottom Content */}
                             <div className="space-y-3">
                               <div className="text-4xl text-gold group-hover:scale-105 transition-transform">
-                                {area.growth}
+                                +12.5%
                               </div>
                               <div className="text-lg text-white/90">
-                                {area.avgPrice}
+                                AED 1,200 /sq ft
                               </div>
 
                               {/* Hover Details */}
@@ -534,6 +479,17 @@ export function MarketInfo({
                       </Card>
                     </div>
                   ))}
+                </div>
+              </div>
+            ) : (
+              /* No data available state */
+              <div className="text-center py-12">
+                <div className="text-warm-gray mb-4">
+                  <Building className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg">No areas available</p>
+                  <p className="text-sm">
+                    Area data will appear here once loaded from the API.
+                  </p>
                 </div>
               </div>
             )}
