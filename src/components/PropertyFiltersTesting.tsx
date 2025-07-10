@@ -1097,7 +1097,10 @@ export function PropertyFiltersTesting({
               upcoming launches. Let us help you find your perfect investment
               opportunity.
             </p>
-            <Button className="bg-gold hover:bg-gold/90 text-charcoal px-8 py-3">
+            <Button
+              className="bg-gold hover:bg-gold/90 text-charcoal px-8 py-3"
+              onClick={() => router.push(`/contact`)}
+            >
               Speak with an Expert
             </Button>
           </div>

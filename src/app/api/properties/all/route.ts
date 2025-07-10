@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/properties/all - Get all properties without pagination
- * 
+ *
  * This endpoint returns ALL properties from the database without pagination.
  * Useful for cases where you need all properties at once (e.g., for maps, exports, analytics, etc.)
- * 
+ *
  * Query Parameters:
  * - All the same filtering parameters as the main /api/properties endpoint
  * - NO pagination parameters (page, limit) - returns all matching results
- * 
+ *
  * @param request - NextRequest object containing query parameters
  * @returns NextResponse with all matching properties (no pagination)
  */

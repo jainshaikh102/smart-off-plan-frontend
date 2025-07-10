@@ -436,7 +436,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         <div className="container">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-[#8b7355] mb-6 text-[36px] text-[40px]">
+              <h2 className="text-[#8b7355] mb-6 text-[40px]">
                 Franchise Application
               </h2>
               <p className="text-warm-gray text-lg max-w-2xl mx-auto">
@@ -621,7 +621,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
       <section className="section-padding bg-[#8b7355] text-white">
         <div className="container">
           <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-white mb-6 text-[36px] text-[40px]">
+            <h2 className="text-white mb-6 text-[40px]">
               Ready to Own Your Future?
             </h2>
             <p className="text-tan text-lg mb-8 leading-relaxed">
@@ -630,13 +630,13 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
               support system.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg text-[14px] text-[15px] text-[16px]">
+              <Button className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg">
                 <Phone className="w-5 h-5 mr-2" />
                 Call Franchise Team
               </Button>
               <Button
                 variant="outline"
-                className="border-white text-[rgba(139,115,85,1)] hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg text-[14px] text-[15px] text-[16px]"
+                className="border-white text-white hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg"
               >
                 <Calendar className="w-5 h-5 mr-2" />
                 Schedule Discovery Call

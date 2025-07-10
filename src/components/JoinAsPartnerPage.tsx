@@ -114,7 +114,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
       icon: DollarSign,
       title: "Competitive Commission",
       description:
-        "Earn up to 40% commission on every successful deal you close",
+        "Earn up to 20% commission on every successful deal you close",
     },
     {
       icon: TrendingUp,
@@ -161,22 +161,22 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
       description:
         "Professional marketing materials, brochures, and digital assets",
     },
-    {
-      icon: Users,
-      title: "Training Program",
-      description:
-        "Comprehensive training on Dubai market and our exclusive projects",
-    },
+    // {
+    //   icon: Users,
+    //   title: "Training Program",
+    //   description:
+    //     "Comprehensive training on Dubai market and our exclusive projects",
+    // },
     {
       icon: Phone,
       title: "Dedicated Support",
       description: "Personal account manager and priority customer service",
     },
-    {
-      icon: Globe,
-      title: "Lead Generation",
-      description: "Access to qualified leads and referral opportunities",
-    },
+    // {
+    //   icon: Globe,
+    //   title: "Lead Generation",
+    //   description: "Access to qualified leads and referral opportunities",
+    // },
   ];
 
   return (
@@ -216,7 +216,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
       <section className="section-padding">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-[#8b7355] mb-6 text-[36px] text-[40px]">
+            <h2 className="text-[#8b7355] mb-6 text-[40px]">
               Why Partner With Us?
             </h2>
             <p className="text-warm-gray text-lg max-w-3xl mx-auto">
@@ -313,7 +313,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
         <div className="container">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-[#8b7355] mb-6 text-[36px] text-[40px]">
+              <h2 className="text-[#8b7355] mb-6 text-[40px]">
                 Partner Application
               </h2>
               <p className="text-warm-gray text-lg max-w-2xl mx-auto">
@@ -435,7 +435,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
                       type="text"
                       value={formData.portfolio}
                       onChange={handleInputChange}
-                      placeholder="www.blacklionapp.xyz, instagram.com/username, or https://yoursite.com"
+                      placeholder="e.g., instagram.com/username, or https://yoursite.com"
                       className="w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
                     />
                     <p className="text-xs text-warm-gray mt-1">
@@ -482,7 +482,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
       <section className="section-padding bg-[#8b7355] text-white">
         <div className="container">
           <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-white mb-6 text-[36px] text-[40px]">
+            <h2 className="text-white mb-6 text-[40px]">
               Questions About Partnership?
             </h2>
             <p className="text-tan text-lg mb-8 leading-relaxed">
