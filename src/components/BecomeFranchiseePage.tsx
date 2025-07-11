@@ -256,18 +256,6 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
       {/* Hero Section */}
       <section className="section-padding bg-[#8b7355] text-white">
         <div className="container">
-          <div className="flex items-center mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="text-white hover:bg-white/10 mr-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
-
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gold rounded-2xl flex items-center justify-center">

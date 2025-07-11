@@ -64,41 +64,41 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       id: "main",
       name: "Business Bay Headquarters",
       shortName: "Business Bay",
-      address: "Level 42, Business Bay Tower, Business Bay, Dubai, UAE",
+      address: "240 London Road, Bagshot, GU19 5EZ, UK",
       phone: "‪+971543218123",
-      email: "info@smartoffplan.com",
+      email: "invest@smartoffplan.com",
       hours: "Mon-Fri: 9:00 AM - 7:00 PM, Sat: 10:00 AM - 4:00 PM",
       image:
         "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=400&fit=crop&crop=center",
       type: "Headquarters",
       color: "from-gold to-gold/80",
     },
-    {
-      id: "marina",
-      name: "Dubai Marina Office",
-      shortName: "Marina",
-      address: "Marina Walk, Dubai Marina, Dubai, UAE",
-      phone: "‪+971543218123",
-      email: "info@smartoffplan.com",
-      hours: "Mon-Fri: 9:00 AM - 6:00 PM, Sat: 10:00 AM - 3:00 PM",
-      image:
-        "https://images.unsplash.com/photo-1590725140246-20acdee442be?w=800&h=400&fit=crop&crop=center",
-      type: "Branch Office",
-      color: "from-[#8b7355] to-[#8b7355]/80",
-    },
-    {
-      id: "downtown",
-      name: "Downtown Dubai Office",
-      shortName: "Downtown",
-      address: "Burj Khalifa Boulevard, Downtown Dubai, UAE",
-      phone: "‪+971543218123",
-      email: "info@smartoffplan.com",
-      hours: "Mon-Fri: 10:00 AM - 7:00 PM, Sat: 11:00 AM - 4:00 PM",
-      image:
-        "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&h=400&fit=crop&crop=center",
-      type: "Branch Office",
-      color: "from-gold/90 to-[#8b7355]",
-    },
+    // {
+    //   id: "marina",
+    //   name: "Dubai Marina Office",
+    //   shortName: "Marina",
+    //   address: "Marina Walk, Dubai Marina, Dubai, UAE",
+    //   phone: "‪+971543218123",
+    //   email: "invest@smartoffplan.com",
+    //   hours: "Mon-Fri: 9:00 AM - 6:00 PM, Sat: 10:00 AM - 3:00 PM",
+    //   image:
+    //     "https://images.unsplash.com/photo-1590725140246-20acdee442be?w=800&h=400&fit=crop&crop=center",
+    //   type: "Branch Office",
+    //   color: "from-[#8b7355] to-[#8b7355]/80",
+    // },
+    // {
+    //   id: "downtown",
+    //   name: "Downtown Dubai Office",
+    //   shortName: "Downtown",
+    //   address: "Burj Khalifa Boulevard, Downtown Dubai, UAE",
+    //   phone: "‪+971543218123",
+    //   email: "invest@smartoffplan.com",
+    //   hours: "Mon-Fri: 10:00 AM - 7:00 PM, Sat: 11:00 AM - 4:00 PM",
+    //   image:
+    //     "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&h=400&fit=crop&crop=center",
+    //   type: "Branch Office",
+    //   color: "from-gold/90 to-[#8b7355]",
+    // },
   ];
 
   const contactMethods = [
@@ -116,8 +116,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: Mail,
       title: "Email Us",
       description: "Send us your inquiries anytime",
-      value: "info@smartoffplan.com",
-      action: "mailto:info@smartoffplan.com",
+      value: "invest@smartoffplan.com",
+      action: "mailto:invest@smartoffplan.com",
       color: "text-[#8b7355]",
       bgColor: "from-[#8b7355]/10 to-[#8b7355]/5",
     },
@@ -504,7 +504,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                 <CardHeader className="p-6 pb-4">
                   <CardTitle className="text-[rgba(30,26,26,1)] mb-2 flex items-center">
                     <MapPin className="w-5 h-5 mr-2 text-gold" />
-                    Our Dubai Offices
+                    Our Offices
                   </CardTitle>
                   <p className="text-[rgba(30,26,26,1)] text-sm">
                     Visit us at any of our premium locations across Dubai

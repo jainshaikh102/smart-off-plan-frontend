@@ -22,6 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "./ui/pagination";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface Developer {
@@ -72,6 +81,10 @@ export function DevelopersListing({
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   // Fetch developers from API
   const fetchDevelopers = async () => {
@@ -137,7 +150,8 @@ export function DevelopersListing({
     return Array.from(specialties).sort();
   }, [developers]);
 
-  const filteredDevelopers = useMemo(() => {
+  // Get all filtered developers (before pagination)
+  const allFilteredDevelopers = useMemo(() => {
     let filtered = developers.filter((developer) => {
       const matchesSearch =
         developer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -179,11 +193,6 @@ export function DevelopersListing({
       }
     });
 
-    // Apply maxItems limit if specified
-    if (maxItems) {
-      filtered = filtered.slice(0, maxItems);
-    }
-
     return filtered;
   }, [
     developers,
@@ -192,8 +201,36 @@ export function DevelopersListing({
     selectedSpecialty,
     sortBy,
     minRating,
-    maxItems,
   ]);
+
+  // Get paginated developers for current page
+  const filteredDevelopers = useMemo(() => {
+    // For simple display mode or when maxItems is specified, don't paginate
+    if (displayMode === "simple" || maxItems) {
+      return maxItems
+        ? allFilteredDevelopers.slice(0, maxItems)
+        : allFilteredDevelopers;
+    }
+
+    // For full display mode, apply pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return allFilteredDevelopers.slice(startIndex, endIndex);
+  }, [allFilteredDevelopers, currentPage, itemsPerPage, displayMode, maxItems]);
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(allFilteredDevelopers.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedTier, selectedSpecialty, sortBy, minRating]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const hasActiveFilters =
     selectedTier !== "all" ||
@@ -391,8 +428,12 @@ export function DevelopersListing({
           {/* Results Summary */}
           <div className="flex items-center justify-between text-sm text-warm-gray mb-6">
             <div>
-              Showing {filteredDevelopers.length} of {developers.length}{" "}
-              developers
+              Showing {(currentPage - 1) * itemsPerPage + 1}-
+              {Math.min(
+                currentPage * itemsPerPage,
+                allFilteredDevelopers.length
+              )}{" "}
+              of {allFilteredDevelopers.length} developers
               {hasActiveFilters && (
                 <span className="ml-2">
                   <Badge
@@ -401,6 +442,11 @@ export function DevelopersListing({
                   >
                     Filtered
                   </Badge>
+                </span>
+              )}
+              {totalPages > 1 && (
+                <span className="ml-2 text-xs">
+                  • Page {currentPage} of {totalPages}
                 </span>
               )}
             </div>
@@ -569,6 +615,67 @@ export function DevelopersListing({
             >
               Clear All Filters
             </Button>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && filteredDevelopers.length > 0 && (
+          <div className="mt-12 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+
+                {/* Page Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((page) => {
+                    const current = currentPage;
+                    return (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= current - 1 && page <= current + 1)
+                    );
+                  })
+                  .map((page, index, array) => {
+                    const prevPage = array[index - 1];
+                    const showEllipsis = prevPage && page - prevPage > 1;
+
+                    return (
+                      <div key={page} className="flex items-center">
+                        {showEllipsis && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={page === currentPage}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </div>
+                    );
+                  })}
+
+                {currentPage < totalPages && (
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
 

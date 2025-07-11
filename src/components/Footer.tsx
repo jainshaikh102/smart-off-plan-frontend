@@ -151,13 +151,13 @@ export function Footer() {
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Email</p> */}
                   <p className="text-[#d2c7b8] text-sm">
-                    📧 info@smartoffplan.com
+                    📧 invest@smartoffplan.com
                   </p>
                 </div>
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Address</p> */}
                   <p className="text-[#d2c7b8] text-sm">
-                    📍 Business Bay, Dubai, UAE
+                    📍 240 London Road, Bagshot, GU19 5EZ, UK
                   </p>
                 </div>
               </div>

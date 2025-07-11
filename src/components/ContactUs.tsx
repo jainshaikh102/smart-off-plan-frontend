@@ -160,7 +160,7 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Email Us</h4>
-                        <p className="text-tan">info@smartoffplan.com</p>
+                        <p className="text-tan">invest@smartoffplan.com</p>
                       </div>
                     </div>
 
@@ -171,7 +171,9 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Visit Us</h4>
-                        <p className="text-tan">Business Bay, Dubai, UAE</p>
+                        <p className="text-tan">
+                          240 London Road, Bagshot, GU19 5EZ, UK
+                        </p>
                       </div>
                     </div>
 

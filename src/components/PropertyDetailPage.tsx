@@ -2220,7 +2220,7 @@ export function PropertyDetailPage({
                   </div>
                   <div>
                     <div className="text-[#8b7355] font-medium">
-                      info@smartoffplan.com
+                      invest@smartoffplan.com
                     </div>
                     <div className="text-xs text-warm-gray">
                       Response within 2 hours

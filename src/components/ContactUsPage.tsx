@@ -57,7 +57,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       icon: Mail,
       title: "Email",
-      primary: "info@smartoffplan.com",
+      primary: "invest@smartoffplan.com",
       secondary: "sales@smartoffplan.ae",
       description: "Send us your inquiries anytime",
       color: "text-[#8b7355]",
@@ -107,7 +107,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
   const officeDetails = [
     {
       title: "Dubai Office",
-      address: "Business Bay, Dubai, UAE",
+      address: "240 London Road, Bagshot, GU19 5EZ, UK",
       phone: "‪+971543218123",
       email: "dubai@smartoffplan.ae",
       hours: "Mon-Fri: 9AM-7PM, Sat: 10AM-4PM",

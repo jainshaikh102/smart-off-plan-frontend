@@ -160,9 +160,9 @@ export default function HomePage() {
 
   const handleDeveloperSelect = (developer: any) => {
     if (developer && developer.name) {
-      // Navigate to the specific developer page using the developer name
+      // Navigate to the specific developer page using the proper nested route
       const developerName = encodeURIComponent(developer.name);
-      window.location.href = `/developer/${developerName}`;
+      window.location.href = `/developers/${developerName}`;
     } else {
       // Handle "View All Developers" button - navigate to developers page
       window.location.href = `/developers`;

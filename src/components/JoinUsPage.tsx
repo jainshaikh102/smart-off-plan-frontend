@@ -597,7 +597,9 @@ export function JoinUsPage({ onBack }: JoinUsPageProps) {
                   <MapPin className="w-6 h-6 text-[#8b7355]" />
                 </div>
                 <h5 className="text-white mb-2">Office</h5>
-                <p className="text-tan">Business Bay, Dubai, UAE</p>
+                <p className="text-tan">
+                  240 London Road, Bagshot, GU19 5EZ, UK
+                </p>
               </div>
             </div>
 
