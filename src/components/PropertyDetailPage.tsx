@@ -2208,7 +2208,7 @@ export function PropertyDetailPage({
                   </div>
                   <div>
                     <div className="text-[#8b7355] font-medium">
-                      +9715432181237
+                      ‪+971543218123
                     </div>
                     <div className="text-xs text-warm-gray">Available 24/7</div>
                   </div>
@@ -2220,7 +2220,7 @@ export function PropertyDetailPage({
                   </div>
                   <div>
                     <div className="text-[#8b7355] font-medium">
-                      info@smartoffplan.ae
+                      info@smartoffplan.com
                     </div>
                     <div className="text-xs text-warm-gray">
                       Response within 2 hours

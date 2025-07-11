@@ -146,12 +146,12 @@ export function Footer() {
               <div className="space-y-4">
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Phone</p> */}
-                  <p className="text-[#d2c7b8] text-sm">📞 +9715432181237</p>
+                  <p className="text-[#d2c7b8] text-sm">📞 ‪+971543218123</p>
                 </div>
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Email</p> */}
                   <p className="text-[#d2c7b8] text-sm">
-                    📧 info@smartoffplan.ae
+                    📧 info@smartoffplan.com
                   </p>
                 </div>
                 <div>

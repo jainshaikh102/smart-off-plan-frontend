@@ -49,7 +49,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       icon: Phone,
       title: "Phone",
-      primary: "+9715432181237",
+      primary: "‪+971543218123",
       secondary: "+971 50 123 4567",
       description: "Call us for immediate assistance",
       color: "text-gold",
@@ -57,7 +57,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       icon: Mail,
       title: "Email",
-      primary: "info@smartoffplan.ae",
+      primary: "info@smartoffplan.com",
       secondary: "sales@smartoffplan.ae",
       description: "Send us your inquiries anytime",
       color: "text-[#8b7355]",
@@ -108,7 +108,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       title: "Dubai Office",
       address: "Business Bay, Dubai, UAE",
-      phone: "+9715432181237",
+      phone: "‪+971543218123",
       email: "dubai@smartoffplan.ae",
       hours: "Mon-Fri: 9AM-7PM, Sat: 10AM-4PM",
     },

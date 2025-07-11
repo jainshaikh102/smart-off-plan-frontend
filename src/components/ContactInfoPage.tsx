@@ -65,8 +65,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       name: "Business Bay Headquarters",
       shortName: "Business Bay",
       address: "Level 42, Business Bay Tower, Business Bay, Dubai, UAE",
-      phone: "+9715432181237",
-      email: "info@smartoffplan.ae",
+      phone: "‪+971543218123",
+      email: "info@smartoffplan.com",
       hours: "Mon-Fri: 9:00 AM - 7:00 PM, Sat: 10:00 AM - 4:00 PM",
       image:
         "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=400&fit=crop&crop=center",
@@ -78,8 +78,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       name: "Dubai Marina Office",
       shortName: "Marina",
       address: "Marina Walk, Dubai Marina, Dubai, UAE",
-      phone: "+971 4 234 5678",
-      email: "marina@smartoffplan.ae",
+      phone: "‪+971543218123",
+      email: "info@smartoffplan.com",
       hours: "Mon-Fri: 9:00 AM - 6:00 PM, Sat: 10:00 AM - 3:00 PM",
       image:
         "https://images.unsplash.com/photo-1590725140246-20acdee442be?w=800&h=400&fit=crop&crop=center",
@@ -91,8 +91,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       name: "Downtown Dubai Office",
       shortName: "Downtown",
       address: "Burj Khalifa Boulevard, Downtown Dubai, UAE",
-      phone: "+971 4 345 6789",
-      email: "downtown@smartoffplan.ae",
+      phone: "‪+971543218123",
+      email: "info@smartoffplan.com",
       hours: "Mon-Fri: 10:00 AM - 7:00 PM, Sat: 11:00 AM - 4:00 PM",
       image:
         "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&h=400&fit=crop&crop=center",
@@ -106,7 +106,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: Phone,
       title: "Call Us",
       description: "Speak directly with our property experts",
-      value: "+9715432181237",
+      value: "+971 54 321 8123",
+      value2: "03301330888",
       action: "tel:+97141234567",
       color: "text-gold",
       bgColor: "from-gold/10 to-gold/5",
@@ -115,8 +116,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: Mail,
       title: "Email Us",
       description: "Send us your inquiries anytime",
-      value: "info@smartoffplan.ae",
-      action: "mailto:info@smartoffplan.ae",
+      value: "info@smartoffplan.com",
+      action: "mailto:info@smartoffplan.com",
       color: "text-[#8b7355]",
       bgColor: "from-[#8b7355]/10 to-[#8b7355]/5",
     },
@@ -124,7 +125,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: MessageSquare,
       title: "WhatsApp",
       description: "Chat with us instantly",
-      value: "+971 50 123 4567",
+      value: "+971 54 321 8123",
       action: "https://wa.me/971501234567",
       color: "text-green-600",
       bgColor: "from-green-100/50 to-green-50",
@@ -306,6 +307,17 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                       <div className="inline-flex items-center px-2 py-1 bg-beige/50 rounded-full text-xs text-[rgba(30,26,26,1)] group-hover:bg-white/20 transition-colors duration-300">
                         {method.value}
                       </div>
+
+                      {method.value2 && (
+                        <div>
+                          <div>
+                            <span>or</span>
+                          </div>
+                          <div className="inline-flex items-center px-2 py-1 bg-beige/50 rounded-full text-xs text-[rgba(30,26,26,1)] group-hover:bg-white/20 transition-colors duration-300">
+                            {method.value2}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -675,7 +687,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                     className="border-white/30 text-[rgba(30,26,26,1)] hover:bg-white hover:text-[#8b7355] rounded-2xl px-8"
                   >
                     <Phone className="w-4 h-4 mr-2" />
-                    +971 50 911 1234
+                    ‪+971543218123
                   </Button>
                 </CardContent>
               </Card>

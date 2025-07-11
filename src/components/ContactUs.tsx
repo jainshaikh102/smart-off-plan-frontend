@@ -149,7 +149,7 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Call Us</h4>
-                        <p className="text-tan">+9715432181237</p>
+                        <p className="text-tan">‪+971543218123</p>
                       </div>
                     </div>
 
@@ -160,7 +160,7 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Email Us</h4>
-                        <p className="text-tan">info@smartoffplan.ae</p>
+                        <p className="text-tan">info@smartoffplan.com</p>
                       </div>
                     </div>
 

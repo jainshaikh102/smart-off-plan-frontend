@@ -514,7 +514,7 @@ export function DeveloperDetailPage({
                       </div>
                       <div>
                         <div className="text-[#8b7355]">Phone</div>
-                        <div className="text-warm-gray">+9715432181237</div>
+                        <div className="text-warm-gray">‪+971543218123</div>
                       </div>
                     </div>
 
