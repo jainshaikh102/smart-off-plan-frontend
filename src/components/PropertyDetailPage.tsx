@@ -19,8 +19,6 @@ import {
   ArrowLeft,
   Download,
   MapPin,
-  Calendar,
-  Building2,
   Phone,
   Mail,
   Send,
@@ -37,21 +35,14 @@ import {
   ExternalLink,
   Calculator,
   TrendingUp,
-  Share2,
-  Bookmark,
   Eye,
   ChevronLeft,
   ChevronRight,
   X,
-  Play,
   Expand,
   Camera,
-  FileText,
   DollarSign,
   PieChart,
-  BarChart3,
-  Percent,
-  Clock,
   Train,
   Plane,
   ShoppingBag,
@@ -62,36 +53,16 @@ import {
   Trees,
   Users,
   Baby,
-  Navigation,
-  Ruler,
-  Home,
   CreditCard,
   Banknote,
   Target,
   Wallet,
-  Award,
-  Globe,
-  Zap,
-  Sparkles,
-  VideoIcon as Video,
   Copy,
   Facebook,
   Twitter,
   Linkedin,
   MessageCircle,
   PhoneCall,
-  CalendarDays,
-  ChevronDown,
-  ChevronUp,
-  Info,
-  AlertCircle,
-  ThumbsUp,
-  Filter,
-  SortAsc,
-  Grid,
-  List,
-  Search,
-  RefreshCcw,
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
@@ -107,12 +78,12 @@ interface Project {
   status: string;
   coordinates?: [number, number];
   apiData?: {
-    payment_plans?: any[];
-    unit_blocks?: any[];
-    facilities?: any[];
-    map_points?: any[];
-    architecture?: any[];
-    [key: string]: any;
+    payment_plans?: unknown[];
+    unit_blocks?: unknown[];
+    facilities?: unknown[];
+    map_points?: unknown[];
+    architecture?: unknown[];
+    [key: string]: unknown;
   };
 }
 
@@ -130,15 +101,10 @@ export function PropertyDetailPage({
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [isCallbackDialogOpen, setIsCallbackDialogOpen] = useState(false);
-  const [isViewingDialogOpen, setIsViewingDialogOpen] = useState(false);
   const [isInvestmentCalculatorOpen, setIsInvestmentCalculatorOpen] =
     useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [calculatorTab, setCalculatorTab] = useState("roi");
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({});
   const [isLoading, setIsLoading] = useState(true);
 
   // Simulate loading state - in real app this would be based on API loading state
@@ -166,20 +132,6 @@ export function PropertyDetailPage({
     interest: "buying",
   });
 
-  const [callbackFormData, setCallbackFormData] = useState({
-    name: "",
-    phone: "",
-    preferredTime: "",
-  });
-
-  const [viewingFormData, setViewingFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    date: "",
-    time: "",
-  });
-
   // Investment Calculator Data - Use actual property price from API
   const getPropertyPrice = (): number => {
     // Try to get price from min_price first (most accurate)
@@ -196,8 +148,8 @@ export function PropertyDetailPage({
       }
     }
 
-    // Fallback to default
-    return 1200000;
+    // Return 0 if no valid price found
+    return 0;
   };
 
   const [investmentData, setInvestmentData] = useState({
@@ -340,6 +292,23 @@ export function PropertyDetailPage({
   const propertyImages = (() => {
     const images: any[] = [];
 
+    // 5. Add master plan images from API data
+    if (
+      project?.apiData?.master_plan &&
+      project.apiData.master_plan.length > 0
+    ) {
+      project.apiData.master_plan.forEach((image: any, index: number) => {
+        if (image.url) {
+          images.push({
+            id: images.length + 1,
+            src: image.url,
+            category: "master_plan",
+            title: `Master Plan ${index + 1}`,
+          });
+        }
+      });
+    }
+
     // 1. Add cover image if available
     if (project?.cover_image_url) {
       try {
@@ -428,23 +397,6 @@ export function PropertyDetailPage({
       });
     }
 
-    // 5. Add master plan images from API data
-    // if (
-    //   project?.apiData?.master_plan &&
-    //   project.apiData.master_plan.length > 0
-    // ) {
-    //   project.apiData.master_plan.forEach((image: any, index: number) => {
-    //     if (image.url) {
-    //       images.push({
-    //         id: images.length + 1,
-    //         src: image.url,
-    //         category: "master_plan",
-    //         title: `Master Plan ${index + 1}`,
-    //       });
-    //     }
-    //   });
-    // }
-
     // 6. Add facility images from API data
     // if (project?.apiData?.facilities && project.apiData.facilities.length > 0) {
     //   project.apiData.facilities.forEach((facility: any, index: number) => {
@@ -487,195 +439,25 @@ export function PropertyDetailPage({
     //   });
     // }
 
-    // 4. If no images found, use fallback images
-    if (images.length === 0) {
-      return [
-        {
-          id: 1,
-          src: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
-          category: "exterior",
-          title: "Building Exterior",
-        },
-        {
-          id: 2,
-          src: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
-          category: "living",
-          title: "Living Room",
-        },
-        {
-          id: 3,
-          src: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
-          category: "bedroom",
-          title: "Master Bedroom",
-        },
-        {
-          id: 4,
-          src: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
-          category: "kitchen",
-          title: "Modern Kitchen",
-        },
-      ];
-    }
-
+    // Return images array (empty if no images found)
     return images;
   })();
 
-  // Floor Plans
-  const floorPlans = [
-    {
-      id: 1,
-      name: "Studio",
-      size: "450 sq ft",
-      bedrooms: 0,
-      bathrooms: 1,
-      price: "AED 650,000",
-      image:
-        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      available: 12,
-    },
-    {
-      id: 2,
-      name: "1 Bedroom",
-      size: "850 sq ft",
-      bedrooms: 1,
-      bathrooms: 1,
-      price: "AED 950,000",
-      image:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      available: 18,
-    },
-    {
-      id: 3,
-      name: "2 Bedroom",
-      size: "1,200 sq ft",
-      bedrooms: 2,
-      bathrooms: 2,
-      price: "AED 1,450,000",
-      image:
-        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      available: 24,
-    },
-    {
-      id: 4,
-      name: "3 Bedroom",
-      size: "1,650 sq ft",
-      bedrooms: 3,
-      bathrooms: 3,
-      price: "AED 2,100,000",
-      image:
-        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      available: 8,
-    },
-    {
-      id: 5,
-      name: "Penthouse",
-      size: "2,500 sq ft",
-      bedrooms: 4,
-      bathrooms: 4,
-      price: "AED 4,500,000",
-      image:
-        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      available: 2,
-    },
-  ];
+  // Get unit blocks from API data for floor plans
+  const unitBlocks = project?.apiData?.unit_blocks || [];
 
   // Reset selectedFloorPlan if it goes out of bounds
   useEffect(() => {
-    if (floorPlans.length > 0 && selectedFloorPlan >= floorPlans.length) {
+    if (unitBlocks.length > 0 && selectedFloorPlan >= unitBlocks.length) {
       setSelectedFloorPlan(0);
     }
-  }, [floorPlans, selectedFloorPlan]);
+  }, [unitBlocks, selectedFloorPlan]);
 
-  // Property Amenities
-  const amenities = [
-    { name: "Swimming Pool", icon: Waves, category: "Recreation" },
-    { name: "Fitness Center", icon: Dumbbell, category: "Health" },
-    { name: "24/7 Security", icon: Shield, category: "Safety" },
-    { name: "Valet Parking", icon: Car, category: "Convenience" },
-    { name: "High-Speed WiFi", icon: Wifi, category: "Technology" },
-    { name: "Spa & Wellness", icon: Heart, category: "Wellness" },
-    { name: "Kids Play Area", icon: Baby, category: "Family" },
-    { name: "Rooftop Garden", icon: Trees, category: "Lifestyle" },
-    { name: "Community Lounge", icon: Users, category: "Social" },
-    { name: "Concierge Service", icon: User, category: "Service" },
-    { name: "Business Center", icon: Building, category: "Work" },
-    { name: "Private Beach", icon: Waves, category: "Premium" },
-  ];
+  // Get facilities from API data
+  const facilities = project?.apiData?.facilities || [];
 
-  // Nearby Landmarks
-  const nearbyLandmarks = [
-    {
-      name: "Dubai Mall",
-      distance: "5 min drive",
-      type: "shopping",
-      icon: ShoppingBag,
-      description: "World's largest shopping mall",
-    },
-    {
-      name: "Metro Station",
-      distance: "3 min walk",
-      type: "transport",
-      icon: Train,
-      description: "Business Bay Metro",
-    },
-    {
-      name: "Dubai Airport",
-      distance: "20 min drive",
-      type: "transport",
-      icon: Plane,
-      description: "International Airport",
-    },
-    {
-      name: "DIFC",
-      distance: "8 min drive",
-      type: "business",
-      icon: Building,
-      description: "Financial District",
-    },
-    {
-      name: "Beach Access",
-      distance: "10 min drive",
-      type: "recreation",
-      icon: Waves,
-      description: "Private beach",
-    },
-    {
-      name: "Schools",
-      distance: "5 min drive",
-      type: "education",
-      icon: GraduationCap,
-      description: "Top international schools",
-    },
-  ];
-
-  // Payment Plans
-  const paymentPlans = [
-    {
-      name: "Easy Plan",
-      downPayment: "10%",
-      duringConstruction: "60%",
-      onCompletion: "30%",
-      months: "24 months",
-      popular: false,
-    },
-    {
-      name: "Flexible Plan",
-      downPayment: "20%",
-      duringConstruction: "50%",
-      onCompletion: "30%",
-      months: "36 months",
-      popular: true,
-    },
-    {
-      name: "Cash Plan",
-      downPayment: "100%",
-      duringConstruction: "0%",
-      onCompletion: "0%",
-      months: "Immediate",
-      popular: false,
-      discount: "5% discount",
-    },
-  ];
+  // Get map points from API data
+  const mapPoints = project?.apiData?.map_points || [];
 
   // Investment Calculations
   const calculateMortgagePayment = () => {
@@ -740,13 +522,6 @@ export function PropertyDetailPage({
     )}N%20${lng.toFixed(6)}E!5e0!3m2!1sen!2s!4v1703123456789!5m2!1sen!2s`;
   };
 
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
   const updateInvestmentData = (field: string, value: number | number[]) => {
     setInvestmentData((prev) => ({
       ...prev,
@@ -769,11 +544,8 @@ export function PropertyDetailPage({
       let fileName = "floor-plan.png";
 
       // Get the image URL and filename based on current selection
-      if (
-        project.apiData?.unit_blocks &&
-        project.apiData.unit_blocks.length > 0
-      ) {
-        const unit = project.apiData.unit_blocks[selectedFloorPlan];
+      if (unitBlocks.length > 0) {
+        const unit = unitBlocks[selectedFloorPlan];
         if (unit?.typical_unit_image_url) {
           try {
             const imageData = JSON.parse(unit.typical_unit_image_url);
@@ -782,25 +554,13 @@ export function PropertyDetailPage({
               unit.name?.replace(/[^a-zA-Z0-9]/g, "-") || "floor-plan"
             }.png`;
           } catch (e) {
-            imageUrl = floorPlans[selectedFloorPlan]?.image || "";
-            fileName = `${
-              floorPlans[selectedFloorPlan]?.name?.replace(
-                /[^a-zA-Z0-9]/g,
-                "-"
-              ) || "floor-plan"
-            }.png`;
+            console.warn("Error parsing unit image URL:", e);
           }
         }
-      } else {
-        imageUrl = floorPlans[selectedFloorPlan]?.image || "";
-        fileName = `${
-          floorPlans[selectedFloorPlan]?.name?.replace(/[^a-zA-Z0-9]/g, "-") ||
-          "floor-plan"
-        }.png`;
       }
 
       if (!imageUrl) {
-        alert("No image available for download");
+        alert("No floor plan image available for download");
         return;
       }
 
@@ -953,18 +713,6 @@ export function PropertyDetailPage({
     }
   };
 
-  const handleCallbackSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCallbackDialogOpen(false);
-    setCallbackFormData({ name: "", phone: "", preferredTime: "" });
-  };
-
-  const handleViewingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsViewingDialogOpen(false);
-    setViewingFormData({ name: "", email: "", phone: "", date: "", time: "" });
-  };
-
   const handleShare = (platform: string) => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     const text = `Check out this amazing property: ${project.name} in ${project.location}`;
@@ -1054,28 +802,13 @@ export function PropertyDetailPage({
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <Badge className="bg-gold text-charcoal">
-                  {project.status}
-                </Badge>
-                <Badge variant="outline" className="border-gold/30 text-gold">
-                  Premium
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="border-green-500/30 text-green-600"
-                >
-                  Golden Visa Eligible
-                </Badge>
-              </div>
-
               <h1 className="text-4xl lg:text-5xl text-[#8b7355] mb-4">
                 {project.name}
               </h1>
 
               <div className="flex items-center text-warm-gray text-lg mb-4">
                 <MapPin className="w-5 h-5 mr-2 text-gold" />
-                <span>{project.location}, Dubai, UAE</span>
+                <span>{project.location}</span>
               </div>
 
               <div className="text-3xl lg:text-4xl text-gold mb-4">
@@ -1748,62 +1481,9 @@ export function PropertyDetailPage({
               <TabsContent value="overview" className="space-y-8 mt-8">
                 {/* Property Description */}
                 <Card className="border border-beige shadow-sm">
-                  {/* <CardHeader>
-                    <CardTitle className="text-[#8b7355]">
-                      About This Property
-                    </CardTitle>
-                  </CardHeader> */}
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       {displayDescriptionElements}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div>
-                        <h4 className="text-[#8b7355] mb-4">Key Features</h4>
-                        <ul className="space-y-3">
-                          {[
-                            "Premium finishes throughout",
-                            "Floor-to-ceiling windows",
-                            "Modern kitchen appliances",
-                            "Smart home technology",
-                            "Private balcony/terrace",
-                            "Premium bathroom features",
-                          ].map((feature) => (
-                            <li
-                              key={feature}
-                              className="flex items-center text-warm-gray"
-                            >
-                              <CheckCircle2 className="w-5 h-5 mr-3 text-gold flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div>
-                        <h4 className="text-[#8b7355] mb-4">
-                          Investment Benefits
-                        </h4>
-                        <ul className="space-y-3">
-                          {[
-                            "0% Property Tax",
-                            "100% Foreign Ownership",
-                            "8-12% Rental Yields",
-                            "15% Capital Growth",
-                            "Golden Visa Eligibility",
-                            "Prime Location",
-                          ].map((benefit) => (
-                            <li
-                              key={benefit}
-                              className="flex items-center text-warm-gray"
-                            >
-                              <Star className="w-5 h-5 mr-3 text-gold flex-shrink-0" />
-                              <span>{benefit}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1900,140 +1580,17 @@ export function PropertyDetailPage({
                           }
                         )
                       ) : (
-                        // Fallback to original hardcoded plans if no API data
-                        <>
-                          {/* 60/40 Plan */}
-                          <div className="relative p-4 border border-beige rounded-xl hover:border-gold/50 transition-colors">
-                            <Badge className="absolute -top-2 left-4 bg-gold text-charcoal text-xs">
-                              Popular
-                            </Badge>
-                            <div className="space-y-3">
-                              <h4 className="text-[#8b7355] font-medium">
-                                60/40 Plan
-                              </h4>
-                              <div className="grid grid-cols-2 gap-2 text-center">
-                                <div className="p-2 bg-gold/10 rounded-lg">
-                                  <div className="text-lg text-gold font-medium">
-                                    60%
-                                  </div>
-                                  <div className="text-xs text-warm-gray">
-                                    Construction
-                                  </div>
-                                </div>
-                                <div className="p-2 bg-beige/50 rounded-lg">
-                                  <div className="text-lg text-[#8b7355] font-medium">
-                                    40%
-                                  </div>
-                                  <div className="text-xs text-warm-gray">
-                                    Handover
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-xs text-warm-gray">
-                                  Booking Fee
-                                </div>
-                                <div className="text-sm text-[#8b7355] font-medium">
-                                  5%
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 70/30 Plan */}
-                          <div className="p-4 border border-beige rounded-xl hover:border-gold/50 transition-colors">
-                            <div className="space-y-3">
-                              <h4 className="text-[#8b7355] font-medium">
-                                70/30 Plan
-                              </h4>
-                              <div className="grid grid-cols-2 gap-2 text-center">
-                                <div className="p-2 bg-gold/10 rounded-lg">
-                                  <div className="text-lg text-gold font-medium">
-                                    70%
-                                  </div>
-                                  <div className="text-xs text-warm-gray">
-                                    Construction
-                                  </div>
-                                </div>
-                                <div className="p-2 bg-beige/50 rounded-lg">
-                                  <div className="text-lg text-[#8b7355] font-medium">
-                                    30%
-                                  </div>
-                                  <div className="text-xs text-warm-gray">
-                                    Handover
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-xs text-warm-gray">
-                                  Booking Fee
-                                </div>
-                                <div className="text-sm text-[#8b7355] font-medium">
-                                  10%
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 80/20 Plan */}
-                          <div className="p-4 border border-beige rounded-xl hover:border-gold/50 transition-colors">
-                            <div className="space-y-3">
-                              <h4 className="text-[#8b7355] font-medium">
-                                80/20 Plan
-                              </h4>
-                              <div className="grid grid-cols-2 gap-2 text-center">
-                                <div className="p-2 bg-gold/10 rounded-lg">
-                                  <div className="text-lg text-gold font-medium">
-                                    80%
-                                  </div>
-                                  <div className="text-xs text-warm-gray">
-                                    Construction
-                                  </div>
-                                </div>
-                                <div className="p-2 bg-beige/50 rounded-lg">
-                                  <div className="text-lg text-[#8b7355] font-medium">
-                                    20%
-                                  </div>
-                                  <div className="text-xs text-warm-gray">
-                                    Handover
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-xs text-warm-gray">
-                                  Booking Fee
-                                </div>
-                                <div className="text-sm text-[#8b7355] font-medium">
-                                  10%
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Payment Plan Info */}
-                    <div className="mt-6 p-4 bg-beige/30 rounded-xl">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h5 className="text-[#8b7355] font-medium mb-1">
-                            Flexible Payment Options
-                          </h5>
-                          <p className="text-sm text-warm-gray">
-                            Choose a payment structure that fits your investment
-                            strategy
+                        <div className="text-center py-12">
+                          <CreditCard className="w-16 h-16 mx-auto mb-4 text-warm-gray opacity-50" />
+                          <h3 className="text-[#8b7355] text-lg mb-2">
+                            No Payment Plans Available
+                          </h3>
+                          <p className="text-warm-gray">
+                            Payment plan information will be available soon.
+                            Please contact us for more details.
                           </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-gold/30 text-gold hover:bg-gold/10 rounded-xl"
-                        >
-                          <Calculator className="w-4 h-4 mr-2" />
-                          Calculate
-                        </Button>
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -2049,93 +1606,53 @@ export function PropertyDetailPage({
                   </CardHeader>
                   <CardContent className="space-y-8">
                     {/* Floor Plan Selection */}
-                    <div
-                      className={`grid grid-cols-1 gap-4 ${
-                        project.apiData?.unit_blocks &&
-                        project.apiData.unit_blocks.length > 0
-                          ? project.apiData.unit_blocks.length === 1
+                    {unitBlocks.length > 0 ? (
+                      <div
+                        className={`grid grid-cols-1 gap-4 ${
+                          unitBlocks.length === 1
                             ? "sm:grid-cols-1"
-                            : project.apiData.unit_blocks.length === 2
+                            : unitBlocks.length === 2
                             ? "sm:grid-cols-2"
-                            : project.apiData.unit_blocks.length === 3
+                            : unitBlocks.length === 3
                             ? "sm:grid-cols-2 lg:grid-cols-3"
-                            : project.apiData.unit_blocks.length === 4
+                            : unitBlocks.length === 4
                             ? "sm:grid-cols-2 lg:grid-cols-4"
                             : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-                          : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-                      }`}
-                    >
-                      {project.apiData?.unit_blocks &&
-                      project.apiData.unit_blocks.length > 0
-                        ? project.apiData.unit_blocks.map(
-                            (unit: any, index: number) => {
-                              // Parse the image URL from JSON string
-                              let imageUrl = "";
-                              try {
-                                const imageData = JSON.parse(
-                                  unit.typical_unit_image_url || "[]"
-                                );
-                                imageUrl = imageData[0]?.url || "";
-                              } catch (e) {
-                                imageUrl = "";
-                              }
+                        }`}
+                      >
+                        {unitBlocks.map((unit: any, index: number) => {
+                          // Parse the image URL from JSON string
+                          let imageUrl = "";
+                          try {
+                            const imageData = JSON.parse(
+                              unit.typical_unit_image_url || "[]"
+                            );
+                            imageUrl = imageData[0]?.url || "";
+                          } catch (e) {
+                            imageUrl = "";
+                          }
 
-                              // Convert area from m2 to sqft for display
-                              const areaM2 = parseFloat(
-                                unit.units_area_from_m2 || "0"
-                              );
-                              const areaSqft = Math.round(areaM2 * 10.764);
+                          // Convert area from m2 to sqft for display
+                          const areaM2 = parseFloat(
+                            unit.units_area_from_m2 || "0"
+                          );
+                          const areaSqft = Math.round(areaM2 * 10.764);
 
-                              // Format price range
-                              const priceFrom =
-                                unit.units_price_from_aed ||
-                                unit.units_price_from ||
-                                0;
-                              const priceTo =
-                                unit.units_price_to_aed ||
-                                unit.units_price_to ||
-                                0;
-                              const priceRange =
-                                priceTo > priceFrom
-                                  ? `AED ${priceFrom.toLocaleString()} - ${priceTo.toLocaleString()}`
-                                  : `AED ${priceFrom.toLocaleString()}`;
+                          // Format price range
+                          const priceFrom =
+                            unit.units_price_from_aed ||
+                            unit.units_price_from ||
+                            0;
+                          const priceTo =
+                            unit.units_price_to_aed || unit.units_price_to || 0;
+                          const priceRange =
+                            priceTo > priceFrom
+                              ? `AED ${priceFrom.toLocaleString()} - ${priceTo.toLocaleString()}`
+                              : `AED ${priceFrom.toLocaleString()}`;
 
-                              return (
-                                <button
-                                  key={unit.id}
-                                  onClick={() => setSelectedFloorPlan(index)}
-                                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                                    selectedFloorPlan === index
-                                      ? "border-gold bg-gold/10 shadow-lg"
-                                      : "border-beige hover:border-gold/50"
-                                  }`}
-                                >
-                                  <div className="space-y-3">
-                                    <h4 className="text-[#8b7355] font-medium text-sm">
-                                      {unit.name}
-                                    </h4>
-                                    <div className="space-y-2 text-sm text-warm-gray">
-                                      <div className="flex items-center">
-                                        <Square className="w-4 h-4 mr-2 text-gold" />
-                                        <span>{areaSqft} sqft</span>
-                                      </div>
-                                      <div className="flex items-center">
-                                        <Building className="w-4 h-4 mr-2 text-gold" />
-                                        <span>{unit.unit_type}</span>
-                                      </div>
-                                    </div>
-                                    <div className="text-gold font-medium text-xs">
-                                      {priceRange}
-                                    </div>
-                                  </div>
-                                </button>
-                              );
-                            }
-                          )
-                        : // Fallback to original hardcoded floor plans
-                          floorPlans.map((plan, index) => (
+                          return (
                             <button
-                              key={plan.id}
+                              key={unit.id}
                               onClick={() => setSelectedFloorPlan(index)}
                               className={`p-4 rounded-xl border-2 text-left transition-all ${
                                 selectedFloorPlan === index
@@ -2144,53 +1661,57 @@ export function PropertyDetailPage({
                               }`}
                             >
                               <div className="space-y-3">
-                                <h4 className="text-[#8b7355] font-medium">
-                                  {plan.name}
+                                <h4 className="text-[#8b7355] font-medium text-sm">
+                                  {unit.name || unit.unit_bedrooms}
                                 </h4>
                                 <div className="space-y-2 text-sm text-warm-gray">
                                   <div className="flex items-center">
-                                    <Bed className="w-4 h-4 mr-2 text-gold" />
-                                    <span>{plan.bedrooms} Bed</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <Bath className="w-4 h-4 mr-2 text-gold" />
-                                    <span>{plan.bathrooms} Bath</span>
-                                  </div>
-                                  <div className="flex items-center">
                                     <Square className="w-4 h-4 mr-2 text-gold" />
-                                    <span>{plan.size}</span>
+                                    <span>{areaSqft} sqft</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <Building className="w-4 h-4 mr-2 text-gold" />
+                                    <span>{unit.unit_type}</span>
                                   </div>
                                 </div>
-                                <div className="text-gold font-medium">
-                                  {plan.price}
+                                <div className="text-gold font-medium text-xs">
+                                  {priceRange}
                                 </div>
-                                <Badge variant="outline" className="text-xs">
-                                  {plan.available} Available
-                                </Badge>
                               </div>
                             </button>
-                          ))}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Building className="w-16 h-16 mx-auto mb-4 text-warm-gray opacity-50" />
+                        <h3 className="text-[#8b7355] text-lg mb-2">
+                          No Floor Plans Available
+                        </h3>
+                        <p className="text-warm-gray">
+                          Floor plan information will be available soon. Please
+                          contact us for more details.
+                        </p>
+                      </div>
+                    )}
 
                     {/* Selected Floor Plan */}
                     <div className="border-2 border-gold/20 rounded-xl overflow-hidden">
                       <div className="bg-gold/10 p-6 border-b border-gold/20">
                         <div className="flex items-center justify-between">
                           <div>
-                            {project.apiData?.unit_blocks &&
-                            project.apiData.unit_blocks.length > 0 ? (
+                            {unitBlocks.length > 0 ? (
                               <>
                                 <h3 className="text-[#8b7355] text-xl">
-                                  {project.apiData.unit_blocks[
-                                    selectedFloorPlan
-                                  ]?.name || "Unit Plan"}
+                                  {unitBlocks[selectedFloorPlan]?.name ||
+                                    unitBlocks[selectedFloorPlan]
+                                      ?.unit_bedrooms ||
+                                    "Unit Plan"}
                                 </h3>
+
                                 <p className="text-warm-gray">
                                   {(() => {
-                                    const unit =
-                                      project.apiData.unit_blocks[
-                                        selectedFloorPlan
-                                      ];
+                                    const unit = unitBlocks[selectedFloorPlan];
                                     if (!unit) return "";
 
                                     const areaM2 = parseFloat(
@@ -2219,15 +1740,10 @@ export function PropertyDetailPage({
                             ) : (
                               <>
                                 <h3 className="text-[#8b7355] text-xl">
-                                  {floorPlans[selectedFloorPlan]?.name ||
-                                    "Floor Plan"}
+                                  No Floor Plans Available
                                 </h3>
                                 <p className="text-warm-gray">
-                                  {floorPlans[selectedFloorPlan]?.size ||
-                                    "Size"}{" "}
-                                  •{" "}
-                                  {floorPlans[selectedFloorPlan]?.price ||
-                                    "Price on Request"}
+                                  Floor plan information will be available soon
                                 </p>
                               </>
                             )}
@@ -2244,49 +1760,39 @@ export function PropertyDetailPage({
                         </div>
                       </div>
                       <div className="aspect-[4/3] bg-gray-100">
-                        <ImageWithFallback
-                          src={(() => {
-                            if (
-                              project.apiData?.unit_blocks &&
-                              project.apiData.unit_blocks.length > 0
-                            ) {
-                              const unit =
-                                project.apiData.unit_blocks[selectedFloorPlan];
+                        {unitBlocks.length > 0 ? (
+                          <ImageWithFallback
+                            src={(() => {
+                              const unit = unitBlocks[selectedFloorPlan];
                               if (unit?.typical_unit_image_url) {
                                 try {
                                   const imageData = JSON.parse(
                                     unit.typical_unit_image_url
                                   );
-                                  return (
-                                    imageData[0]?.url ||
-                                    floorPlans[selectedFloorPlan]?.image ||
-                                    ""
+                                  return imageData[0]?.url || "";
+                                } catch (error) {
+                                  console.warn(
+                                    "Error parsing unit image URL:",
+                                    error
                                   );
-                                } catch (e) {
-                                  return (
-                                    floorPlans[selectedFloorPlan]?.image || ""
-                                  );
+                                  return "";
                                 }
                               }
-                            }
-                            return floorPlans[selectedFloorPlan]?.image || "";
-                          })()}
-                          alt={(() => {
-                            if (
-                              project.apiData?.unit_blocks &&
-                              project.apiData.unit_blocks.length > 0
-                            ) {
-                              return `${
-                                project.apiData.unit_blocks[selectedFloorPlan]
-                                  ?.name || "Unit"
-                              } floor plan`;
-                            }
-                            return `${
-                              floorPlans[selectedFloorPlan]?.name || "Unit"
-                            } floor plan`;
-                          })()}
-                          className="w-full h-full object-cover"
-                        />
+                              return "";
+                            })()}
+                            alt={`${
+                              unitBlocks[selectedFloorPlan]?.name || "Unit"
+                            } floor plan`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <div className="text-center text-warm-gray">
+                              <Building className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                              <p>No floor plan image available</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -2302,64 +1808,48 @@ export function PropertyDetailPage({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div
-                      className={`grid grid-cols-1 gap-6 ${
-                        project.apiData?.facilities &&
-                        project.apiData.facilities.length > 0
-                          ? project.apiData.facilities.length === 1
+                    {facilities.length > 0 ? (
+                      <div
+                        className={`grid grid-cols-1 gap-6 ${
+                          facilities.length === 1
                             ? "sm:grid-cols-1"
-                            : project.apiData.facilities.length === 2
+                            : facilities.length === 2
                             ? "sm:grid-cols-2"
                             : "sm:grid-cols-2 lg:grid-cols-3"
-                          : "sm:grid-cols-2 lg:grid-cols-3"
-                      }`}
-                    >
-                      {project.apiData?.facilities &&
-                      project.apiData.facilities.length > 0
-                        ? project.apiData.facilities.map(
-                            (facility: any, index: number) => (
-                              <div
-                                key={index}
-                                className="flex items-center space-x-4 p-4 rounded-xl bg-beige/30 hover:bg-beige/50 transition-colors"
-                              >
-                                <div className="w-12 h-12 bg-gold/20 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                  <ImageWithFallback
-                                    src={facility.image?.url || ""}
-                                    alt={facility.name || "Facility"}
-                                    className="w-full h-full object-cover rounded-xl"
-                                  />
-                                </div>
-                                <div>
-                                  <h4 className="text-[#8b7355] font-medium">
-                                    {facility.name}
-                                  </h4>
-                                </div>
-                              </div>
-                            )
-                          )
-                        : // Fallback to original hardcoded amenities
-                          amenities.map((amenity, index) => {
-                            const IconComponent = amenity.icon;
-                            return (
-                              <div
-                                key={index}
-                                className="flex items-center space-x-4 p-4 rounded-xl bg-beige/30 hover:bg-beige/50 transition-colors"
-                              >
-                                <div className="w-12 h-12 bg-gold/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                                  <IconComponent className="w-6 h-6 text-gold" />
-                                </div>
-                                <div>
-                                  <h4 className="text-[#8b7355] font-medium">
-                                    {amenity.name}
-                                  </h4>
-                                  <p className="text-xs text-warm-gray">
-                                    {amenity.category}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                    </div>
+                        }`}
+                      >
+                        {facilities.map((facility: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center space-x-4 p-4 rounded-xl bg-beige/30 hover:bg-beige/50 transition-colors"
+                          >
+                            <div className="w-12 h-12 bg-gold/20 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                              <ImageWithFallback
+                                src={facility.image?.url || ""}
+                                alt={facility.name || "Facility"}
+                                className="w-full h-full object-cover rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <h4 className="text-[#8b7355] font-medium">
+                                {facility.name}
+                              </h4>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Heart className="w-16 h-16 mx-auto mb-4 text-warm-gray opacity-50" />
+                        <h3 className="text-[#8b7355] text-lg mb-2">
+                          No Amenities Information Available
+                        </h3>
+                        <p className="text-warm-gray">
+                          Amenities information will be available soon. Please
+                          contact us for more details.
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -2415,54 +1905,36 @@ export function PropertyDetailPage({
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {project.apiData?.map_points &&
-                      project.apiData.map_points.length > 0
-                        ? project.apiData.map_points.map(
-                            (mapPoint: any, index: number) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between p-4 bg-beige/30 rounded-xl hover:bg-beige/50 transition-colors"
-                              >
-                                <div className="flex items-center space-x-4">
-                                  <div>
-                                    <div className="text-[#8b7355] font-medium">
-                                      {mapPoint.name}
-                                    </div>
-                                  </div>
+                      {mapPoints.length > 0 ? (
+                        mapPoints.map((mapPoint: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-4 bg-beige/30 rounded-xl hover:bg-beige/50 transition-colors"
+                          >
+                            <div className="flex items-center space-x-4">
+                              <div>
+                                <div className="text-[#8b7355] font-medium">
+                                  {mapPoint.name}
                                 </div>
-                                <Badge className="bg-gold text-charcoal">
-                                  {mapPoint.distance_km} km
-                                </Badge>
                               </div>
-                            )
-                          )
-                        : // Fallback to original hardcoded landmarks
-                          nearbyLandmarks.map((landmark, index) => {
-                            const IconComponent = landmark.icon;
-                            return (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between p-4 bg-beige/30 rounded-xl hover:bg-beige/50 transition-colors"
-                              >
-                                <div className="flex items-center space-x-4">
-                                  <div className="w-10 h-10 bg-gold/20 rounded-lg flex items-center justify-center">
-                                    <IconComponent className="w-5 h-5 text-gold" />
-                                  </div>
-                                  <div>
-                                    <div className="text-[#8b7355] font-medium">
-                                      {landmark.name}
-                                    </div>
-                                    <div className="text-xs text-warm-gray">
-                                      {landmark.description}
-                                    </div>
-                                  </div>
-                                </div>
-                                <Badge className="bg-gold text-charcoal">
-                                  {landmark.distance}
-                                </Badge>
-                              </div>
-                            );
-                          })}
+                            </div>
+                            <Badge className="bg-gold text-charcoal">
+                              {mapPoint.distance_km} km
+                            </Badge>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-12">
+                          <MapPin className="w-16 h-16 mx-auto mb-4 text-warm-gray opacity-50" />
+                          <h3 className="text-[#8b7355] text-lg mb-2">
+                            No Nearby Landmarks Information Available
+                          </h3>
+                          <p className="text-warm-gray">
+                            Nearby landmarks information will be available soon.
+                            Please contact us for more details.
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -2553,7 +2025,7 @@ export function PropertyDetailPage({
                   <div>
                     <Label className="text-warm-gray text-sm">Units</Label>
                     <div className="text-[#8b7355] font-medium">
-                      {floorPlans.length} Types
+                      {unitBlocks.length} Types
                     </div>
                   </div>
                 </div>
@@ -2563,8 +2035,8 @@ export function PropertyDetailPage({
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <div className="text-lg text-[#8b7355]">
-                        {floorPlans.reduce(
-                          (sum, plan) => sum + (plan?.available || 0),
+                        {unitBlocks.reduce(
+                          (sum, unit) => sum + (unit?.available_units || 0),
                           0
                         )}
                       </div>

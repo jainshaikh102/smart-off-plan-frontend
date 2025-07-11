@@ -64,7 +64,7 @@ export function DevelopersListing({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTier, setSelectedTier] = useState("all");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("name");
   const [minRating, setMinRating] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -171,7 +171,6 @@ export function DevelopersListing({
           return a.name.localeCompare(b.name);
         case "projects":
           return b.projects - a.projects;
-        case "rating":
         default:
           // Handle null ratings by treating them as 0
           const ratingA = a.rating || 0;
@@ -206,7 +205,7 @@ export function DevelopersListing({
     setSearchTerm("");
     setSelectedTier("all");
     setSelectedSpecialty("all");
-    setSortBy("rating");
+    setSortBy("name");
     setMinRating("all");
     setFiltersOpen(false);
   };
@@ -338,7 +337,7 @@ export function DevelopersListing({
 
             {/* Filter Toggle and Sort */}
             <div className="flex items-center gap-4">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setFiltersOpen(!filtersOpen)}
@@ -353,19 +352,19 @@ export function DevelopersListing({
                     Active
                   </Badge>
                 )}
-              </Button>
+              </Button> */}
 
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[180px] rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
                   <SelectValue placeholder="Select sort order" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                  <SelectItem
+                  {/* <SelectItem
                     value="rating"
                     className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
                   >
                     Sort by Rating
-                  </SelectItem>
+                  </SelectItem> */}
                   <SelectItem
                     value="name"
                     className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
@@ -378,145 +377,16 @@ export function DevelopersListing({
                   >
                     Sort by Projects
                   </SelectItem>
-                  <SelectItem
+                  {/* <SelectItem
                     value="active"
                     className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
                   >
                     Sort by Active Projects
-                  </SelectItem>
+                  </SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
           </div>
-
-          {/* Filter Panel */}
-          {filtersOpen && (
-            <Card className="p-6 bg-beige rounded-3xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] border-0 mb-8">
-              {hasActiveFilters && (
-                <div className="flex justify-end mb-6">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-warm-gray hover:text-soft-brown"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Clear All
-                  </Button>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Tier Filter */}
-                <div>
-                  <label className="block text-soft-brown mb-2 text-sm">
-                    Partnership Tier
-                  </label>
-                  <Select value={selectedTier} onValueChange={setSelectedTier}>
-                    <SelectTrigger className="w-full rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
-                      <SelectValue placeholder="All Tiers" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                      <SelectItem
-                        value="all"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        All Tiers
-                      </SelectItem>
-                      <SelectItem
-                        value="Premium"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Premium Partners
-                      </SelectItem>
-                      <SelectItem
-                        value="Featured"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Featured Partners
-                      </SelectItem>
-                      <SelectItem
-                        value="Partner"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Partners
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Specialty Filter */}
-                <div>
-                  <label className="block text-soft-brown mb-2 text-sm">
-                    Specialty
-                  </label>
-                  <Select
-                    value={selectedSpecialty}
-                    onValueChange={setSelectedSpecialty}
-                  >
-                    <SelectTrigger className="w-full rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
-                      <SelectValue placeholder="All Specialties" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                      <SelectItem
-                        value="all"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        All Specialties
-                      </SelectItem>
-                      {allSpecialties.map((specialty) => (
-                        <SelectItem
-                          key={specialty}
-                          value={specialty}
-                          className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                        >
-                          {specialty}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Rating Filter */}
-                <div>
-                  <label className="block text-soft-brown mb-2 text-sm">
-                    Minimum Rating
-                  </label>
-                  <Select value={minRating} onValueChange={setMinRating}>
-                    <SelectTrigger className="w-full rounded-xl border-soft-brown/30 text-soft-brown bg-white focus:border-gold focus:ring-gold transition-all duration-300 hover:border-soft-brown/50">
-                      <SelectValue placeholder="Any Rating" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-soft-brown/20 rounded-xl shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
-                      <SelectItem
-                        value="all"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        Any Rating
-                      </SelectItem>
-                      <SelectItem
-                        value="4.5"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        4.5+ Stars
-                      </SelectItem>
-                      <SelectItem
-                        value="4.0"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        4.0+ Stars
-                      </SelectItem>
-                      <SelectItem
-                        value="3.5"
-                        className="text-soft-brown hover:bg-beige focus:bg-beige cursor-pointer"
-                      >
-                        3.5+ Stars
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </Card>
-          )}
 
           {/* Results Summary */}
           <div className="flex items-center justify-between text-sm text-warm-gray mb-6">
@@ -589,17 +459,17 @@ export function DevelopersListing({
                           <h3 className="text-[rgba(30,26,26,1)] mb-1 group-hover:text-gold transition-colors duration-300 leading-tight text-lg font-medium">
                             {developer.name}
                           </h3>
-                          <Badge className={`${getTierColor(tier)} text-xs`}>
+                          {/* <Badge className={`${getTierColor(tier)} text-xs`}>
                             {tier} Partner
-                          </Badge>
+                          </Badge> */}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-1 flex-shrink-0">
+                      {/* <div className="flex items-center space-x-1 flex-shrink-0">
                         <Star className="w-4 h-4 text-gold fill-gold" />
                         <span className="text-soft-brown font-medium text-sm">
                           {developer.rating || "N/A"}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* Description */}
@@ -616,23 +486,23 @@ export function DevelopersListing({
                     </p>
 
                     {/* Key Stats */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                       <div className="text-center p-3 bg-beige rounded-xl">
                         <div className="text-lg text-soft-brown mb-1">
                           {developer.projects}
                         </div>
                         <p className="text-warm-gray text-xs">Projects</p>
                       </div>
-                      <div className="text-center p-3 bg-beige rounded-xl">
+                      {/* <div className="text-center p-3 bg-beige rounded-xl">
                         <div className="text-lg text-gold mb-1">
                           {developer.active ? "Active" : "Inactive"}
                         </div>
                         <p className="text-warm-gray text-xs">Status</p>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* Specialties */}
-                    <div>
+                    {/* <div>
                       <p className="text-warm-gray text-xs mb-2">Specialties</p>
                       <div className="flex flex-wrap gap-1">
                         {developer.specialities &&
@@ -667,7 +537,7 @@ export function DevelopersListing({
                           </Badge>
                         )}
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Action Button */}
                     <Button

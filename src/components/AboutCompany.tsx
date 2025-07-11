@@ -9,6 +9,7 @@ import {
   HeadphonesIcon,
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useRouter } from "next/navigation";
 
 const benefits = [
   {
@@ -38,6 +39,7 @@ const benefits = [
 ];
 
 export function AboutCompany() {
+  const router = useRouter();
   return (
     <section id="about" className="section-padding bg-[#F5F1EB]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -128,6 +130,7 @@ export function AboutCompany() {
               <Button
                 size="lg"
                 className="bg-[rgba(139,115,85,1)] hover:bg-gold text-white hover:text-[#8b7355] mb-8 transition-all duration-300"
+                onClick={() => router.push("/contact")}
               >
                 Meet Our Team
                 <ArrowRight className="w-5 h-5 ml-2" />

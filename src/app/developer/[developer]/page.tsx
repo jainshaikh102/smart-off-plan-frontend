@@ -552,7 +552,7 @@ export default function DeveloperPage() {
               {/* Filters */}
               <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     className="border-[#8b7355]/30 text-[#8b7355] hover:bg-[#8b7355] hover:text-white rounded-xl relative"
@@ -564,7 +564,7 @@ export default function DeveloperPage() {
                         {getActiveFilterCount()}
                       </Badge>
                     )}
-                  </Button>
+                  </Button> */}
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-white flex flex-col overflow-hidden">
                   <DialogHeader className="flex-shrink-0 pb-6 border-b border-[#F6F2ED]">
@@ -889,7 +889,7 @@ export default function DeveloperPage() {
               </Select>
 
               {/* View Mode */}
-              <div className="flex items-center border border-[#8b7355]/30 rounded-xl overflow-hidden">
+              {/* <div className="flex items-center border border-[#8b7355]/30 rounded-xl overflow-hidden">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size="sm"
@@ -914,7 +914,7 @@ export default function DeveloperPage() {
                 >
                   <List className="w-4 h-4" />
                 </Button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -949,7 +949,9 @@ export default function DeveloperPage() {
                 <Card
                   key={property.id}
                   className="group cursor-pointer border border-beige hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden rounded-xl"
-                  onClick={() => router.push(`/properties/${property.id}`)}
+                  onClick={() =>
+                    router.push(`/properties/${property.externalId}`)
+                  }
                 >
                   {/* Property Image */}
                   <div className="relative aspect-[4/3] overflow-hidden">

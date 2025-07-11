@@ -560,7 +560,7 @@ export function PropertyFiltersTesting({
           <div className="flex items-center gap-3 flex-shrink-0">
             <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
               <DialogTrigger asChild>
-                <Button
+                {/* <Button
                   variant="outline"
                   size="sm"
                   className="border-[#8b7355]/30 text-[#8b7355] hover:bg-[#8b7355] hover:text-white rounded-xl relative"
@@ -572,7 +572,7 @@ export function PropertyFiltersTesting({
                       {getActiveFilterCount()}
                     </Badge>
                   )}
-                </Button>
+                </Button> */}
               </DialogTrigger>
               <DialogContent className="sm:max-w-6xl max-h-[90vh] bg-white flex flex-col overflow-hidden">
                 <DialogHeader className="flex-shrink-0 pb-6 border-b border-[#F6F2ED]">
