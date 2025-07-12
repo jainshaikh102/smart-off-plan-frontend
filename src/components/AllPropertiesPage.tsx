@@ -254,60 +254,27 @@ export function AllPropertiesPage({
       }
 
       // Fetch unit types from API
-      const unitTypesResponse = await axios.get("/api/properties/unit-types");
+      const unitTypesResponse = await axios.get("/api/unit-types");
       if (unitTypesResponse.data.success && unitTypesResponse.data.data) {
         const types = unitTypesResponse.data.data.map(
           (item: any) => item.name || item
         );
         setUnitType(types);
       } else {
-        // Fallback to hardcoded unit types
-        setUnitType([
-          "Apartments",
-          "Attached Villa",
-          "Cabins",
-          "Chalet",
-          "Chalets",
-          "Duplex",
-          "Duplex Penthouse",
-          "Duplex Villa",
-          "Fractional Duplex",
-          "Fractional Loft",
-          "Full Floor",
-          "Half Floor",
-          "Hotel Apartments",
-          "Loft",
-          "Mansion",
-          "Penthouse",
-          "Penthouse Loft",
-          "Pent Suite Villa",
-          "Plot",
-          "Plots",
-          "Semi-Detached",
-          "Sky Duplex",
-          "Sky Mansion",
-          "Sky Palace",
-          "Sky Villa",
-          "Suite",
-          "Townhouse",
-          "Triplex",
-          "Villa",
-          "Villas",
-        ]);
+        // Fallback to parkings-based unit types (singular forms only)
+        setUnitType(["Apartment", "Villa", "Townhouse", "Duplex", "Penthouse"]);
       }
 
       // Fetch bedroom options from API
-      const bedroomsResponse = await axios.get(
-        "/api/properties/bedroom-options"
-      );
+      const bedroomsResponse = await axios.get("/api/bedroom-options");
       if (bedroomsResponse.data.success && bedroomsResponse.data.data) {
         const options = bedroomsResponse.data.data.map(
           (item: any) => item.name || item
         );
         setBedrooms(options);
       } else {
-        // Fallback to hardcoded bedroom options
-        setBedrooms(["Studio", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
+        // Fallback to parkings-based bedroom options (standardized forms)
+        setBedrooms(["Studio", "1BR", "2BR", "3BR", "4BR", "5+BR"]);
       }
     } catch (error) {
       console.error("❌ Error fetching statuses:", error);
@@ -320,83 +287,8 @@ export function AllPropertiesPage({
         "Announced",
         "Start of sales",
       ]);
-      setUnitType([
-        "Apartments",
-        "Attached Villa",
-        "Cabins",
-        "Chalet",
-        "Chalets",
-        "Duplex",
-        "Duplex Penthouse",
-        "Duplex Villa",
-        "Fractional Duplex",
-        "Fractional Loft",
-        "Full Floor",
-        "Half Floor",
-        "Hotel Apartments",
-        "Loft",
-        "Mansion",
-        "Penthouse",
-        "Penthouse Loft",
-        "Pent Suite Villa",
-        "Plot",
-        "Plots",
-        "Semi-Detached",
-        "Sky Duplex",
-        "Sky Mansion",
-        "Sky Palace",
-        "Sky Villa",
-        "Suite",
-        "Townhouse",
-        "Triplex",
-        "Villa",
-        "Villas",
-      ]);
-      setBedrooms([
-        "1,5 bedroom",
-        "1,5 bedroom + pool",
-        "1 bedroom",
-        "1 bedroom junior",
-        "1 bedroom + multipurpose room",
-        "1 bedroom + pool",
-        "2,5 bedroom",
-        "2 bedroom",
-        "2 bedroom + garden",
-        "2 bedroom + multipurpose room",
-        "2 bedroom + pool",
-        "2 bedroom + Pool",
-        "3,5 bedroom",
-        "3 bedroom",
-        "3 bedroom + multipurpose room",
-        "3 bedroom + pool",
-        "4 bedroom",
-        "4 bedroom + basement",
-        "4 bedroom + multipurpose room",
-        "4 bedroom + pool",
-        "5 bedroom",
-        "5 bedroom + basement",
-        "5 bedroom+pool",
-        "6,5 bedroom",
-        "6 bedroom",
-        "6 Bedroom",
-        "6 bedroom + basement",
-        "6 bedroom + pool",
-        "7 bedroom",
-        "7 Bedroom",
-        "7 bedroom + pool",
-        "8 bedroom",
-        "9 bedroom",
-        "Full building",
-        "Full floor",
-        "Guest room",
-        "Junior Suite",
-        "Merged Studios",
-        "Studio",
-        "Studio + Pool",
-        "Studio + S",
-        "Suite",
-        "Suite+pool",
-      ]);
+      setUnitType(["Apartment", "Villa", "Townhouse", "Duplex", "Penthouse"]);
+      setBedrooms(["Studio", "1BR", "2BR", "3BR", "4BR", "5+BR"]);
     } finally {
       setStatusesLoading(false);
     }
