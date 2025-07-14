@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
@@ -96,27 +97,19 @@ export function PropertyFilters({ onPropertySelect }: PropertyFiltersProps) {
     maxPrice: 10000000,
   });
 
-  // Filter options
-  const developmentStatusOptions = [
-    "Presale",
-    "Under Construction",
-    "Completed",
-  ];
-  const unitTypeOptions = [
-    "Apartments",
-    "Villa",
-    "Townhouse",
-    "Duplex",
-    "Penthouse",
-  ];
-  const bedroomOptions = ["Studio", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"];
-  const salesStatusOptions = [
+  // Dynamic filter options state
+  const [developmentStatusOptions, setDevelopmentStatusOptions] = useState<
+    string[]
+  >(["Presale", "Under Construction", "Completed"]);
+  const [unitTypeOptions, setUnitTypeOptions] = useState<string[]>([]);
+  const [bedroomOptions, setBedroomOptions] = useState<string[]>([]);
+  const [salesStatusOptions, setSalesStatusOptions] = useState<string[]>([
     "Announced",
     "Presale (EOI)",
     "Start of Sales",
     "On Sale",
     "Out of Stock",
-  ];
+  ]);
   const completionDateOptions = [
     { value: "all", label: "All Projects" },
     { value: "12months", label: "Completing in 12 months" },
@@ -125,6 +118,125 @@ export function PropertyFilters({ onPropertySelect }: PropertyFiltersProps) {
     { value: "4years", label: "Completing in 4 years" },
     { value: "5years", label: "Completing in 5+ years" },
   ];
+
+  // Fetch unit types and bedroom options from API
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        // Fetch unit types
+        const unitTypesResponse = await axios.get("/api/unit-types");
+        if (unitTypesResponse.data.success && unitTypesResponse.data.data) {
+          const types = unitTypesResponse.data.data.map(
+            (item: any) => item.name || item
+          );
+          setUnitTypeOptions(types);
+        } else {
+          // Fallback to comprehensive unit types
+          setUnitTypeOptions([
+            "Apartments",
+            "Attached Villa",
+            "Cabins",
+            "Chalet",
+            "Chalets",
+            "Duplex",
+            "Duplex Penthouse",
+            "Duplex Villa",
+            "Fractional Duplex",
+            "Fractional Loft",
+            "Full Floor",
+            "Half Floor",
+            "Hotel Apartments",
+            "Loft",
+            "Mansion",
+            "Penthouse",
+            "Penthouse Loft",
+            "Pent Suite Villa",
+            "Plot",
+            "Plots",
+            "Semi-Detached",
+            "Sky Duplex",
+            "Sky Mansion",
+            "Sky Palace",
+            "Sky Villa",
+            "Suite",
+            "Townhouse",
+            "Triplex",
+            "Villa",
+            "Villas",
+          ]);
+        }
+
+        // Fetch bedroom options
+        const bedroomsResponse = await axios.get("/api/bedroom-options");
+        if (bedroomsResponse.data.success && bedroomsResponse.data.data) {
+          const options = bedroomsResponse.data.data.map(
+            (item: any) => item.name || item
+          );
+          setBedroomOptions(options);
+        } else {
+          // Fallback to comprehensive bedroom options
+          setBedroomOptions([
+            "1,5 bedroom",
+            "1,5 bedroom + pool",
+            "1 bedroom",
+            "1 bedroom junior",
+            "1 bedroom + multipurpose room",
+            "1 bedroom + pool",
+            "2,5 bedroom",
+            "2 bedroom",
+            "2 bedroom + garden",
+            "2 bedroom + multipurpose room",
+            "2 bedroom + pool",
+            "2 bedroom + Pool",
+            "3,5 bedroom",
+            "3 bedroom",
+            "3 bedroom + multipurpose room",
+            "3 bedroom + pool",
+            "4 bedroom",
+            "4 bedroom + basement",
+            "4 bedroom + multipurpose room",
+            "4 bedroom + pool",
+            "5 bedroom",
+            "5 bedroom + basement",
+            "5 bedroom+pool",
+            "6,5 bedroom",
+            "6 bedroom",
+            "6 Bedroom",
+            "6 bedroom + basement",
+            "6 bedroom + pool",
+            "7 bedroom",
+            "7 Bedroom",
+            "7 bedroom + pool",
+            "8 bedroom",
+            "9 bedroom",
+            "Full building",
+            "Full floor",
+            "Guest room",
+            "Junior Suite",
+            "Merged Studios",
+            "Studio",
+            "Studio + Pool",
+            "Studio + S",
+            "Suite",
+            "Suite+pool",
+          ]);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching filter options:", error);
+        // Use fallback values on error
+        setUnitTypeOptions([
+          "Apartments",
+          "Villa",
+          "Townhouse",
+          "Duplex",
+          "Penthouse",
+        ]);
+        setBedroomOptions(["Studio", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
+      }
+    };
+
+    fetchFilterOptions();
+  }, []);
 
   // Mock properties data with real Dubai coordinates
   const properties = [

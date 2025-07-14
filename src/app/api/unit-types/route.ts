@@ -15,13 +15,17 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 300 }, // Cache for 5 minutes
     });
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("❌ Backend unit types API error:", backendResponse.status, errorText);
-      
+      console.error(
+        "❌ Backend unit types API error:",
+        backendResponse.status,
+        errorText
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -36,7 +40,9 @@ export async function GET(request: NextRequest) {
     const backendData = await backendResponse.json();
     console.log("✅ Unit types fetched successfully:", {
       success: backendData.success,
-      dataLength: Array.isArray(backendData.data) ? backendData.data.length : "N/A",
+      dataLength: Array.isArray(backendData.data)
+        ? backendData.data.length
+        : "N/A",
     });
 
     return NextResponse.json(backendData);
@@ -46,7 +52,8 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error occurred",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
       },
       { status: 500 }
     );

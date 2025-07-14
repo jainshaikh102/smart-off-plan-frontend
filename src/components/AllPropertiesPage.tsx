@@ -133,7 +133,7 @@ export function AllPropertiesPage({
     searchTerm: "",
     priceRange: [0, 20000000],
     priceDisplayMode: "total",
-    areaRange: [0, 50000],
+    areaRange: [0, 50000], // sqft
     completionTimeframe: "all",
     developmentStatus: [],
     salesStatus: [],
@@ -147,7 +147,7 @@ export function AllPropertiesPage({
     searchTerm: "",
     priceRange: [0, 20000000],
     priceDisplayMode: "total",
-    areaRange: [0, 50000],
+    areaRange: [0, 50000], // sqft
     completionTimeframe: "all",
     developmentStatus: [],
     salesStatus: [],
@@ -254,27 +254,104 @@ export function AllPropertiesPage({
       }
 
       // Fetch unit types from API
-      const unitTypesResponse = await axios.get("/api/unit-types");
+      const unitTypesResponse = await axios.get("/api/properties/unit-types");
       if (unitTypesResponse.data.success && unitTypesResponse.data.data) {
         const types = unitTypesResponse.data.data.map(
           (item: any) => item.name || item
         );
         setUnitType(types);
       } else {
-        // Fallback to parkings-based unit types (singular forms only)
-        setUnitType(["Apartment", "Villa", "Townhouse", "Duplex", "Penthouse"]);
+        // Fallback to comprehensive unit types from unit_blocks data
+        setUnitType([
+          "Apartments",
+          "Attached Villa",
+          "Cabins",
+          "Chalet",
+          "Chalets",
+          "Duplex",
+          "Duplex Penthouse",
+          "Duplex Villa",
+          "Fractional Duplex",
+          "Fractional Loft",
+          "Full Floor",
+          "Half Floor",
+          "Hotel Apartments",
+          "Loft",
+          "Mansion",
+          "Penthouse",
+          "Penthouse Loft",
+          "Pent Suite Villa",
+          "Plot",
+          "Plots",
+          "Semi-Detached",
+          "Sky Duplex",
+          "Sky Mansion",
+          "Sky Palace",
+          "Sky Villa",
+          "Suite",
+          "Townhouse",
+          "Triplex",
+          "Villa",
+          "Villas",
+        ]);
       }
 
       // Fetch bedroom options from API
-      const bedroomsResponse = await axios.get("/api/bedroom-options");
+      const bedroomsResponse = await axios.get(
+        "/api/properties/bedroom-options"
+      );
       if (bedroomsResponse.data.success && bedroomsResponse.data.data) {
         const options = bedroomsResponse.data.data.map(
           (item: any) => item.name || item
         );
         setBedrooms(options);
       } else {
-        // Fallback to parkings-based bedroom options (standardized forms)
-        setBedrooms(["Studio", "1BR", "2BR", "3BR", "4BR", "5+BR"]);
+        // Fallback to comprehensive bedroom options from unit_blocks data
+        setBedrooms([
+          "1,5 bedroom",
+          "1,5 bedroom + pool",
+          "1 bedroom",
+          "1 bedroom junior",
+          "1 bedroom + multipurpose room",
+          "1 bedroom + pool",
+          "2,5 bedroom",
+          "2 bedroom",
+          "2 bedroom + garden",
+          "2 bedroom + multipurpose room",
+          "2 bedroom + pool",
+          "2 bedroom + Pool",
+          "3,5 bedroom",
+          "3 bedroom",
+          "3 bedroom + multipurpose room",
+          "3 bedroom + pool",
+          "4 bedroom",
+          "4 bedroom + basement",
+          "4 bedroom + multipurpose room",
+          "4 bedroom + pool",
+          "5 bedroom",
+          "5 bedroom + basement",
+          "5 bedroom+pool",
+          "6,5 bedroom",
+          "6 bedroom",
+          "6 Bedroom",
+          "6 bedroom + basement",
+          "6 bedroom + pool",
+          "7 bedroom",
+          "7 Bedroom",
+          "7 bedroom + pool",
+          "8 bedroom",
+          "9 bedroom",
+          "Full building",
+          "Full floor",
+          "Guest room",
+          "Junior Suite",
+          "Merged Studios",
+          "Studio",
+          "Studio + Pool",
+          "Studio + S",
+          "Suite",
+          "Suite+pool",
+        ]);
       }
     } catch (error) {
       console.error("❌ Error fetching statuses:", error);
@@ -287,8 +364,84 @@ export function AllPropertiesPage({
         "Announced",
         "Start of sales",
       ]);
-      setUnitType(["Apartment", "Villa", "Townhouse", "Duplex", "Penthouse"]);
-      setBedrooms(["Studio", "1BR", "2BR", "3BR", "4BR", "5+BR"]);
+      // Use comprehensive fallback values matching the API data
+      setUnitType([
+        "Apartments",
+        "Attached Villa",
+        "Cabins",
+        "Chalet",
+        "Chalets",
+        "Duplex",
+        "Duplex Penthouse",
+        "Duplex Villa",
+        "Fractional Duplex",
+        "Fractional Loft",
+        "Full Floor",
+        "Half Floor",
+        "Hotel Apartments",
+        "Loft",
+        "Mansion",
+        "Penthouse",
+        "Penthouse Loft",
+        "Pent Suite Villa",
+        "Plot",
+        "Plots",
+        "Semi-Detached",
+        "Sky Duplex",
+        "Sky Mansion",
+        "Sky Palace",
+        "Sky Villa",
+        "Suite",
+        "Townhouse",
+        "Triplex",
+        "Villa",
+        "Villas",
+      ]);
+      setBedrooms([
+        "1,5 bedroom",
+        "1,5 bedroom + pool",
+        "1 bedroom",
+        "1 bedroom junior",
+        "1 bedroom + multipurpose room",
+        "1 bedroom + pool",
+        "2,5 bedroom",
+        "2 bedroom",
+        "2 bedroom + garden",
+        "2 bedroom + multipurpose room",
+        "2 bedroom + pool",
+        "2 bedroom + Pool",
+        "3,5 bedroom",
+        "3 bedroom",
+        "3 bedroom + multipurpose room",
+        "3 bedroom + pool",
+        "4 bedroom",
+        "4 bedroom + basement",
+        "4 bedroom + multipurpose room",
+        "4 bedroom + pool",
+        "5 bedroom",
+        "5 bedroom + basement",
+        "5 bedroom+pool",
+        "6,5 bedroom",
+        "6 bedroom",
+        "6 Bedroom",
+        "6 bedroom + basement",
+        "6 bedroom + pool",
+        "7 bedroom",
+        "7 Bedroom",
+        "7 bedroom + pool",
+        "8 bedroom",
+        "9 bedroom",
+        "Full building",
+        "Full floor",
+        "Guest room",
+        "Junior Suite",
+        "Merged Studios",
+        "Studio",
+        "Studio + Pool",
+        "Studio + S",
+        "Suite",
+        "Suite+pool",
+      ]);
     } finally {
       setStatusesLoading(false);
     }
@@ -730,7 +883,7 @@ export function AllPropertiesPage({
                                 </Label>
                                 <div className="relative">
                                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                                    sqm
+                                    sqft
                                   </span>
                                   <Input
                                     type="number"
@@ -752,7 +905,7 @@ export function AllPropertiesPage({
                                 </Label>
                                 <div className="relative">
                                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                                    sqm
+                                    sqft
                                   </span>
                                   <Input
                                     type="number"
@@ -771,8 +924,8 @@ export function AllPropertiesPage({
                             </div>
                             <div className="space-y-2">
                               <div className="flex justify-between text-sm text-warm-gray">
-                                <span>0 sqm</span>
-                                <span>50,000 sqm</span>
+                                <span>0 sqft</span>
+                                <span>50,000 sqft</span>
                               </div>
                               <Slider
                                 value={dialogFilters.areaRange}
