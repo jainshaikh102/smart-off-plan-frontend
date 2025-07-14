@@ -55,6 +55,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 // Interfaces
 interface Property {
   id: number;
+  externalId?: number; // Added for consistent navigation
   name: string;
   area: string;
   area_unit: string;
@@ -65,19 +66,13 @@ interface Property {
   max_price: number;
   price_currency: string;
   sale_status: string;
-  status: string;
   development_status: string; // Development status from complete property data
   completion_datetime: string;
   coordinates: string;
   description: string;
   featured: boolean;
-  pendingReview: boolean;
-  featureReason: string[];
   reelly_status: boolean;
-  lastFeaturedAt?: string;
-  lastFetchedAt: Date;
   cacheExpiresAt: Date;
-  source: string;
   createdAt: Date;
   updatedAt: Date;
   __v: number;

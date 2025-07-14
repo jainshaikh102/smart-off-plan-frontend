@@ -66,6 +66,7 @@ const FeaturedPropertySkeleton = () => {
 
 interface Property {
   id: number;
+  externalId?: number; // Added for consistent navigation
   name: string;
   area: string;
   area_unit: string;
@@ -82,7 +83,6 @@ interface Property {
   coordinates: string;
   description: string;
   featured: boolean;
-  pendingReview: boolean;
   featureReason: string[];
   reelly_status: boolean;
   lastFeaturedAt?: string;
@@ -326,9 +326,10 @@ export function FeaturedProjects({
                       {/* CTA Button - Always at bottom */}
                       <Button
                         className="w-full bg-[#8b7355] hover:bg-[#8b7355]/90 mt-auto text-white"
-                        onClick={() =>
-                          router.push(`/properties/${property.id}`)
-                        }
+                        onClick={() => {
+                          const propertyId = property.externalId || property.id;
+                          router.push(`/properties/${propertyId}`);
+                        }}
                       >
                         View Details
                         <ArrowRight className="w-4 h-4 ml-2" />

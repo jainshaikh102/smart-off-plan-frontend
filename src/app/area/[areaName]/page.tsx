@@ -74,6 +74,7 @@ const PropertyCardSkeleton = () => {
 // Property interface for area page
 interface Property {
   id: number | string;
+  externalId?: number; // Added for consistent navigation
   name: string;
   area: string;
   developer: string;
@@ -436,7 +437,10 @@ export default function AreaPage({}: AreaPageProps) {
                 <Card
                   key={property.id}
                   className="group cursor-pointer border border-beige hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden rounded-xl"
-                  onClick={() => router.push(`/properties/${property.id}`)}
+                  onClick={() => {
+                    const propertyId = property.externalId || property.id;
+                    router.push(`/properties/${propertyId}`);
+                  }}
                 >
                   {/* Property Image */}
                   <div className="relative aspect-[4/3] overflow-hidden">

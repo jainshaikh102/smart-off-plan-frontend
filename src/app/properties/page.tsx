@@ -8,8 +8,9 @@ export default function PropertiesPage() {
 
   const handleProjectSelect = (project: any) => {
     // console.log("Project selected:", project);
-    // Navigate to project detail page
-    router.push(`/properties/${project?.externalId}`);
+    // Navigate to project detail page using the correct ID field
+    const propertyId = project?.externalId || project?.id;
+    router.push(`/properties/${propertyId}`);
   };
 
   const handleBack = () => {

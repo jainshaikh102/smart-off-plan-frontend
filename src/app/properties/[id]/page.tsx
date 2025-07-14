@@ -56,50 +56,6 @@ export default function PropertyDetailRoute() {
     router.push("/properties");
   };
 
-  const handlePageNavigation = (page: string) => {
-    router.push(`/${page}`);
-  };
-
-  const handleLogoClick = () => {
-    router.push("/");
-  };
-
-  // Helper function to get image URL from API response
-  const getImageUrl = (coverImageUrl?: string) => {
-    if (!coverImageUrl) return "/placeholder-property.jpg";
-
-    try {
-      const parsed = JSON.parse(coverImageUrl);
-      return parsed.url || "/placeholder-property.jpg";
-    } catch {
-      return "/placeholder-property.jpg";
-    }
-  };
-
-  // Helper function to format price
-  const formatPrice = (data: any) => {
-    if (!data) return "Price on Request";
-
-    const currency = data.price_currency || "AED";
-
-    if (data.min_price && data.max_price) {
-      if (data.min_price === data.max_price) {
-        return `${currency} ${data.min_price.toLocaleString()}`;
-      }
-      return `${currency} ${data.min_price.toLocaleString()} - ${data.max_price.toLocaleString()}`;
-    }
-
-    if (data.min_price) {
-      return `From ${currency} ${data.min_price.toLocaleString()}`;
-    }
-
-    if (data.max_price) {
-      return `Up to ${currency} ${data.max_price.toLocaleString()}`;
-    }
-
-    return "Price on Request";
-  };
-
   // Helper function to format price range
   const formatPriceRange = (
     minPrice: number | null,
@@ -190,10 +146,8 @@ export default function PropertyDetailRoute() {
     // Business logic fields
     is_partner_project: propertyData?.is_partner_project || false,
     featured: propertyData?.featured || false,
-    pendingReview: propertyData?.pendingReview || false,
     featureReason: propertyData?.featureReason || [],
     reelly_status: propertyData?.reelly_status || true,
-    lastFeaturedAt: propertyData?.lastFeaturedAt || null,
     sale_status: propertyData?.sale_status || "Available",
 
     // Cache and metadata

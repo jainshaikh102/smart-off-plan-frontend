@@ -93,6 +93,7 @@ const PropertyCardSkeleton = () => {
 
 interface Project {
   id: number;
+  externalId?: number; // Added for consistent navigation
   name: string;
   area: string; // Database uses 'area' instead of 'location'
   developer: string;
@@ -302,7 +303,10 @@ export function PropertyListings({
     return (
       <Card
         className="bg-white shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] hover:-translate-y-0.5 transition-all duration-300 overflow-hidden group cursor-pointer rounded-xl border-0 h-full"
-        onClick={() => router.push(`/properties/${property?.id}`)}
+        onClick={() => {
+          const propertyId = property?.externalId || property?.id;
+          router.push(`/properties/${propertyId}`);
+        }}
       >
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
@@ -408,7 +412,10 @@ export function PropertyListings({
               //   e.stopPropagation();
               //   onProjectSelect(property);
               // }}
-              onClick={() => router.push(`/properties/${property?.id}`)}
+              onClick={() => {
+                const propertyId = property?.externalId || property?.id;
+                router.push(`/properties/${propertyId}`);
+              }}
             >
               View Details
             </Button>

@@ -79,21 +79,16 @@ export default function HomePage() {
 
   // Session management for splash screen
   useEffect(() => {
-    console.log("🏠 HomePage: Initializing splash screen state");
-
     // Check if user has already seen splash screen in this session
     const hasSeenSplash = sessionStorage.getItem("smart-off-plan-splash-seen");
-    console.log("🏠 HomePage: Has seen splash?", hasSeenSplash);
 
     if (hasSeenSplash) {
-      console.log("🏠 HomePage: Skipping splash screen");
       // Skip splash screen for this session with immediate content display
       setShowSplash(false);
       setSplashExiting(false);
       setIsMainContentReady(true);
       setContentVisible(true);
     } else {
-      console.log("🏠 HomePage: Showing splash screen");
       // Pre-render main content immediately for faster transition
       setIsMainContentReady(true);
     }
@@ -101,15 +96,10 @@ export default function HomePage() {
 
   // Enhanced splash screen completion with perfect timing
   const handleSplashComplete = () => {
-    console.log("🏠 HomePage: handleSplashComplete called");
-
     // Mark splash as seen for this session (unless it's a logo click splash)
     if (!isLogoClickSplash) {
-      console.log("🏠 HomePage: Marking splash as seen in session");
       sessionStorage.setItem("smart-off-plan-splash-seen", "true");
     }
-
-    console.log("🏠 HomePage: Starting splash exit sequence");
 
     // If it was a logo click splash, reset navigation states
     if (isLogoClickSplash) {
@@ -126,7 +116,6 @@ export default function HomePage() {
 
     // Hide splash after a short delay
     setTimeout(() => {
-      console.log("🏠 HomePage: Hiding splash screen");
       setShowSplash(false);
       setSplashExiting(false);
     }, 800);
@@ -175,9 +164,6 @@ export default function HomePage() {
     setPropertiesError(null);
 
     try {
-      console.log(
-        "🏠 HomePage: Fetching ALL properties for shared use (no pagination)"
-      );
       // Use the new /all endpoint to get ALL properties without pagination
       const response = await axios.get("/api/properties/all");
       const data = response.data;
@@ -190,9 +176,6 @@ export default function HomePage() {
         properties = data;
       }
 
-      console.log(
-        `✅ HomePage: Fetched ${properties.length} properties for shared use (no pagination)`
-      );
       setAllProperties(properties);
     } catch (err) {
       console.error("❌ HomePage: Error fetching shared properties:", err);
