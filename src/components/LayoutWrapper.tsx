@@ -3,6 +3,8 @@
 import { useRouter, usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
+import { BottomNavigation } from "./BottomNavigation";
+import { WhatsAppButton } from "./WhatsAppButton";
 
 interface LayoutWrapperProps {
   children: React.ReactNode;
@@ -117,6 +119,12 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
       <main className="flex-1 pt-20">{children}</main>
 
       <Footer />
+
+      {/* Bottom Navigation for mobile and tablet */}
+      <BottomNavigation onNavigate={handlePageNavigation} />
+
+      {/* WhatsApp Floating Button */}
+      <WhatsAppButton />
     </div>
   );
 }

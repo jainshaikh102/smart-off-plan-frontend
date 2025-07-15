@@ -35,6 +35,8 @@ import { PrivacyPolicyPage } from "@/components/PrivacyPolicyPage";
 import { TermsOfServicePage } from "@/components/TermsOfServicePage";
 import { CookiePolicyPage } from "@/components/CookiePolicyPage";
 import { AreaDetailPage } from "@/components/AreaDetailPage";
+import { BottomNavigation } from "@/components/BottomNavigation";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 // Dynamically import PropertyFiltersTesting to avoid SSR issues with Leaflet
 const PropertyFiltersTesting = dynamic(
@@ -455,6 +457,12 @@ export default function HomePage() {
       {isMainContentReady && (
         <div className={getContentClasses()}>{mainContent()}</div>
       )}
+
+      {/* Bottom Navigation for mobile and tablet */}
+      <BottomNavigation onNavigate={handlePageNavigation} />
+
+      {/* WhatsApp Floating Button */}
+      {/* <WhatsAppButton /> */}
     </div>
   );
 }
