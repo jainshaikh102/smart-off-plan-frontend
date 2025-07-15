@@ -130,6 +130,7 @@ export function PropertyDetailPage({
     phone: "",
     message: "",
     interest: "buying",
+    referralName: "",
   });
 
   // Investment Calculator Data - Use actual property price from API
@@ -446,6 +447,55 @@ export function PropertyDetailPage({
   // Get unit blocks from API data for floor plans
   const unitBlocks = project?.apiData?.unit_blocks || [];
 
+  // Get unit availability - try both possible paths
+  const unitAvailability =
+    project?.apiData?.completePropertyData?.unit_availability ||
+    project?.apiData?.unit_availability ||
+    [];
+
+  // Calculate total available units from unit_availability array
+  const totalAvailableUnits = unitAvailability.reduce(
+    (total: number, building: any) => {
+      return (
+        total +
+        (building.units || []).reduce((buildingTotal: number, unit: any) => {
+          return buildingTotal + (unit.units_available || 0);
+        }, 0)
+      );
+    },
+    0
+  );
+
+  // Helper function to get available units for a specific bedroom type
+  const getAvailableUnitsForBedroom = (bedroomType: string) => {
+    // console.log("🔍 DEBUG: Function called with bedroomType:", bedroomType);
+    // console.log("🔍 DEBUG: unitAvailability:", unitAvailability);
+    // console.log("🔍 DEBUG: unitAvailability.length:", unitAvailability.length);
+
+    if (!bedroomType || !unitAvailability.length) {
+      return 0;
+    }
+
+    let availableCount = 0;
+
+    // Loop through all buildings and sum units for the specific bedroom type
+    unitAvailability.forEach((building: any) => {
+      (building.units || []).forEach((unit: any) => {
+        // Try exact match first
+        if (unit.bedroom_type === bedroomType) {
+          availableCount += unit.units_available || 0;
+        }
+        // Try case-insensitive match
+        else if (
+          unit.bedroom_type?.toLowerCase() === bedroomType?.toLowerCase()
+        ) {
+          availableCount += unit.units_available || 0;
+        }
+      });
+    });
+    return availableCount;
+  };
+
   // Reset selectedFloorPlan if it goes out of bounds
   useEffect(() => {
     if (unitBlocks.length > 0 && selectedFloorPlan >= unitBlocks.length) {
@@ -667,6 +717,7 @@ export function PropertyDetailPage({
         phone: contactFormData.phone,
         interest: contactFormData.interest,
         message: contactFormData.message,
+        referralName: contactFormData.referralName,
         propertyId: project.id,
         propertyName: project.name,
         propertyLocation: project.location,
@@ -696,6 +747,7 @@ export function PropertyDetailPage({
           phone: "",
           message: "",
           interest: "buying",
+          referralName: "",
         });
       } else {
         console.error("❌ Failed to send property inquiry:", result);
@@ -1645,8 +1697,13 @@ export function PropertyDetailPage({
                             0;
                           const priceTo =
                             unit.units_price_to_aed || unit.units_price_to || 0;
+
+                          // Show "Sold Out" if both prices are 0 or null
                           const priceRange =
-                            priceTo > priceFrom
+                            (priceFrom === 0 && priceTo === 0) ||
+                            (!priceFrom && !priceTo)
+                              ? "Sold Out"
+                              : priceTo > priceFrom
                               ? `AED ${priceFrom.toLocaleString()} - ${priceTo.toLocaleString()}`
                               : `AED ${priceFrom.toLocaleString()}`;
 
@@ -1672,6 +1729,15 @@ export function PropertyDetailPage({
                                   <div className="flex items-center">
                                     <Building className="w-4 h-4 mr-2 text-gold" />
                                     <span>{unit.unit_type}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <Users className="w-4 h-4 mr-2 text-gold" />
+                                    <span>
+                                      {getAvailableUnitsForBedroom(
+                                        unit.unit_bedrooms || unit.name
+                                      )}{" "}
+                                      available
+                                    </span>
                                   </div>
                                 </div>
                                 <div className="text-gold font-medium text-xs">
@@ -1728,8 +1794,13 @@ export function PropertyDetailPage({
                                       unit.units_price_to_aed ||
                                       unit.units_price_to ||
                                       0;
+
+                                    // Show "Sold Out" if both prices are 0 or null
                                     const priceRange =
-                                      priceTo > priceFrom
+                                      (priceFrom === 0 && priceTo === 0) ||
+                                      (!priceFrom && !priceTo)
+                                        ? "Sold Out"
+                                        : priceTo > priceFrom
                                         ? `AED ${priceFrom.toLocaleString()} - ${priceTo.toLocaleString()}`
                                         : `AED ${priceFrom.toLocaleString()}`;
 
@@ -2035,23 +2106,20 @@ export function PropertyDetailPage({
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <div className="text-lg text-[#8b7355]">
-                        {unitBlocks.reduce(
-                          (sum, unit) => sum + (unit?.available_units || 0),
-                          0
-                        )}
+                        {totalAvailableUnits}
                       </div>
                       <div className="text-xs text-warm-gray">
                         Units Available
                       </div>
                     </div>
-                    <div>
+                    {/* <div>
                       <div className="text-lg text-[#8b7355]">8.5%</div>
                       <div className="text-xs text-warm-gray">Expected ROI</div>
-                    </div>
-                    <div>
+                    </div> */}
+                    {/* <div>
                       <div className="text-lg text-[#8b7355]">10%</div>
                       <div className="text-xs text-warm-gray">Down Payment</div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -2143,6 +2211,24 @@ export function PropertyDetailPage({
                       placeholder="+971 50 123 4567"
                       className="mt-1"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="referralName">
+                      Referral Name (Optional)
+                    </Label>
+                    <Input
+                      id="referralName"
+                      value={contactFormData.referralName}
+                      onChange={(e) =>
+                        setContactFormData((prev) => ({
+                          ...prev,
+                          referralName: e.target.value,
+                        }))
+                      }
+                      placeholder="Who referred you to us?"
+                      className="mt-1"
                     />
                   </div>
 

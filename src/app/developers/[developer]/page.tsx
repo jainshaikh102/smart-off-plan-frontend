@@ -312,17 +312,30 @@ export default function DeveloperPage() {
       );
     }
 
-    // Price filtering - handle database structure with min_price/max_price
-    // Treat null min_price as 0 for filtering
-    result = result.filter((p) => {
-      const minPrice = p.min_price ?? 0; // Treat null as 0
-      const maxPrice = p.max_price ?? minPrice; // Use min_price if max_price is null
+    // Price filtering - exclude projects without valid min_price/max_price values
+    // Skip projects that don't have valid price values as they interfere with filter functionality
+    if (
+      appliedFilters.priceRange[0] > 0 ||
+      appliedFilters.priceRange[1] < 20000000
+    ) {
+      result = result.filter((p) => {
+        // First, ensure project has valid price values
+        if (
+          p.min_price == null ||
+          p.max_price == null ||
+          typeof p.min_price !== "number" ||
+          typeof p.max_price !== "number"
+        ) {
+          return false; // Exclude projects without valid price values
+        }
 
-      return (
-        minPrice >= appliedFilters.priceRange[0] &&
-        maxPrice <= appliedFilters.priceRange[1]
-      );
-    });
+        // Apply price range filtering
+        return (
+          p.min_price >= appliedFilters.priceRange[0] &&
+          p.max_price <= appliedFilters.priceRange[1]
+        );
+      });
+    }
 
     if (
       appliedFilters.completionTimeframe !== "all" &&

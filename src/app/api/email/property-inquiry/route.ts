@@ -6,17 +6,26 @@ export async function POST(request: NextRequest) {
 
     // Parse the request body
     const body = await request.json();
-    
+
     // Validate required fields
-    const requiredFields = ['fullName', 'email', 'phone', 'interest', 'propertyId', 'propertyName'];
-    const missingFields = requiredFields.filter(field => !body[field]);
-    
+    const requiredFields = [
+      "fullName",
+      "email",
+      "phone",
+      "interest",
+      "propertyId",
+      "propertyName",
+    ];
+    const missingFields = requiredFields.filter((field) => !body[field]);
+
     if (missingFields.length > 0) {
       return NextResponse.json(
         {
           success: false,
           error: "Missing required fields",
-          message: `The following fields are required: ${missingFields.join(', ')}`,
+          message: `The following fields are required: ${missingFields.join(
+            ", "
+          )}`,
           missingFields,
         },
         { status: 400 }
@@ -46,7 +55,8 @@ export async function POST(request: NextRequest) {
         email: body.email,
         phone: body.phone,
         interest: body.interest,
-        message: body.message || '',
+        message: body.message || "",
+        referralName: body.referralName || "",
         propertyId: parseInt(body.propertyId),
         propertyName: body.propertyName,
         propertyLocation: body.propertyLocation,
@@ -56,8 +66,12 @@ export async function POST(request: NextRequest) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("❌ Backend email API error:", backendResponse.status, errorText);
-      
+      console.error(
+        "❌ Backend email API error:",
+        backendResponse.status,
+        errorText
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -79,12 +93,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(backendData);
   } catch (error) {
     console.error("❌ Error in property inquiry API:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
-        message: "An unexpected error occurred while sending the property inquiry email",
+        message:
+          "An unexpected error occurred while sending the property inquiry email",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
