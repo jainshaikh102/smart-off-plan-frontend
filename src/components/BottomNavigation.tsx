@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Home, Building2, Users, Phone } from "lucide-react";
+import {
+  Home,
+  Building2,
+  Users,
+  Phone,
+  Calculator,
+  Building,
+} from "lucide-react";
 
 interface BottomNavigationProps {
   onNavigate?: (page: string) => void;
@@ -21,6 +28,10 @@ export function BottomNavigation({ onNavigate }: BottomNavigationProps) {
       setActiveTab("properties");
     } else if (pathname.startsWith("/developers")) {
       setActiveTab("developers");
+    } else if (pathname.startsWith("/mortgages")) {
+      setActiveTab("mortgages");
+    } else if (pathname.startsWith("/company-formation")) {
+      setActiveTab("company-formation");
     } else if (pathname.startsWith("/contact")) {
       setActiveTab("contact");
     }
@@ -56,6 +67,18 @@ export function BottomNavigation({ onNavigate }: BottomNavigationProps) {
       label: "Developers",
       icon: Users,
       route: "/developers",
+    },
+    {
+      id: "mortgages",
+      label: "Mortgages",
+      icon: Calculator,
+      route: "/mortgages",
+    },
+    {
+      id: "company-formation",
+      label: "Company",
+      icon: Building,
+      route: "/company-formation",
     },
     {
       id: "contact",
