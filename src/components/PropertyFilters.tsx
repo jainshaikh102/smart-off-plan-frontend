@@ -123,115 +123,53 @@ export function PropertyFilters({ onPropertySelect }: PropertyFiltersProps) {
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
-        // Fetch unit types
-        const unitTypesResponse = await axios.get("/api/unit-types");
-        if (unitTypesResponse.data.success && unitTypesResponse.data.data) {
-          const types = unitTypesResponse.data.data.map(
-            (item: any) => item.name || item
-          );
-          setUnitTypeOptions(types);
-        } else {
-          // Fallback to comprehensive unit types
-          setUnitTypeOptions([
-            "Apartments",
-            "Attached Villa",
-            "Cabins",
-            "Chalet",
-            "Chalets",
-            "Duplex",
-            "Duplex Penthouse",
-            "Duplex Villa",
-            "Fractional Duplex",
-            "Fractional Loft",
-            "Full Floor",
-            "Half Floor",
-            "Hotel Apartments",
-            "Loft",
-            "Mansion",
-            "Penthouse",
-            "Penthouse Loft",
-            "Pent Suite Villa",
-            "Plot",
-            "Plots",
-            "Semi-Detached",
-            "Sky Duplex",
-            "Sky Mansion",
-            "Sky Palace",
-            "Sky Villa",
-            "Suite",
-            "Townhouse",
-            "Triplex",
-            "Villa",
-            "Villas",
-          ]);
-        }
-
-        // Fetch bedroom options
-        const bedroomsResponse = await axios.get("/api/bedroom-options");
-        if (bedroomsResponse.data.success && bedroomsResponse.data.data) {
-          const options = bedroomsResponse.data.data.map(
-            (item: any) => item.name || item
-          );
-          setBedroomOptions(options);
-        } else {
-          // Fallback to comprehensive bedroom options
-          setBedroomOptions([
-            "1,5 bedroom",
-            "1,5 bedroom + pool",
-            "1 bedroom",
-            "1 bedroom junior",
-            "1 bedroom + multipurpose room",
-            "1 bedroom + pool",
-            "2,5 bedroom",
-            "2 bedroom",
-            "2 bedroom + garden",
-            "2 bedroom + multipurpose room",
-            "2 bedroom + pool",
-            "2 bedroom + Pool",
-            "3,5 bedroom",
-            "3 bedroom",
-            "3 bedroom + multipurpose room",
-            "3 bedroom + pool",
-            "4 bedroom",
-            "4 bedroom + basement",
-            "4 bedroom + multipurpose room",
-            "4 bedroom + pool",
-            "5 bedroom",
-            "5 bedroom + basement",
-            "5 bedroom+pool",
-            "6,5 bedroom",
-            "6 bedroom",
-            "6 Bedroom",
-            "6 bedroom + basement",
-            "6 bedroom + pool",
-            "7 bedroom",
-            "7 Bedroom",
-            "7 bedroom + pool",
-            "8 bedroom",
-            "9 bedroom",
-            "Full building",
-            "Full floor",
-            "Guest room",
-            "Junior Suite",
-            "Merged Studios",
-            "Studio",
-            "Studio + Pool",
-            "Studio + S",
-            "Suite",
-            "Suite+pool",
-          ]);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching filter options:", error);
-        // Use fallback values on error
+        // Use consolidated unit types (8 main categories only)
         setUnitTypeOptions([
           "Apartments",
           "Villa",
           "Townhouse",
           "Duplex",
           "Penthouse",
+          "Loft",
+          "Mansion",
+          "Other",
         ]);
-        setBedroomOptions(["Studio", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
+        console.log("✅ Using consolidated unit types (8 categories)");
+
+        // Use consolidated bedroom options (6 main categories only)
+        setBedroomOptions([
+          "Studio",
+          "Suite",
+          "1 BR",
+          "2 BR",
+          "3 BR",
+          "4 BR",
+          "5+ BR",
+        ]);
+        console.log("✅ Using consolidated bedroom options (6 categories)");
+      } catch (error) {
+        console.error("❌ Error fetching filter options:", error);
+        // Use consolidated fallback values on error (8 main categories only)
+        setUnitTypeOptions([
+          "Apartments",
+          "Villa",
+          "Townhouse",
+          "Duplex",
+          "Penthouse",
+          "Loft",
+          "Mansion",
+          "Other",
+        ]);
+        setBedroomOptions([
+          "Studio",
+          "Suite",
+          "1 BR",
+          "2 BR",
+          "3 BR",
+          "4 BR",
+          "5+ BR",
+        ]);
+        console.log("⚠️ Using fallback values due to API error (8 categories)");
       }
     };
 

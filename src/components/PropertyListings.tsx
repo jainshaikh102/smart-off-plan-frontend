@@ -329,19 +329,7 @@ export function PropertyListings({
                 : "TBD"}
             </Badge>
           </div>
-          <div className="absolute top-3 right-3">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="bg-white/90 hover:bg-white text-[#8b7355] p-1.5 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                // Handle favorite logic
-              }}
-            >
-              <Heart className="w-3 h-3" />
-            </Button>
-          </div>
+
           <div className="absolute bottom-3 left-3">
             <Badge
               variant="outline"

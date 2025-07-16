@@ -32,7 +32,7 @@ import {
   PaginationEllipsis,
 } from "./ui/pagination";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-
+import { useRouter } from "next/navigation";
 interface Developer {
   _id: string;
   externalId: number;
@@ -76,6 +76,8 @@ export function DevelopersListing({
   const [sortBy, setSortBy] = useState("name");
   const [minRating, setMinRating] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const router = useRouter();
 
   // API state management
   const [developers, setDevelopers] = useState<Developer[]>([]);
@@ -692,13 +694,17 @@ export function DevelopersListing({
                 your projects to international investors worldwide.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] rounded-xl px-6 py-2">
+                <Button
+                  className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] rounded-xl px-6 py-2"
+                  onClick={() => router.push("/join-us/join-as-partner")}
+                >
                   <Users className="w-4 h-4 mr-2" />
                   Partner With Us
                 </Button>
                 <Button
                   variant="outline"
                   className="border-soft-brown text-soft-brown hover:bg-soft-brown hover:text-white rounded-xl px-6 py-2"
+                  onClick={() => router.push("/join-us/join-as-partner")}
                 >
                   Learn More
                 </Button>

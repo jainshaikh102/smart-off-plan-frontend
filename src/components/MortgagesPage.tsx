@@ -31,6 +31,61 @@ interface MortgagesPageProps {
 }
 
 export function MortgagesPage({ onBack }: MortgagesPageProps) {
+  // Mortgage calculator state
+  const [propertyValue, setPropertyValue] = useState<string>("");
+  const [downPaymentPercent, setDownPaymentPercent] = useState<string>("");
+  const [interestRate, setInterestRate] = useState<string>("");
+  const [loanTerm, setLoanTerm] = useState<string>("");
+
+  // Calculate mortgage values
+  const calculateMortgage = () => {
+    const propValue = parseFloat(propertyValue.replace(/,/g, "")) || 0;
+    const downPercent = parseFloat(downPaymentPercent) || 0;
+    const rate = parseFloat(interestRate) || 0;
+    const term = parseFloat(loanTerm) || 0;
+
+    const downPaymentAmount = (propValue * downPercent) / 100;
+    const loanAmount = propValue - downPaymentAmount;
+
+    // Monthly payment calculation using standard mortgage formula
+    const monthlyRate = rate / 100 / 12;
+    const numberOfPayments = term * 12;
+
+    let monthlyPayment = 0;
+    if (monthlyRate > 0 && numberOfPayments > 0) {
+      monthlyPayment =
+        (loanAmount *
+          (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments))) /
+        (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+    }
+
+    return {
+      monthlyPayment: monthlyPayment,
+      downPaymentAmount: downPaymentAmount,
+      loanAmount: loanAmount,
+    };
+  };
+
+  const mortgageResults = calculateMortgage();
+
+  // Format number with commas
+  const formatNumber = (num: number) => {
+    return Math.round(num).toLocaleString();
+  };
+
+  // Handle input formatting for property value
+  const handlePropertyValueChange = (value: string) => {
+    // Remove non-numeric characters except commas
+    const numericValue = value.replace(/[^\d,]/g, "");
+    // Remove existing commas and add them back
+    const cleanValue = numericValue.replace(/,/g, "");
+    if (cleanValue) {
+      const formattedValue = parseInt(cleanValue).toLocaleString();
+      setPropertyValue(formattedValue);
+    } else {
+      setPropertyValue("");
+    }
+  };
   const mortgageTypes = [
     {
       title: "UAE Resident Mortgage",
@@ -277,6 +332,8 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                   </span>
                   <Input
                     type="text"
+                    value={propertyValue}
+                    onChange={(e) => handlePropertyValueChange(e.target.value)}
                     placeholder="2,000,000"
                     className="pl-12 pr-3 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
                   />
@@ -291,8 +348,12 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                     %
                   </span>
                   <Input
-                    type="text"
+                    type="number"
+                    value={downPaymentPercent}
+                    onChange={(e) => setDownPaymentPercent(e.target.value)}
                     placeholder="25"
+                    min="0"
+                    max="100"
                     className="pl-3 pr-8 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
                   />
                 </div>
@@ -306,8 +367,13 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                     %
                   </span>
                   <Input
-                    type="text"
+                    type="number"
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(e.target.value)}
                     placeholder="3.5"
+                    min="0"
+                    max="20"
+                    step="0.1"
                     className="pl-3 pr-8 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
                   />
                 </div>
@@ -321,8 +387,12 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                     years
                   </span>
                   <Input
-                    type="text"
+                    type="number"
+                    value={loanTerm}
+                    onChange={(e) => setLoanTerm(e.target.value)}
                     placeholder="25"
+                    min="1"
+                    max="30"
                     className="pl-3 pr-12 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
                   />
                 </div>
@@ -331,15 +401,30 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-beige rounded-xl p-6 text-center">
-                <div className="text-2xl text-gold mb-2">AED 7,200</div>
+                <div className="text-2xl text-gold mb-2">
+                  {propertyValue &&
+                  downPaymentPercent &&
+                  interestRate &&
+                  loanTerm
+                    ? `AED ${formatNumber(mortgageResults.monthlyPayment)}`
+                    : "AED --"}
+                </div>
                 <div className="text-[rgba(30,26,26,1)]">Monthly Payment</div>
               </div>
               <div className="bg-beige rounded-xl p-6 text-center">
-                <div className="text-2xl text-gold mb-2">AED 500,000</div>
+                <div className="text-2xl text-gold mb-2">
+                  {propertyValue && downPaymentPercent
+                    ? `AED ${formatNumber(mortgageResults.downPaymentAmount)}`
+                    : "AED --"}
+                </div>
                 <div className="text-[rgba(30,26,26,1)]">Down Payment</div>
               </div>
               <div className="bg-beige rounded-xl p-6 text-center">
-                <div className="text-2xl text-gold mb-2">AED 1,500,000</div>
+                <div className="text-2xl text-gold mb-2">
+                  {propertyValue && downPaymentPercent
+                    ? `AED ${formatNumber(mortgageResults.loanAmount)}`
+                    : "AED --"}
+                </div>
                 <div className="text-[rgba(30,26,26,1)]">Loan Amount</div>
               </div>
             </div>

@@ -2800,14 +2800,14 @@ export function PropertyDetailPage({
               <DialogTitle className="text-2xl text-[#8b7355]">
                 Property Gallery
               </DialogTitle>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsImageGalleryOpen(false)}
                 className="text-warm-gray hover:text-[#8b7355]"
               >
                 <X className="w-6 h-6" />
-              </Button>
+              </Button> */}
             </div>
           </DialogHeader>
           <div className="py-4">

@@ -54,6 +54,85 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
     e.preventDefault();
 
     try {
+      // Frontend validation matching backend rules
+
+      // Validate name (2-100 characters)
+      if (
+        !formData.name.trim() ||
+        formData.name.trim().length < 2 ||
+        formData.name.trim().length > 100
+      ) {
+        // alert("Name must be between 2 and 100 characters");
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+        // alert("Please provide a valid email address");
+        return;
+      }
+
+      // Validate phone (8-20 characters)
+      if (
+        !formData.phone.trim() ||
+        formData.phone.trim().length < 8 ||
+        formData.phone.trim().length > 20
+      ) {
+        // alert("Phone number must be between 8 and 20 characters");
+        return;
+      }
+
+      // Validate location (2-200 characters)
+      if (
+        !formData.location.trim() ||
+        formData.location.trim().length < 2 ||
+        formData.location.trim().length > 200
+      ) {
+        // alert("Location must be between 2 and 200 characters");
+        return;
+      }
+
+      // Validate investment (2-100 characters)
+      if (
+        !formData.investment.trim() ||
+        formData.investment.trim().length < 2 ||
+        formData.investment.trim().length > 100
+      ) {
+        // alert("Investment amount must be between 2 and 100 characters");
+        return;
+      }
+
+      // Validate experience (1-500 characters)
+      if (
+        !formData.experience.trim() ||
+        formData.experience.trim().length < 10 ||
+        formData.experience.trim().length > 500
+      ) {
+        // alert("Experience must be between 1 and 500 characters");
+        return;
+      }
+
+      // Validate timeline (2-100 characters)
+      if (
+        !formData.timeline.trim() ||
+        formData.timeline.trim().length < 2 ||
+        formData.timeline.trim().length > 100
+      ) {
+        // alert("Timeline must be between 2 and 100 characters");
+        return;
+      }
+
+      // Validate message (10-2000 characters)
+      if (
+        !formData.message.trim() ||
+        formData.message.trim().length < 10 ||
+        formData.message.trim().length > 2000
+      ) {
+        // alert("Message must be between 10 and 2000 characters");
+        return;
+      }
+
       console.log("📧 Submitting franchisee application:", formData);
 
       // Call the Become Franchisee API
@@ -467,6 +546,9 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                       className="block text-sm text-[#8b7355] mb-2"
                     >
                       Full Name *
+                      <span className="text-xs text-warm-gray ml-2">
+                        ({formData.name.length}/100)
+                      </span>
                     </label>
                     <Input
                       id="name"
@@ -475,9 +557,23 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                       required
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="Your full name"
-                      className="w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
+                      placeholder="Your full name (2-100 characters)"
+                      maxLength={100}
+                      className={`w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold ${
+                        formData.name.length > 0 &&
+                        (formData.name.length < 2 || formData.name.length > 100)
+                          ? "border-red-300 focus:border-red-500"
+                          : formData.name.length >= 2 &&
+                            formData.name.length <= 100
+                          ? "border-green-300 focus:border-green-500"
+                          : ""
+                      }`}
                     />
+                    {formData.name.length > 0 && formData.name.length < 2 && (
+                      <p className="text-red-500 text-xs mt-1">
+                        Name must be at least 2 characters
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label
@@ -563,6 +659,9 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                       className="block text-sm text-[#8b7355] mb-2"
                     >
                       Desired Timeline *
+                      <span className="text-xs text-warm-gray ml-2">
+                        ({formData.timeline.length}/100)
+                      </span>
                     </label>
                     <Input
                       id="timeline"
@@ -571,9 +670,25 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                       required
                       value={formData.timeline}
                       onChange={handleInputChange}
-                      placeholder="e.g., 3-6 months"
-                      className="w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
+                      placeholder="e.g., 3-6 months (10-100 characters)"
+                      maxLength={100}
+                      className={`w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold ${
+                        formData.timeline.length > 0 &&
+                        (formData.timeline.length < 10 ||
+                          formData.timeline.length > 100)
+                          ? "border-red-300 focus:border-red-500"
+                          : formData.timeline.length >= 10 &&
+                            formData.timeline.length <= 100
+                          ? "border-green-300 focus:border-green-500"
+                          : ""
+                      }`}
                     />
+                    {formData.timeline.length > 0 &&
+                      formData.timeline.length < 10 && (
+                        <p className="text-red-500 text-xs mt-1">
+                          Timeline must be at least 10 characters
+                        </p>
+                      )}
                   </div>
                 </div>
 
@@ -602,6 +717,9 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                     className="block text-sm text-[#8b7355] mb-2"
                   >
                     Why do you want to become a Smart Off Plan franchisee? *
+                    <span className="text-xs text-warm-gray ml-2">
+                      ({formData.message.length}/2000)
+                    </span>
                   </label>
                   <Textarea
                     id="message"
@@ -609,10 +727,31 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                     required
                     value={formData.message}
                     onChange={handleInputChange}
-                    placeholder="Tell us about your motivation, goals, and what you can bring to our franchise network..."
+                    placeholder="Tell us about your motivation, goals, and what you can bring to our franchise network... (10-2000 characters)"
                     rows={6}
-                    className="w-full p-4 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold resize-none"
+                    maxLength={2000}
+                    className={`w-full p-4 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold resize-none ${
+                      formData.message.length > 0 &&
+                      (formData.message.length < 10 ||
+                        formData.message.length > 2000)
+                        ? "border-red-300 focus:border-red-500"
+                        : formData.message.length >= 10 &&
+                          formData.message.length <= 2000
+                        ? "border-green-300 focus:border-green-500"
+                        : ""
+                    }`}
                   />
+                  {formData.message.length > 0 &&
+                    formData.message.length < 10 && (
+                      <p className="text-red-500 text-xs mt-1">
+                        Message must be at least 10 characters
+                      </p>
+                    )}
+                  {formData.message.length > 2000 && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Message must not exceed 2000 characters
+                    </p>
+                  )}
                 </div>
 
                 <div className="text-center">

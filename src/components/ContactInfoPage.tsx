@@ -73,32 +73,6 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       type: "Headquarters",
       color: "from-gold to-gold/80",
     },
-    // {
-    //   id: "marina",
-    //   name: "Dubai Marina Office",
-    //   shortName: "Marina",
-    //   address: "Marina Walk, Dubai Marina, Dubai, UAE",
-    //   phone: "‪+971543218123",
-    //   email: "invest@smartoffplan.com",
-    //   hours: "Mon-Fri: 9:00 AM - 6:00 PM, Sat: 10:00 AM - 3:00 PM",
-    //   image:
-    //     "https://images.unsplash.com/photo-1590725140246-20acdee442be?w=800&h=400&fit=crop&crop=center",
-    //   type: "Branch Office",
-    //   color: "from-[#8b7355] to-[#8b7355]/80",
-    // },
-    // {
-    //   id: "downtown",
-    //   name: "Downtown Dubai Office",
-    //   shortName: "Downtown",
-    //   address: "Burj Khalifa Boulevard, Downtown Dubai, UAE",
-    //   phone: "‪+971543218123",
-    //   email: "invest@smartoffplan.com",
-    //   hours: "Mon-Fri: 10:00 AM - 7:00 PM, Sat: 11:00 AM - 4:00 PM",
-    //   image:
-    //     "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&h=400&fit=crop&crop=center",
-    //   type: "Branch Office",
-    //   color: "from-gold/90 to-[#8b7355]",
-    // },
   ];
 
   const contactMethods = [
@@ -107,8 +81,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       title: "Call Us",
       description: "Speak directly with our property experts",
       value: "+971 54 321 8123",
-      value2: "03301330888",
-      action: "tel:+97141234567",
+      action: "tel:+971 54 321 8123",
       color: "text-gold",
       bgColor: "from-gold/10 to-gold/5",
     },
@@ -126,7 +99,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       title: "WhatsApp",
       description: "Chat with us instantly",
       value: "+971 54 321 8123",
-      action: "https://wa.me/971501234567",
+      action: "https://wa.me/971543218123",
       color: "text-green-600",
       bgColor: "from-green-100/50 to-green-50",
     },
@@ -135,7 +108,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       title: "Book Meeting",
       description: "Schedule a consultation",
       value: "Free 30-min session",
-      action: "#consultation",
+      action: "https://calendly.com/smartoffplan/consultation",
       color: "text-gold",
       bgColor: "from-gold/10 to-gold/5",
     },
@@ -154,13 +127,81 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
     { name: "After-Sales Support", time: "30 min", icon: MessageSquare },
   ];
 
+  // Phone number validation function
+  const validatePhoneNumber = (phone: string) => {
+    // Remove all non-digit characters for validation
+    const digitsOnly = phone.replace(/\D/g, "");
+
+    // Must have at least 7 digits and at most 15 digits
+    if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+      return false;
+    }
+
+    // UAE numbers: +971 followed by 8-9 digits, or local format starting with 0
+    const uaePattern = /^(\+971|971|0)[0-9]{8,9}$/;
+
+    // Pakistani numbers: +92 followed by 10 digits, or local format starting with 0
+    const pakistanPattern = /^(\+92|92|0)[0-9]{10,11}$/;
+
+    // US/Canada: +1 followed by 10 digits
+    const usCanadaPattern = /^(\+1|1)?[0-9]{10}$/;
+
+    // UK: +44 followed by 10-11 digits
+    const ukPattern = /^(\+44|44|0)[0-9]{10,11}$/;
+
+    // India: +91 followed by 10 digits
+    const indiaPattern = /^(\+91|91|0)?[0-9]{10}$/;
+
+    // General international pattern for other countries
+    // Accepts numbers with country codes (+XX) followed by 7-12 digits
+    const generalInternationalPattern = /^(\+[1-9]\d{0,3})?[0-9]{7,12}$/;
+
+    return (
+      uaePattern.test(phone) ||
+      pakistanPattern.test(phone) ||
+      usCanadaPattern.test(phone) ||
+      ukPattern.test(phone) ||
+      indiaPattern.test(phone) ||
+      generalInternationalPattern.test(phone)
+    );
+  };
+
+  // Format phone number as user types
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digit characters except + at the beginning
+    let cleaned = value.replace(/[^\d+]/g, "");
+
+    // Ensure + only appears at the beginning
+    if (cleaned.includes("+")) {
+      const plusIndex = cleaned.indexOf("+");
+      if (plusIndex === 0) {
+        cleaned = "+" + cleaned.slice(1).replace(/\+/g, "");
+      } else {
+        cleaned = cleaned.replace(/\+/g, "");
+      }
+    }
+
+    // Limit length to reasonable phone number length
+    if (cleaned.length > 15) {
+      cleaned = cleaned.slice(0, 15);
+    }
+
+    return cleaned;
+  };
+
   const handleInputChange = (field: string, value: string) => {
     // Clear error when user starts typing
     if (error) {
       setError(null);
     }
 
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Special handling for phone number
+    if (field === "phone") {
+      const formattedPhone = formatPhoneNumber(value);
+      setFormData((prev) => ({ ...prev, [field]: formattedPhone }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,9 +221,62 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
         throw new Error("Please fill in all required fields");
       }
 
-      // Validate phone number if provided
-      if (formData.phone && formData.phone.length < 8) {
-        throw new Error("Phone number must be at least 8 characters");
+      // Validate name length (2-100 characters)
+      if (
+        formData.name.trim().length < 2 ||
+        formData.name.trim().length > 100
+      ) {
+        throw new Error("Name must be between 2 and 100 characters");
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        throw new Error("Please provide a valid email address");
+      }
+
+      // Validate subject length (5-200 characters)
+      if (
+        formData.subject.trim().length < 5 ||
+        formData.subject.trim().length > 200
+      ) {
+        throw new Error("Subject must be between 5 and 200 characters");
+      }
+
+      // Validate message length (10-2000 characters)
+      if (
+        formData.message.trim().length < 10 ||
+        formData.message.trim().length > 2000
+      ) {
+        throw new Error("Message must be between 10 and 2000 characters");
+      }
+
+      // Validate inquiry type
+      const validInquiryTypes = [
+        "investment",
+        "property",
+        "financing",
+        "legal",
+        "general",
+        "partnership",
+      ];
+      if (!validInquiryTypes.includes(formData.inquiryType)) {
+        throw new Error("Please select a valid inquiry type");
+      }
+
+      // Validate phone number if provided (8-20 characters)
+      if (formData.phone && formData.phone.trim()) {
+        if (
+          formData.phone.trim().length < 8 ||
+          formData.phone.trim().length > 20
+        ) {
+          throw new Error("Phone number must be between 8 and 20 characters");
+        }
+        if (!validatePhoneNumber(formData.phone)) {
+          throw new Error(
+            "Please enter a valid phone number (e.g., +971501234567, +923313693668, 0501234567)"
+          );
+        }
       }
 
       console.log("📧 Submitting detailed message form:", formData);
@@ -277,12 +371,22 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
               {contactMethods.map((method, index) => (
                 <Card
                   key={index}
-                  className="group cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08)] hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.15)] transition-all duration-300 border-0 hover:-translate-y-1 overflow-hidden"
-                  onClick={() =>
-                    method.action.startsWith("http")
-                      ? window.open(method.action, "_blank")
-                      : (window.location.href = method.action)
-                  }
+                  className="group cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08)] hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.15)] transition-all duration-300 border-0 hover:-translate-y-1 overflow-hidden "
+                  onClick={() => {
+                    if (method.action.startsWith("http")) {
+                      // Open external links (WhatsApp, Calendly) in new tab
+                      window.open(method.action, "_blank");
+                    } else if (method.action.startsWith("tel:")) {
+                      // Handle phone calls
+                      window.location.href = method.action;
+                    } else if (method.action.startsWith("mailto:")) {
+                      // Handle email
+                      window.location.href = method.action;
+                    } else {
+                      // Fallback for other actions
+                      window.location.href = method.action;
+                    }
+                  }}
                 >
                   <CardContent className="p-4 text-center relative">
                     <div
@@ -307,17 +411,6 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                       <div className="inline-flex items-center px-2 py-1 bg-beige/50 rounded-full text-xs text-[rgba(30,26,26,1)] group-hover:bg-white/20 transition-colors duration-300">
                         {method.value}
                       </div>
-
-                      {method.value2 && (
-                        <div>
-                          <div>
-                            <span>or</span>
-                          </div>
-                          <div className="inline-flex items-center px-2 py-1 bg-beige/50 rounded-full text-xs text-[rgba(30,26,26,1)] group-hover:bg-white/20 transition-colors duration-300">
-                            {method.value2}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -361,6 +454,9 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                         <div>
                           <label className="block text-[rgba(30,26,26,0.7)] mb-2 text-sm">
                             Full Name *
+                            <span className="text-xs text-warm-gray ml-2">
+                              ({formData.name.length}/100)
+                            </span>
                           </label>
                           <Input
                             type="text"
@@ -368,10 +464,31 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                             onChange={(e) =>
                               handleInputChange("name", e.target.value)
                             }
-                            placeholder="Enter your name"
-                            className="rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold"
+                            placeholder="Enter your name (2-100 characters)"
+                            className={`rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold ${
+                              formData.name.length > 0 &&
+                              (formData.name.length < 2 ||
+                                formData.name.length > 100)
+                                ? "border-red-300 focus:border-red-500"
+                                : formData.name.length >= 2 &&
+                                  formData.name.length <= 100
+                                ? "border-green-300 focus:border-green-500"
+                                : ""
+                            }`}
+                            maxLength={100}
                             required
                           />
+                          {formData.name.length > 0 &&
+                            formData.name.length < 2 && (
+                              <p className="text-red-500 text-xs mt-1">
+                                Name must be at least 2 characters
+                              </p>
+                            )}
+                          {formData.name.length > 100 && (
+                            <p className="text-red-500 text-xs mt-1">
+                              Name must not exceed 100 characters
+                            </p>
+                          )}
                         </div>
 
                         <div>
@@ -393,16 +510,52 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                         <div>
                           <label className="block text-[rgba(30,26,26,0.7)] mb-2 text-sm">
                             Phone Number
+                            <span className="text-xs text-warm-gray ml-1">
+                              (Optional)
+                            </span>
                           </label>
-                          <Input
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) =>
-                              handleInputChange("phone", e.target.value)
-                            }
-                            placeholder="+971 XX XXX XXXX"
-                            className="rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold"
-                          />
+                          <div className="relative">
+                            <Input
+                              type="tel"
+                              value={formData.phone}
+                              onChange={(e) =>
+                                handleInputChange("phone", e.target.value)
+                              }
+                              placeholder="+971501234567, +923313693668, 0501234567"
+                              className={`rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold ${
+                                formData.phone &&
+                                !validatePhoneNumber(formData.phone)
+                                  ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                  : formData.phone &&
+                                    validatePhoneNumber(formData.phone)
+                                  ? "border-green-300 focus:border-green-500 focus:ring-green-500"
+                                  : ""
+                              }`}
+                            />
+                            {formData.phone &&
+                              !validatePhoneNumber(formData.phone) && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <span className="text-red-500 text-sm">
+                                    ❌
+                                  </span>
+                                </div>
+                              )}
+                            {formData.phone &&
+                              validatePhoneNumber(formData.phone) && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <span className="text-green-500 text-sm">
+                                    ✅
+                                  </span>
+                                </div>
+                              )}
+                          </div>
+                          {formData.phone &&
+                            !validatePhoneNumber(formData.phone) && (
+                              <p className="text-red-500 text-xs mt-1">
+                                Please enter a valid phone number (e.g.,
+                                +971501234567, +923313693668, 0501234567)
+                              </p>
+                            )}
                         </div>
 
                         <div>
@@ -444,6 +597,9 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                         <div>
                           <label className="block text-[rgba(30,26,26,0.7)] mb-2 text-sm">
                             Subject *
+                            <span className="text-xs text-warm-gray ml-2">
+                              ({formData.subject.length}/200)
+                            </span>
                           </label>
                           <Input
                             type="text"
@@ -451,26 +607,71 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                             onChange={(e) =>
                               handleInputChange("subject", e.target.value)
                             }
-                            placeholder="Brief description"
-                            className="rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold"
+                            placeholder="Brief description (5-200 characters)"
+                            className={`rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold ${
+                              formData.subject.length > 0 &&
+                              (formData.subject.length < 5 ||
+                                formData.subject.length > 200)
+                                ? "border-red-300 focus:border-red-500"
+                                : formData.subject.length >= 5 &&
+                                  formData.subject.length <= 200
+                                ? "border-green-300 focus:border-green-500"
+                                : ""
+                            }`}
+                            maxLength={200}
                             required
                           />
+                          {formData.subject.length > 0 &&
+                            formData.subject.length < 5 && (
+                              <p className="text-red-500 text-xs mt-1">
+                                Subject must be at least 5 characters
+                              </p>
+                            )}
+                          {formData.subject.length > 200 && (
+                            <p className="text-red-500 text-xs mt-1">
+                              Subject must not exceed 200 characters
+                            </p>
+                          )}
                         </div>
 
                         <div>
                           <label className="block text-[rgba(30,26,26,0.7)] mb-2 text-sm">
                             Message *
+                            <span className="text-xs text-warm-gray ml-2">
+                              ({formData.message.length}/2000)
+                            </span>
                           </label>
                           <Textarea
                             value={formData.message}
                             onChange={(e) =>
                               handleInputChange("message", e.target.value)
                             }
-                            placeholder="Tell us about your investment goals..."
+                            placeholder="Tell us about your investment goals... (10-2000 characters)"
                             rows={4}
-                            className="rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold"
+                            className={`rounded-xl border-[#8b7355]/20 focus:border-gold focus:ring-gold ${
+                              formData.message.length > 0 &&
+                              (formData.message.length < 10 ||
+                                formData.message.length > 2000)
+                                ? "border-red-300 focus:border-red-500"
+                                : formData.message.length >= 10 &&
+                                  formData.message.length <= 2000
+                                ? "border-green-300 focus:border-green-500"
+                                : ""
+                            }`}
+                            maxLength={2000}
                             required
                           />
+                          {formData.message.length > 0 &&
+                            formData.message.length < 10 && (
+                              <p className="text-red-500 text-xs mt-1">
+                                Message must be at least 10 characters
+                              </p>
+                            )}
+                          {formData.message.length > 2000 && (
+                            <p className="text-red-500 text-xs mt-1">
+                              Message must not exceed 2000 characters
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -685,6 +886,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                   <Button
                     variant="outline"
                     className="border-white/30 text-[rgba(30,26,26,1)] hover:bg-white hover:text-[#8b7355] rounded-2xl px-8"
+                    onClick={() => (window.location.href = "tel:+971543218123")}
                   >
                     <Phone className="w-4 h-4 mr-2" />
                     ‪+971543218123
@@ -704,6 +906,9 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                   <Button
                     variant="outline"
                     className="border-white/30 text-[rgba(30,26,26,1)] hover:bg-white hover:text-[#8b7355] rounded-2xl px-8"
+                    onClick={() =>
+                      window.open("https://wa.me/971543218123", "_blank")
+                    }
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Chat Now

@@ -117,39 +117,75 @@ export function AllPropertiesPage({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Helper functions for localStorage
+  const saveFiltersToStorage = (filters: Filters) => {
+    try {
+      localStorage.setItem(
+        "allPropertiesFilters",
+        JSON.stringify({
+          ...filters,
+          timestamp: Date.now(),
+        })
+      );
+      console.log("✅ Filters saved to localStorage");
+    } catch (error) {
+      console.warn("⚠️ Failed to save filters to localStorage:", error);
+    }
+  };
+
+  const loadFiltersFromStorage = (): Filters | null => {
+    try {
+      const saved = localStorage.getItem("allPropertiesFilters");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Check if filters are less than 24 hours old
+        const isRecent =
+          parsed.timestamp &&
+          Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
+        if (isRecent) {
+          const { timestamp, ...filters } = parsed;
+          console.log("✅ Loaded saved filters from localStorage");
+          return filters;
+        } else {
+          // Remove expired filters
+          localStorage.removeItem("allPropertiesFilters");
+          console.log("🗑️ Removed expired filters from localStorage");
+        }
+      }
+    } catch (error) {
+      console.warn("⚠️ Failed to load filters from localStorage:", error);
+      localStorage.removeItem("allPropertiesFilters");
+    }
+    return null;
+  };
+
   // Dynamic filter options state
   const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
   const [unitType, setUnitType] = useState<string[]>([]);
   const [bedrooms, setBedrooms] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
-  // Applied filters (used for API calls)
-  const [appliedFilters, setAppliedFilters] = useState<Filters>({
-    searchTerm: "",
-    priceRange: [0, 20000000],
-    priceDisplayMode: "total",
-    areaRange: [0, 50000], // sqft
-    completionTimeframe: "all",
-    developmentStatus: [],
-    salesStatus: [],
-    unitType: [],
-    bedrooms: [],
-    featured: null, // No featured filter by default
+  // Applied filters (used for API calls) - initialize with saved filters or defaults
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(() => {
+    const savedFilters = loadFiltersFromStorage();
+    return (
+      savedFilters || {
+        searchTerm: "",
+        priceRange: [0, 20000000],
+        priceDisplayMode: "total",
+        areaRange: [0, 50000], // sqft
+        completionTimeframe: "all",
+        developmentStatus: [],
+        salesStatus: [],
+        unitType: [],
+        bedrooms: [],
+        featured: null, // No featured filter by default
+      }
+    );
   });
 
-  // Dialog filters (temporary state while user is selecting filters)
-  const [dialogFilters, setDialogFilters] = useState<Filters>({
-    searchTerm: "",
-    priceRange: [0, 20000000],
-    priceDisplayMode: "total",
-    areaRange: [0, 50000], // sqft
-    completionTimeframe: "all",
-    developmentStatus: [],
-    salesStatus: [],
-    unitType: [],
-    bedrooms: [],
-    featured: null, // No featured filter by default
-  });
+  // Dialog filters (temporary state while user is selecting filters) - initialize with applied filters
+  const [dialogFilters, setDialogFilters] = useState<Filters>(appliedFilters);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -170,7 +206,12 @@ export function AllPropertiesPage({
 
   // Filter helper functions for applied filters (search term only - immediate effect)
   const handleSearchChange = (searchTerm: string) => {
-    setAppliedFilters((prev) => ({ ...prev, searchTerm }));
+    setAppliedFilters((prev) => {
+      const newFilters = { ...prev, searchTerm };
+      // Save filters to localStorage for persistence
+      saveFiltersToStorage(newFilters);
+      return newFilters;
+    });
   };
 
   const resetFilters = () => {
@@ -188,6 +229,9 @@ export function AllPropertiesPage({
     };
     setDialogFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
+    // Clear saved filters from localStorage
+    localStorage.removeItem("allPropertiesFilters");
+    console.log("🗑️ Cleared saved filters from localStorage");
   };
 
   // Count active filters (excluding search term as it's visible in the search bar)
@@ -213,7 +257,10 @@ export function AllPropertiesPage({
 
   const handleApplyFilters = () => {
     // Apply the dialog filters to the applied filters (this will trigger the API call)
-    setAppliedFilters({ ...dialogFilters });
+    const newFilters = { ...dialogFilters };
+    setAppliedFilters(newFilters);
+    // Save filters to localStorage for persistence
+    saveFiltersToStorage(newFilters);
     setIsDialogOpen(false);
   };
 
@@ -248,106 +295,22 @@ export function AllPropertiesPage({
         setSalesStatuses(statuses);
       }
 
-      // Fetch unit types from API
-      const unitTypesResponse = await axios.get("/api/properties/unit-types");
-      if (unitTypesResponse.data.success && unitTypesResponse.data.data) {
-        const types = unitTypesResponse.data.data.map(
-          (item: any) => item.name || item
-        );
-        setUnitType(types);
-      } else {
-        // Fallback to comprehensive unit types from unit_blocks data
-        setUnitType([
-          "Apartments",
-          "Attached Villa",
-          "Cabins",
-          "Chalet",
-          "Chalets",
-          "Duplex",
-          "Duplex Penthouse",
-          "Duplex Villa",
-          "Fractional Duplex",
-          "Fractional Loft",
-          "Full Floor",
-          "Half Floor",
-          "Hotel Apartments",
-          "Loft",
-          "Mansion",
-          "Penthouse",
-          "Penthouse Loft",
-          "Pent Suite Villa",
-          "Plot",
-          "Plots",
-          "Semi-Detached",
-          "Sky Duplex",
-          "Sky Mansion",
-          "Sky Palace",
-          "Sky Villa",
-          "Suite",
-          "Townhouse",
-          "Triplex",
-          "Villa",
-          "Villas",
-        ]);
-      }
+      // Use consolidated unit types (8 main categories only)
+      setUnitType([
+        "Apartments",
+        "Villa",
+        "Townhouse",
+        "Duplex",
+        "Penthouse",
+        "Loft",
+        "Mansion",
+        "Other",
+      ]);
+      console.log("✅ Using consolidated unit types (8 categories)");
 
-      // Fetch bedroom options from API
-      const bedroomsResponse = await axios.get(
-        "/api/properties/bedroom-options"
-      );
-      if (bedroomsResponse.data.success && bedroomsResponse.data.data) {
-        const options = bedroomsResponse.data.data.map(
-          (item: any) => item.name || item
-        );
-        setBedrooms(options);
-      } else {
-        // Fallback to comprehensive bedroom options from unit_blocks data
-        setBedrooms([
-          "1,5 bedroom",
-          "1,5 bedroom + pool",
-          "1 bedroom",
-          "1 bedroom junior",
-          "1 bedroom + multipurpose room",
-          "1 bedroom + pool",
-          "2,5 bedroom",
-          "2 bedroom",
-          "2 bedroom + garden",
-          "2 bedroom + multipurpose room",
-          "2 bedroom + pool",
-          "2 bedroom + Pool",
-          "3,5 bedroom",
-          "3 bedroom",
-          "3 bedroom + multipurpose room",
-          "3 bedroom + pool",
-          "4 bedroom",
-          "4 bedroom + basement",
-          "4 bedroom + multipurpose room",
-          "4 bedroom + pool",
-          "5 bedroom",
-          "5 bedroom + basement",
-          "5 bedroom+pool",
-          "6,5 bedroom",
-          "6 bedroom",
-          "6 Bedroom",
-          "6 bedroom + basement",
-          "6 bedroom + pool",
-          "7 bedroom",
-          "7 Bedroom",
-          "7 bedroom + pool",
-          "8 bedroom",
-          "9 bedroom",
-          "Full building",
-          "Full floor",
-          "Guest room",
-          "Junior Suite",
-          "Merged Studios",
-          "Studio",
-          "Studio + Pool",
-          "Studio + S",
-          "Suite",
-          "Suite+pool",
-        ]);
-      }
+      // Use consolidated bedroom options (6 main categories only)
+      setBedrooms(["Studio", "Suite", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
+      console.log("✅ Using consolidated bedroom options (6 categories)");
     } catch (error) {
       console.error("❌ Error fetching statuses:", error);
       // Fallback to hardcoded values
@@ -359,84 +322,18 @@ export function AllPropertiesPage({
         "Announced",
         "Start of sales",
       ]);
-      // Use comprehensive fallback values matching the API data
+      // Use consolidated fallback values (8 unit types, 6 bedroom categories)
       setUnitType([
         "Apartments",
-        "Attached Villa",
-        "Cabins",
-        "Chalet",
-        "Chalets",
+        "Villa",
+        "Townhouse",
         "Duplex",
-        "Duplex Penthouse",
-        "Duplex Villa",
-        "Fractional Duplex",
-        "Fractional Loft",
-        "Full Floor",
-        "Half Floor",
-        "Hotel Apartments",
+        "Penthouse",
         "Loft",
         "Mansion",
-        "Penthouse",
-        "Penthouse Loft",
-        "Pent Suite Villa",
-        "Plot",
-        "Plots",
-        "Semi-Detached",
-        "Sky Duplex",
-        "Sky Mansion",
-        "Sky Palace",
-        "Sky Villa",
-        "Suite",
-        "Townhouse",
-        "Triplex",
-        "Villa",
-        "Villas",
+        "Other",
       ]);
-      setBedrooms([
-        "1,5 bedroom",
-        "1,5 bedroom + pool",
-        "1 bedroom",
-        "1 bedroom junior",
-        "1 bedroom + multipurpose room",
-        "1 bedroom + pool",
-        "2,5 bedroom",
-        "2 bedroom",
-        "2 bedroom + garden",
-        "2 bedroom + multipurpose room",
-        "2 bedroom + pool",
-        "2 bedroom + Pool",
-        "3,5 bedroom",
-        "3 bedroom",
-        "3 bedroom + multipurpose room",
-        "3 bedroom + pool",
-        "4 bedroom",
-        "4 bedroom + basement",
-        "4 bedroom + multipurpose room",
-        "4 bedroom + pool",
-        "5 bedroom",
-        "5 bedroom + basement",
-        "5 bedroom+pool",
-        "6,5 bedroom",
-        "6 bedroom",
-        "6 Bedroom",
-        "6 bedroom + basement",
-        "6 bedroom + pool",
-        "7 bedroom",
-        "7 Bedroom",
-        "7 bedroom + pool",
-        "8 bedroom",
-        "9 bedroom",
-        "Full building",
-        "Full floor",
-        "Guest room",
-        "Junior Suite",
-        "Merged Studios",
-        "Studio",
-        "Studio + Pool",
-        "Studio + S",
-        "Suite",
-        "Suite+pool",
-      ]);
+      setBedrooms(["Studio", "Suite", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
     } finally {
       setStatusesLoading(false);
     }
@@ -616,6 +513,17 @@ export function AllPropertiesPage({
     fetchProperties(1, pagination.limit);
   }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
 
+  // Sync dialogFilters with appliedFilters when component loads with saved filters
+  useEffect(() => {
+    setDialogFilters(appliedFilters);
+    // Check if we have any active filters from localStorage
+    const hasActiveFilters =
+      getActiveFilterCount() > 0 || appliedFilters.searchTerm;
+    if (hasActiveFilters) {
+      console.log("🔄 Restored saved filters from localStorage");
+    }
+  }, []); // Only run once on mount
+
   // Load properties and statuses when component mounts
   useEffect(() => {
     console.log("🚀 AllPropertiesPage: Initial load - fetching first page");
@@ -745,47 +653,7 @@ export function AllPropertiesPage({
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        {/* <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-beige/50">
-                          <div className="flex items-center space-x-3">
-                            <DollarSign className="w-5 h-5 text-gold" />
-                            <div>
-                              <Label className="text-[#8b7355] font-medium">
-                                Price Display Mode
-                              </Label>
-                              <p className="text-xs text-warm-gray mt-1">
-                                Choose how prices are displayed
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Label className="text-sm text-warm-gray">
-                              Total Price
-                            </Label>
-                            <Switch
-                              checked={
-                                dialogFilters.priceDisplayMode === "perSqFt"
-                              }
-                              onCheckedChange={(checked) =>
-                                handleDialogFilterChange(
-                                  "priceDisplayMode",
-                                  checked ? "perSqFt" : "total"
-                                )
-                              }
-                            />
-                            <Label className="text-sm text-warm-gray">
-                              Per Sq Ft
-                            </Label>
-                          </div>
-                        </div> */}
-
                         <div className="space-y-4">
-                          {/* <div className="flex items-center space-x-2">
-                            <TrendingUp className="w-5 h-5 text-gold" />
-                            <Label className="text-[#8b7355] font-medium text-lg">
-                              Price Range (AED)
-                            </Label>
-                          </div> */}
-
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label className="text-xs text-warm-gray uppercase tracking-wide">
@@ -797,13 +665,22 @@ export function AllPropertiesPage({
                                 </span>
                                 <Input
                                   type="number"
-                                  value={dialogFilters.priceRange[0]}
+                                  value={
+                                    dialogFilters.priceRange[0] === 0
+                                      ? ""
+                                      : dialogFilters.priceRange[0]
+                                  }
                                   onChange={(e) =>
                                     handleDialogFilterChange("priceRange", [
-                                      Number(e.target.value),
+                                      Number(e.target.value) || 0,
                                       dialogFilters.priceRange[1],
                                     ])
                                   }
+                                  onFocus={(e) => {
+                                    if (dialogFilters.priceRange[0] === 0) {
+                                      e.target.select();
+                                    }
+                                  }}
                                   className="pl-12 border-beige/50 focus:border-gold rounded-lg"
                                   placeholder="0"
                                 />
@@ -819,15 +696,26 @@ export function AllPropertiesPage({
                                 </span>
                                 <Input
                                   type="number"
-                                  value={dialogFilters.priceRange[1]}
+                                  value={
+                                    dialogFilters.priceRange[1] === 20000000
+                                      ? ""
+                                      : dialogFilters.priceRange[1]
+                                  }
                                   onChange={(e) =>
                                     handleDialogFilterChange("priceRange", [
                                       dialogFilters.priceRange[0],
-                                      Number(e.target.value),
+                                      Number(e.target.value) || 20000000,
                                     ])
                                   }
+                                  onFocus={(e) => {
+                                    if (
+                                      dialogFilters.priceRange[1] === 20000000
+                                    ) {
+                                      e.target.select();
+                                    }
+                                  }}
                                   className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                                  placeholder="10,000,000"
+                                  placeholder="20,000,000"
                                 />
                               </div>
                             </div>
@@ -885,13 +773,22 @@ export function AllPropertiesPage({
                                   </span>
                                   <Input
                                     type="number"
-                                    value={dialogFilters.areaRange[0]}
+                                    value={
+                                      dialogFilters.areaRange[0] === 0
+                                        ? ""
+                                        : dialogFilters.areaRange[0]
+                                    }
                                     onChange={(e) =>
                                       handleDialogFilterChange("areaRange", [
-                                        Number(e.target.value),
+                                        Number(e.target.value) || 0,
                                         dialogFilters.areaRange[1],
                                       ])
                                     }
+                                    onFocus={(e) => {
+                                      if (dialogFilters.areaRange[0] === 0) {
+                                        e.target.select();
+                                      }
+                                    }}
                                     className="pl-12 border-beige/50 focus:border-gold rounded-lg"
                                     placeholder="0"
                                   />
@@ -907,13 +804,24 @@ export function AllPropertiesPage({
                                   </span>
                                   <Input
                                     type="number"
-                                    value={dialogFilters.areaRange[1]}
+                                    value={
+                                      dialogFilters.areaRange[1] === 50000
+                                        ? ""
+                                        : dialogFilters.areaRange[1]
+                                    }
                                     onChange={(e) =>
                                       handleDialogFilterChange("areaRange", [
                                         dialogFilters.areaRange[0],
-                                        Number(e.target.value),
+                                        Number(e.target.value) || 50000,
                                       ])
                                     }
+                                    onFocus={(e) => {
+                                      if (
+                                        dialogFilters.areaRange[1] === 50000
+                                      ) {
+                                        e.target.select();
+                                      }
+                                    }}
                                     className="pl-12 border-beige/50 focus:border-gold rounded-lg"
                                     placeholder="50,000"
                                   />
@@ -983,74 +891,6 @@ export function AllPropertiesPage({
                         </CardContent>
                       </Card>
                     </div>
-
-                    {/* Featured Properties Filter */}
-                    {/* <Card className="border-beige/60">
-                      <CardHeader>
-                        <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                          <TrendingUp className="w-5 h-5 text-gold" />
-                          <span>Featured Properties</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="radio"
-                              id="featured-all"
-                              name="featured"
-                              checked={dialogFilters.featured === null}
-                              onChange={() =>
-                                handleDialogFilterChange("featured", null)
-                              }
-                              className="w-5 h-5 text-gold focus:ring-gold"
-                            />
-                            <label
-                              htmlFor="featured-all"
-                              className="text-sm text-warm-gray cursor-pointer flex-1"
-                            >
-                              All Properties
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="radio"
-                              id="featured-only"
-                              name="featured"
-                              checked={dialogFilters.featured === true}
-                              onChange={() =>
-                                handleDialogFilterChange("featured", true)
-                              }
-                              className="w-5 h-5 text-gold focus:ring-gold"
-                            />
-                            <label
-                              htmlFor="featured-only"
-                              className="text-sm text-warm-gray cursor-pointer flex-1"
-                            >
-                              Featured Only
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="radio"
-                              id="featured-exclude"
-                              name="featured"
-                              checked={dialogFilters.featured === false}
-                              onChange={() =>
-                                handleDialogFilterChange("featured", false)
-                              }
-                              className="w-5 h-5 text-gold focus:ring-gold"
-                            />
-                            <label
-                              htmlFor="featured-exclude"
-                              className="text-sm text-warm-gray cursor-pointer flex-1"
-                            >
-                              Non-Featured Only
-                            </label>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card> */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Development Status */}
@@ -1310,11 +1150,11 @@ export function AllPropertiesPage({
           <div className="text-center py-16">
             <div className="text-warm-gray">
               Loading properties
-              {pagination.page > 1 ? ` for page ${pagination.page}` : ""}...
+              {/* {pagination.page > 1 ? ` for page ${pagination.page}` : ""}... */}
             </div>
             <div className="mt-2 text-sm text-warm-gray/70">
-              {pagination.page > 1 &&
-                `Fetching page ${pagination.page} of ${pagination.totalPages}`}
+              {/* {pagination.page > 1 &&
+                `Fetching page ${pagination.page} of ${pagination.totalPages}`} */}
             </div>
           </div>
         )}
@@ -1510,52 +1350,75 @@ export function AllPropertiesPage({
                   </PaginationItem>
 
                   {/* Page Numbers */}
-                  {Array.from(
-                    { length: pagination.totalPages },
-                    (_, i) => i + 1
-                  ).map((pageNum) => {
-                    // Show first page, last page, current page, and pages around current page
-                    const showPage =
-                      pageNum === 1 ||
-                      pageNum === pagination.totalPages ||
-                      Math.abs(pageNum - pagination.page) <= 1;
+                  {(() => {
+                    const currentPage = pagination.page;
+                    const totalPages = pagination.totalPages;
+                    const pages: JSX.Element[] = [];
 
-                    if (!showPage) {
-                      // Show ellipsis for gaps
-                      if (pageNum === 2 && pagination.page > 4) {
-                        return (
-                          <PaginationItem key={`ellipsis-start`}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        );
+                    // Helper function to add page number
+                    const addPage = (pageNum: number, key?: string) => {
+                      pages.push(
+                        <PaginationItem key={key || pageNum}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(pageNum)}
+                            isActive={pageNum === currentPage}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    };
+
+                    // Helper function to add ellipsis
+                    const addEllipsis = (key: string) => {
+                      pages.push(
+                        <PaginationItem key={key}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    };
+
+                    // Always show first page
+                    addPage(1);
+
+                    if (totalPages <= 7) {
+                      // If total pages <= 7, show all pages
+                      for (let i = 2; i <= totalPages; i++) {
+                        addPage(i);
                       }
-                      if (
-                        pageNum === pagination.totalPages - 1 &&
-                        pagination.page < pagination.totalPages - 3
-                      ) {
-                        return (
-                          <PaginationItem key={`ellipsis-end`}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        );
+                    } else {
+                      // Complex pagination logic for format: 1 ... 3 4 5 ... 137
+                      if (currentPage <= 3) {
+                        // Current page is near the beginning: 1 2 3 4 5 ... 137
+                        for (let i = 2; i <= 5; i++) {
+                          addPage(i);
+                        }
+                        addEllipsis("end-ellipsis");
+                        addPage(totalPages);
+                      } else if (currentPage >= totalPages - 2) {
+                        // Current page is near the end: 1 ... 133 134 135 136 137
+                        addEllipsis("start-ellipsis");
+                        for (let i = totalPages - 4; i <= totalPages; i++) {
+                          addPage(i);
+                        }
+                      } else {
+                        // Current page is in the middle: 1 ... 3 4 5 ... 137
+                        addEllipsis("start-ellipsis");
+                        for (
+                          let i = currentPage - 1;
+                          i <= currentPage + 1;
+                          i++
+                        ) {
+                          addPage(i);
+                        }
+                        addEllipsis("end-ellipsis");
+                        addPage(totalPages);
                       }
-                      return null;
                     }
 
-                    return (
-                      <PaginationItem key={pageNum}>
-                        <PaginationLink
-                          onClick={() => {
-                            handlePageChange(pageNum);
-                          }}
-                          isActive={pageNum === pagination.page}
-                          className="cursor-pointer"
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      </PaginationItem>
-                    );
-                  })}
+                    return pages;
+                  })()}
 
                   {/* Next Button */}
                   <PaginationItem>
