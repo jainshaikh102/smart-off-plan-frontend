@@ -119,6 +119,11 @@ export function AllPropertiesPage({
 
   // Helper functions for localStorage
   const saveFiltersToStorage = (filters: Filters) => {
+    // Check if we're in the browser environment
+    if (typeof window === "undefined") {
+      return;
+    }
+
     try {
       localStorage.setItem(
         "allPropertiesFilters",
@@ -134,6 +139,11 @@ export function AllPropertiesPage({
   };
 
   const loadFiltersFromStorage = (): Filters | null => {
+    // Check if we're in the browser environment
+    if (typeof window === "undefined") {
+      return null;
+    }
+
     try {
       const saved = localStorage.getItem("allPropertiesFilters");
       if (saved) {
@@ -154,7 +164,9 @@ export function AllPropertiesPage({
       }
     } catch (error) {
       console.warn("⚠️ Failed to load filters from localStorage:", error);
-      localStorage.removeItem("allPropertiesFilters");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("allPropertiesFilters");
+      }
     }
     return null;
   };
@@ -165,23 +177,18 @@ export function AllPropertiesPage({
   const [bedrooms, setBedrooms] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
-  // Applied filters (used for API calls) - initialize with saved filters or defaults
-  const [appliedFilters, setAppliedFilters] = useState<Filters>(() => {
-    const savedFilters = loadFiltersFromStorage();
-    return (
-      savedFilters || {
-        searchTerm: "",
-        priceRange: [0, 20000000],
-        priceDisplayMode: "total",
-        areaRange: [0, 50000], // sqft
-        completionTimeframe: "all",
-        developmentStatus: [],
-        salesStatus: [],
-        unitType: [],
-        bedrooms: [],
-        featured: null, // No featured filter by default
-      }
-    );
+  // Applied filters (used for API calls) - initialize with defaults, load from storage in useEffect
+  const [appliedFilters, setAppliedFilters] = useState<Filters>({
+    searchTerm: "",
+    priceRange: [0, 20000000],
+    priceDisplayMode: "total",
+    areaRange: [0, 50000], // sqft
+    completionTimeframe: "all",
+    developmentStatus: [],
+    salesStatus: [],
+    unitType: [],
+    bedrooms: [],
+    featured: null, // No featured filter by default
   });
 
   // Dialog filters (temporary state while user is selecting filters) - initialize with applied filters
@@ -230,8 +237,10 @@ export function AllPropertiesPage({
     setDialogFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
     // Clear saved filters from localStorage
-    localStorage.removeItem("allPropertiesFilters");
-    console.log("🗑️ Cleared saved filters from localStorage");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("allPropertiesFilters");
+      console.log("🗑️ Cleared saved filters from localStorage");
+    }
   };
 
   // Count active filters (excluding search term as it's visible in the search bar)
@@ -513,14 +522,16 @@ export function AllPropertiesPage({
     fetchProperties(1, pagination.limit);
   }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
 
-  // Sync dialogFilters with appliedFilters when component loads with saved filters
+  // Load saved filters from localStorage after component mounts (client-side only)
   useEffect(() => {
-    setDialogFilters(appliedFilters);
-    // Check if we have any active filters from localStorage
-    const hasActiveFilters =
-      getActiveFilterCount() > 0 || appliedFilters.searchTerm;
-    if (hasActiveFilters) {
+    const savedFilters = loadFiltersFromStorage();
+    if (savedFilters) {
+      setAppliedFilters(savedFilters);
+      setDialogFilters(savedFilters);
       console.log("🔄 Restored saved filters from localStorage");
+    } else {
+      // Sync dialogFilters with default appliedFilters
+      setDialogFilters(appliedFilters);
     }
   }, []); // Only run once on mount
 
