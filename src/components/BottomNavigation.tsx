@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Home,
-  Building2,
+  // Building2,
   Users,
   Phone,
   Calculator,
@@ -50,18 +50,18 @@ export function BottomNavigation({ onNavigate }: BottomNavigationProps) {
   };
 
   const navItems = [
-    {
-      id: "home",
-      label: "Home",
-      icon: Home,
-      route: "/",
-    },
-    {
-      id: "properties",
-      label: "Projects",
-      icon: Building2,
-      route: "/properties",
-    },
+    // {
+    //   id: "home",
+    //   label: "Home",
+    //   icon: Home,
+    //   route: "/",
+    // },
+    // {
+    //   id: "properties",
+    //   label: "Projects",
+    //   icon: Building2,
+    //   route: "/properties",
+    // },
     {
       id: "developers",
       label: "Developers",

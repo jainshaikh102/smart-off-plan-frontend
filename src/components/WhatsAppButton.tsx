@@ -17,13 +17,15 @@ export function WhatsAppButton() {
   }, []);
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "+971543218123";
+    const phoneNumber = "+923454954954";
     const message =
       "Hello! I'm interested in your off-plan properties. Could you please provide more information?";
-    const whatsappUrl = `https://wa.me/${phoneNumber.replace(
-      "+",
-      ""
-    )}?text=${encodeURIComponent(message)}`;
+
+    // Use WhatsApp Web URL which works better with Windows WhatsApp app
+    // This will open WhatsApp Web first, then offer to open the desktop app
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
 
     // Open WhatsApp in a new tab
     window.open(whatsappUrl, "_blank");

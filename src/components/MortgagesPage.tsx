@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -24,6 +24,7 @@ import {
   Heart,
   Banknote,
   Calendar,
+  MessageCircle,
 } from "lucide-react";
 
 interface MortgagesPageProps {
@@ -36,6 +37,9 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("");
   const [interestRate, setInterestRate] = useState<string>("");
   const [loanTerm, setLoanTerm] = useState<string>("");
+
+  // Ref for mortgage calculator section
+  const mortgageCalculatorRef = useRef<HTMLElement>(null);
 
   // Calculate mortgage values
   const calculateMortgage = () => {
@@ -84,6 +88,84 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
       setPropertyValue(formattedValue);
     } else {
       setPropertyValue("");
+    }
+  };
+
+  // WhatsApp helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleMortgageApplyNow = (mortgageType: string) => {
+    const selectedType = mortgageTypes.find(
+      (type) => type.title === mortgageType
+    );
+    if (selectedType) {
+      const message = `Hello! I'm interested in applying for a ${
+        selectedType.title
+      }.
+
+Key details:
+- Down Payment: ${selectedType.downPayment}
+- Interest Rate: ${selectedType.rate}
+- Max Tenure: ${selectedType.maxTenure}
+- Features: ${selectedType.features.join(", ")}
+
+Could you please help me with the application process and provide more information about the requirements and next steps?`;
+
+      handleWhatsAppMessage(message);
+    }
+  };
+
+  const handleBankQuote = (
+    bankName: string,
+    rate: string,
+    processing: string
+  ) => {
+    const message = `Hello! I'm interested in getting a mortgage quote from ${bankName}.
+
+Current rates I saw:
+- Interest Rate: ${rate}
+- Processing Fee: ${processing}
+
+Could you please provide me with a detailed quote including:
+- Exact interest rates for my profile
+- All fees and charges
+- Loan terms and conditions
+- Required documentation
+- Application process timeline
+
+I'm looking forward to hearing from you.`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const handleSpeakToAdvisor = () => {
+    const message = `Hello! I'm interested in speaking with a mortgage advisor about financing options for Dubai property.
+
+I would like to discuss:
+- Available mortgage products
+- Interest rates and terms
+- Eligibility requirements
+- Application process
+- Documentation needed
+- Pre-approval process
+
+Could you please connect me with a mortgage specialist? Thank you!`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const scrollToMortgageCalculator = () => {
+    if (mortgageCalculatorRef.current) {
+      mortgageCalculatorRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   };
   const mortgageTypes = [
@@ -309,7 +391,7 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
       </section>
 
       {/* Mortgage Calculator */}
-      <section className="section-padding">
+      <section ref={mortgageCalculatorRef} className="section-padding">
         <div className="container">
           <div className="bg-white rounded-2xl p-8 shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)] mb-16">
             <div className="text-center mb-8">
@@ -430,7 +512,10 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
             </div>
 
             <div className="text-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8"
+                onClick={scrollToMortgageCalculator}
+              >
                 Get Pre-Approved
               </Button>
             </div>
@@ -654,7 +739,7 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
             ))}
           </div>
 
-          <div className="mt-12 bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 rounded-3xl p-8 border border-gold/20">
+          {/* <div className="mt-12 bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 rounded-3xl p-8 border border-gold/20">
             <div className="text-center">
               <h4 className="text-[rgba(30,26,26,1)] mb-4">
                 Total Investment Planning
@@ -668,7 +753,7 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                 Get Detailed Cost Analysis
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -788,6 +873,7 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                         ? "bg-gold hover:bg-gold/90 text-[#8b7355]"
                         : "bg-[#8b7355] hover:bg-[#8b7355]/90 text-white"
                     } transition-all duration-300`}
+                    onClick={() => handleMortgageApplyNow(type.title)}
                   >
                     Apply Now
                   </Button>
@@ -838,6 +924,13 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
                   <Button
                     variant="outline"
                     className="w-full border-gold text-gold hover:bg-gold hover:text-[#8b7355]"
+                    onClick={() =>
+                      handleBankQuote(
+                        lender.name,
+                        lender.rate,
+                        lender.processing
+                      )
+                    }
                   >
                     Get Quote
                   </Button>
@@ -887,14 +980,18 @@ export function MortgagesPage({ onBack }: MortgagesPageProps) {
               dream property in Dubai.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-3 text-lg text-[14px]">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-3 text-lg text-[14px]"
+                onClick={scrollToMortgageCalculator}
+              >
                 <Calculator className="w-5 h-5 mr-2" />
                 Get Pre-Approved
               </Button>
               <Button
-                variant="outline"
-                className="border-white text-[rgba(0,0,0,1)] hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg text-[14px]"
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 hover:text-[#8b7355] border-solid border-[1px] border-white px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={handleSpeakToAdvisor}
               >
+                <MessageCircle className="w-5 h-5 mr-2" />
                 Speak to Advisor
               </Button>
             </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -48,6 +48,10 @@ interface CompanyFormationPageProps {
 
 export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
   const [activeStep, setActiveStep] = useState(0);
+  const [selectedCompanyType, setSelectedCompanyType] = useState<string | null>(
+    null
+  );
+  const companyTypesRef = useRef<HTMLElement>(null);
 
   const advantages = [
     {
@@ -144,6 +148,54 @@ export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
       suitableFor: "Holding companies, international trading, investment",
     },
   ];
+
+  // WhatsApp helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleLearnMoreWhatsApp = (companyType: string) => {
+    const selectedType = companyTypes.find((type) => type.type === companyType);
+    if (selectedType) {
+      const message = `Hello! I'm interested in learning more about ${selectedType.type} formation in Dubai.
+
+Key details I'd like to know more about:
+- Setup timeframe: ${selectedType.timeframe}
+- Minimum capital: ${selectedType.minCapital}
+- Suitable for: ${selectedType.suitableFor}
+
+Could you please provide more detailed information and guidance on the formation process?`;
+
+      handleWhatsAppMessage(message);
+    }
+  };
+
+  const handleFreeConsultationWhatsApp = () => {
+    const message = `Hello! I'm interested in starting my business in Dubai and would like to schedule a free consultation.
+
+I would like to discuss:
+- Company formation options
+- Legal requirements
+- Setup process and timeline
+- Costs and documentation needed
+
+Could you please help me get started with the consultation process?`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const scrollToCompanyTypes = () => {
+    if (companyTypesRef.current) {
+      companyTypesRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   const setupSteps = [
     {
@@ -322,7 +374,7 @@ export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
       </section>
 
       {/* Company Types Section */}
-      <section className="section-padding">
+      <section ref={companyTypesRef} className="section-padding">
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-[rgba(30,26,26,1)] mb-8 text-[36px] text-[40px]">
@@ -389,7 +441,10 @@ export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
                     </div>
                   </div>
 
-                  <Button className="w-full mt-6 bg-beige hover:bg-gold text-[#8b7355] rounded-xl group-hover:bg-[#8b7355] group-hover:text-white transition-all duration-300">
+                  <Button
+                    className="w-full mt-6 bg-beige hover:bg-gold text-[#8b7355] rounded-xl group-hover:bg-[#8b7355] group-hover:text-white transition-all duration-300"
+                    onClick={() => handleLearnMoreWhatsApp(type.type)}
+                  >
                     Learn More
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
@@ -578,13 +633,16 @@ export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
               ready to guide you through every aspect of the formation process.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 px-8 py-4 text-lg rounded-xl text-[14px]">
+              <Button
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={scrollToCompanyTypes}
+              >
                 <Briefcase className="w-5 h-5 mr-2" />
                 Start Company Formation
               </Button>
               <Button
-                variant="outline"
-                className="border-white text-[rgba(30,26,26,1)] hover:bg-white/10 px-8 py-4 text-lg rounded-xl text-[14px]"
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-transparent border-solid border-[1px] border-white px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={handleFreeConsultationWhatsApp}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Free Consultation

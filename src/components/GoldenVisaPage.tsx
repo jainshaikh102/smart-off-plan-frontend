@@ -16,6 +16,7 @@ import {
   Building2,
   Briefcase,
   Palette,
+  MessageCircle,
 } from "lucide-react";
 
 interface GoldenVisaPageProps {
@@ -159,6 +160,76 @@ export function GoldenVisaPage({ onBack }: GoldenVisaPageProps) {
     },
   ];
 
+  // WhatsApp helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleGoldenVisaApplyNow = (visaType: string) => {
+    const selectedVisa = visaTypes.find((visa) => visa.title === visaType);
+    if (selectedVisa) {
+      const message = `Hello! I'm interested in applying for the ${
+        selectedVisa.title
+      }.
+
+Key details:
+- Duration: ${selectedVisa.duration}
+- Investment Required: ${selectedVisa.investment}
+- Description: ${selectedVisa.description}
+
+Requirements:
+${selectedVisa.requirements.map((req) => `- ${req}`).join("\n")}
+
+Could you please help me with the application process and provide more information about:
+- Detailed eligibility criteria
+- Required documentation
+- Application timeline
+- Investment options
+- Next steps to proceed
+
+I'm looking forward to starting my Golden Visa journey with your assistance.`;
+
+      handleWhatsAppMessage(message);
+    }
+  };
+
+  const handleCheckEligibility = () => {
+    const message = `Hello! I'm interested in checking my eligibility for the UAE Golden Visa.
+
+I would like to discuss:
+- Which Golden Visa category suits my profile
+- Investment requirements and options
+- Eligibility criteria assessment
+- Required documentation
+- Application process and timeline
+- Family inclusion possibilities
+
+Could you please help me understand if I qualify for the Golden Visa and guide me through the next steps?`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const handleFreeConsultation = () => {
+    const message = `Hello! I'm interested in a free consultation about the UAE Golden Visa program.
+
+I would like to discuss:
+- Available Golden Visa categories
+- Investment options (property, business, etc.)
+- Eligibility requirements for my situation
+- Application process and documentation
+- Timeline and costs involved
+- Benefits and privileges
+- Family sponsorship options
+
+Could you please schedule a consultation to help me understand the best path forward for obtaining a Golden Visa?`;
+
+    handleWhatsAppMessage(message);
+  };
+
   return (
     <div className="min-h-screen bg-ivory pt-20">
       {/* Hero Section */}
@@ -253,6 +324,7 @@ export function GoldenVisaPage({ onBack }: GoldenVisaPageProps) {
                         ? "bg-gold hover:bg-gold/90 text-[#8b7355]"
                         : "bg-[#8b7355] hover:bg-[#8b7355]/90 text-white"
                     } transition-all duration-300`}
+                    onClick={() => handleGoldenVisaApplyNow(visa.title)}
                   >
                     Apply Now
                   </Button>
@@ -427,12 +499,6 @@ export function GoldenVisaPage({ onBack }: GoldenVisaPageProps) {
               </div>
             </div>
           </div>
-
-          <div className="text-center mt-8">
-            <Button className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8">
-              Learn More About Golden Visa
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -530,14 +596,18 @@ export function GoldenVisaPage({ onBack }: GoldenVisaPageProps) {
               application process.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-3 text-lg text-[14px] text-[15px] text-[16px]">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-3 text-lg text-[14px] text-[15px] text-[16px]"
+                onClick={handleCheckEligibility}
+              >
                 <Star className="w-5 h-5 mr-2" />
                 Check Eligibility
               </Button>
               <Button
-                variant="outline"
-                className="border-white text-[rgba(30,26,26,1)] hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg text-[14px]"
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 hover:text-[#8b7355] border-solid border-[1px] border-white px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={handleFreeConsultation}
               >
+                <MessageCircle className="w-5 h-5 mr-2" />
                 Free Consultation
               </Button>
             </div>

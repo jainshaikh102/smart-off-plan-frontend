@@ -3,7 +3,7 @@
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import SmartOffPlanLogo from "../../public/Logo.png";
+import SmartOffPlanLogo from "../../public/Logo/Logo.png";
 
 export function Footer() {
   const router = useRouter();

@@ -18,6 +18,7 @@ import {
   Building,
   Target,
   DollarSign,
+  MessageCircle,
 } from "lucide-react";
 
 interface JoinAsPartnerPageProps {
@@ -107,6 +108,65 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
         "An error occurred while submitting your application. Please try again."
       );
     }
+  };
+
+  // WhatsApp, Call, and Email helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleScheduleInterview = () => {
+    const message = `Hello! I'm interested in joining Smart Off Plan as a partner and would like to schedule an interview.
+
+I would like to discuss:
+- Partnership opportunities and requirements
+- Commission structure and benefits
+- Training and support programs
+- Territory and market allocation
+- Partnership agreement terms
+- Next steps in the application process
+
+Could you please help me schedule a convenient time for an interview? I'm excited about the opportunity to join your exclusive partner network.
+
+Thank you for your time and consideration.`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const handleCallPartnershipTeam = () => {
+    const phoneNumber = "+923454954954";
+    window.location.href = `tel:${phoneNumber}`;
+  };
+
+  const handleEmailUs = () => {
+    const emailAddress = "invest@smartoffplan.com";
+    const subject = "Partnership Inquiry - Join as Partner";
+    const body = `Hello Smart Off Plan Team,
+
+I am interested in joining your partner network and would like to learn more about the partnership opportunities available.
+
+I would appreciate information about:
+- Partnership requirements and qualifications
+- Commission structure and benefits
+- Training and support programs
+- Application process and timeline
+- Territory availability
+- Partnership agreement terms
+
+Please let me know the best way to proceed with my application.
+
+Thank you for your time and consideration.
+
+Best regards,`;
+
+    const mailtoUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
   };
 
   const partnerBenefits = [
@@ -261,8 +321,11 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
                   Complete the application form and our team will review your
                   profile within 48 hours.
                 </p>
-                <Button className="bg-gold hover:bg-gold/90 text-[#8b7355]">
-                  <Calendar className="w-4 h-4 mr-2" />
+                <Button
+                  className="bg-gold hover:bg-gold/90 text-[#8b7355]"
+                  onClick={handleScheduleInterview}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
                   Schedule Interview
                 </Button>
               </div>
@@ -478,13 +541,16 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
               any questions you may have about joining our exclusive network.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg"
+                onClick={handleCallPartnershipTeam}
+              >
                 <Phone className="w-5 h-5 mr-2" />
                 Call Partnership Team
               </Button>
               <Button
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg"
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 hover:text-[#8b7355] border-solid border-[1px] border-white px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={handleEmailUs}
               >
                 <Mail className="w-5 h-5 mr-2" />
                 Email Us

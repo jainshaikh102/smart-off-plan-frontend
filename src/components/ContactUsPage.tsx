@@ -488,13 +488,22 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
               investment goals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg"
+                onClick={() => (window.location.href = "tel:+971543218123")}
+              >
                 <Phone className="w-5 h-5 mr-2" />
                 Call Now
               </Button>
               <Button
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg"
+                onClick={() =>
+                  window.open(
+                    "https://web.whatsapp.com/send?phone=971543218123&text=Hello%20Smart%20Off%20Plan!%20I'm%20interested%20in%20learning%20more%20about%20your%20property%20investment%20opportunities.%20Could%20you%20please%20help%20me%20get%20started?",
+                    "_blank"
+                  )
+                }
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 WhatsApp Us

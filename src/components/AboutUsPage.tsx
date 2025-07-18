@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -52,6 +53,48 @@ interface AboutUsPageProps {
 
 export function AboutUsPage({ onBack }: AboutUsPageProps) {
   const [activeTimelineStep, setActiveTimelineStep] = useState(0);
+  const router = useRouter();
+
+  // WhatsApp helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleGetExpertConsultation = () => {
+    const message = `Hello! I'm interested in getting expert consultation about off-plan property investment in Dubai.
+
+I would like to discuss:
+- Investment opportunities and market insights
+- Property selection and evaluation
+- Legal and financial guidance
+- Risk assessment and mitigation
+- Investment strategy and planning
+- Market trends and future prospects
+
+Could you please connect me with one of your real estate experts for a detailed consultation? I'm looking forward to professional guidance for my investment journey.`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const handleScheduleConsultation = () => {
+    const message = `Hello! I would like to schedule a consultation to discuss off-plan property investment opportunities.
+
+I'm interested in:
+- Understanding the Dubai off-plan market
+- Investment options and recommendations
+- Legal and financial requirements
+- Property selection guidance
+- Investment timeline and process
+- Risk management strategies
+
+Could you please help me schedule a convenient time for a detailed consultation with your team? Thank you!`;
+
+    handleWhatsAppMessage(message);
+  };
 
   const advantages = [
     {
@@ -377,7 +420,10 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-4 rounded-xl group">
+                <Button
+                  className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8 py-4 rounded-xl group"
+                  onClick={() => router.push("/properties")}
+                >
                   <Building2 className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
                   Browse Off-Plan Properties
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
@@ -385,6 +431,7 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
                 <Button
                   variant="outline"
                   className="border-[#8b7355] text-[rgba(30,26,26,1)] hover:bg-[#8b7355] hover:text-white px-8 py-4 rounded-xl group"
+                  onClick={handleGetExpertConsultation}
                 >
                   <MessageCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
                   Speak with Expert
@@ -698,7 +745,10 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
                 <p className="text-[rgba(30,26,26,1)] mb-6 max-w-2xl mx-auto leading-relaxed">
                   {timelineSteps[activeTimelineStep].description}
                 </p>
-                <Badge className="bg-gold text-white px-4 py-2">
+                <Badge
+                  className="bg-gold text-white px-4 py-2"
+                  onClick={() => router.push("/properties")}
+                >
                   Duration: {timelineSteps[activeTimelineStep].duration}
                 </Badge>
               </div>
@@ -777,7 +827,10 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
                 advisors, and established developers significantly reduces risks
                 and enhances your investment success.
               </p>
-              <Button className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[rgba(255,255,255,1)] px-8"
+                onClick={handleGetExpertConsultation}
+              >
                 Get Expert Consultation
               </Button>
             </div>
@@ -883,13 +936,16 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
               off-plan investment.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-white text-[#8b7355] hover:bg-white/90 px-8 py-4 text-lg rounded-xl text-[14px]">
-                <Users className="w-5 h-5 mr-2" />
+              <Button
+                className="bg-white text-[#8b7355] hover:bg-white/90 px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={handleScheduleConsultation}
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
                 Schedule Consultation
               </Button>
               <Button
-                variant="outline"
-                className="border-white text-[rgba(139,115,85,1)] hover:bg-white/10 px-8 py-4 text-lg rounded-xl text-[14px]"
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-transparent border-solid border-[1px] border-white px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={() => router.push("/properties")}
               >
                 <Building2 className="w-5 h-5 mr-2" />
                 View Available Projects

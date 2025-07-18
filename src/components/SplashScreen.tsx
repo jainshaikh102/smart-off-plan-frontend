@@ -59,7 +59,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         {/* Logo container with four-stage animation */}
         <div className="splash-logo-container">
           <Image
-            src="/Logo.png"
+            src="/Logo/Logo.png"
             alt="Smart Off Plan Logo"
             width={280}
             height={100}

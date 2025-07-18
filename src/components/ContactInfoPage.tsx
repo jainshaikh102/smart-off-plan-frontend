@@ -99,7 +99,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       title: "WhatsApp",
       description: "Chat with us instantly",
       value: "+971 54 321 8123",
-      action: "https://wa.me/971543218123",
+      action:
+        "https://web.whatsapp.com/send?phone=971543218123&text=Hello%20Smart%20Off%20Plan!%20I'm%20interested%20in%20learning%20more%20about%20your%20property%20investment%20opportunities.%20Could%20you%20please%20help%20me%20get%20started?",
       color: "text-green-600",
       bgColor: "from-green-100/50 to-green-50",
     },
@@ -344,6 +345,33 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
 
   const selectedOfficeData =
     offices.find((office) => office.id === selectedOffice) || offices[0];
+
+  // WhatsApp helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleBookFreeConsultation = () => {
+    const message = `Hello! I would like to book a free consultation with Smart Off Plan.
+
+I'm interested in:
+- Off-plan property investment opportunities in Dubai
+- Market insights and investment guidance
+- Property selection and evaluation
+- Legal and financial consultation
+- Investment strategy planning
+- Current market trends and projections
+
+Could you please help me schedule a convenient time for a free consultation with one of your property experts? I'm looking forward to discussing my investment goals with your team.
+
+Thank you!`;
+
+    handleWhatsAppMessage(message);
+  };
 
   return (
     <div className="bg-gradient-to-br from-ivory to-beige">
@@ -851,8 +879,11 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                       </div>
                     ))}
                   </div>
-                  <Button className="w-full bg-gradient-to-r from-[#8b7355] to-[#8b7355]/90 hover:from-[#8b7355]/90 hover:to-[#8b7355]/80 text-white rounded-xl py-3 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <Calendar className="w-4 h-4 mr-2" />
+                  <Button
+                    className="w-full bg-gradient-to-r from-[#8b7355] to-[#8b7355]/90 hover:from-[#8b7355]/90 hover:to-[#8b7355]/80 text-white rounded-xl py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+                    onClick={handleBookFreeConsultation}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
                     Book Free Consultation
                   </Button>
                 </CardContent>
@@ -885,7 +916,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                   </p>
                   <Button
                     variant="outline"
-                    className="border-white/30 text-[rgba(30,26,26,1)] hover:bg-white hover:text-[#8b7355] rounded-2xl px-8"
+                    className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 hover:text-[#8b7355] border-solid border-[1px] border-white px-8 py-4 text-lg rounded-full text-[14px]"
                     onClick={() => (window.location.href = "tel:+971543218123")}
                   >
                     <Phone className="w-4 h-4 mr-2" />
@@ -905,9 +936,12 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
                   </p>
                   <Button
                     variant="outline"
-                    className="border-white/30 text-[rgba(30,26,26,1)] hover:bg-white hover:text-[#8b7355] rounded-2xl px-8"
+                    className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 hover:text-[#8b7355] border-solid border-[1px] border-white px-8 py-4 text-lg rounded-full text-[14px]"
                     onClick={() =>
-                      window.open("https://wa.me/971543218123", "_blank")
+                      window.open(
+                        "https://web.whatsapp.com/send?phone=971543218123&text=Hello%20Smart%20Off%20Plan!%20I'm%20interested%20in%20learning%20more%20about%20your%20property%20investment%20opportunities.%20Could%20you%20please%20help%20me%20get%20started?",
+                        "_blank"
+                      )
                     }
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />

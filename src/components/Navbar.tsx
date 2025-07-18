@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Menu, X, TrendingUp, ChevronDown } from "lucide-react";
-import SmartOffPlanLogo from "../../public/LogoBlackText.png";
 import Image from "next/image";
+import TransparentLogoDark from "../../public/Logo/LogoDark.png";
 
 interface NavbarProps {
   onNavigate?: (page: string) => void;
@@ -81,7 +81,7 @@ export function Navbar({
             className="hover:opacity-80 transition-opacity text-[16px]"
           >
             <Image
-              src={SmartOffPlanLogo}
+              src={TransparentLogoDark}
               alt="Smart Off Plan Logo"
               className="h-14 w-auto"
             />

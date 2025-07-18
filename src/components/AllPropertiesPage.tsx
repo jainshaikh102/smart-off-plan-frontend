@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -116,6 +116,7 @@ export function AllPropertiesPage({
   const [sortBy, setSortBy] = useState("latest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
 
   // Helper functions for localStorage
   const saveFiltersToStorage = (filters: Filters) => {
@@ -357,152 +358,157 @@ export function AllPropertiesPage({
   ];
 
   // Fetch properties from API with server-side pagination
-  const fetchProperties = async (page: number = 1, limit: number = 12) => {
-    setLoading(true);
-    setError(null);
+  const fetchProperties = useCallback(
+    async (page: number = 1, limit: number = 12) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      // Build query parameters for server-side pagination and filtering
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-      });
+      try {
+        // Build query parameters for server-side pagination and filtering
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
 
-      // Add sorting parameter - map frontend values to backend values
-      if (sortBy) {
-        let backendSortValue = sortBy;
-        switch (sortBy) {
-          case "price-low":
-            backendSortValue = "price_min_to_max";
-            break;
-          case "price-high":
-            backendSortValue = "price_max_to_min";
-            break;
-          case "location":
-            backendSortValue = "name_asc"; // Location sorting by area name
-            break;
-          case "featured":
-            backendSortValue = "featured";
-            break;
-          case "latest":
-            backendSortValue = "latest";
-            break;
-          default:
-            // Don't default to featured - let backend handle default sorting based on filters
-            backendSortValue = "";
+        // Add sorting parameter - map frontend values to backend values
+        if (sortBy) {
+          let backendSortValue = sortBy;
+          switch (sortBy) {
+            case "price-low":
+              backendSortValue = "price_min_to_max";
+              break;
+            case "price-high":
+              backendSortValue = "price_max_to_min";
+              break;
+            case "location":
+              backendSortValue = "name_asc"; // Location sorting by area name
+              break;
+            case "featured":
+              backendSortValue = "featured";
+              break;
+            case "latest":
+              backendSortValue = "latest";
+              break;
+            default:
+              // Don't default to featured - let backend handle default sorting based on filters
+              backendSortValue = "";
+          }
+          if (backendSortValue) {
+            params.append("sort", backendSortValue);
+          }
         }
-        if (backendSortValue) {
-          params.append("sort", backendSortValue);
+
+        // Add filter parameters (use appliedFilters for API calls)
+        if (appliedFilters.searchTerm) {
+          params.append("name", appliedFilters.searchTerm);
         }
-      }
-
-      // Add filter parameters (use appliedFilters for API calls)
-      if (appliedFilters.searchTerm) {
-        params.append("name", appliedFilters.searchTerm);
-      }
-      if (appliedFilters.priceRange[0] > 0) {
-        params.append("min_price", appliedFilters.priceRange[0].toString());
-      }
-      if (appliedFilters.priceRange[1] < 20000000) {
-        params.append("max_price", appliedFilters.priceRange[1].toString());
-      }
-      if (appliedFilters.areaRange[0] > 0) {
-        params.append("min_area", appliedFilters.areaRange[0].toString());
-      }
-      if (appliedFilters.areaRange[1] < 50000) {
-        params.append("max_area", appliedFilters.areaRange[1].toString());
-      }
-      if (appliedFilters.developmentStatus.length > 0) {
-        params.append(
-          "development_status",
-          appliedFilters.developmentStatus.join(",")
-        );
-      }
-      if (appliedFilters.salesStatus.length > 0) {
-        params.append("sale_status", appliedFilters.salesStatus.join(","));
-      }
-      if (appliedFilters.unitType.length > 0) {
-        params.append("unit_type", appliedFilters.unitType.join(","));
-      }
-
-      if (appliedFilters.bedrooms.length > 0) {
-        params.append("bedrooms", appliedFilters.bedrooms.join(","));
-      }
-
-      // Add featured filter parameter
-      if (appliedFilters.featured !== null) {
-        params.append("featured", appliedFilters.featured.toString());
-      }
-
-      // Add completion timeframe parameter - map frontend values to backend values
-      if (
-        appliedFilters.completionTimeframe &&
-        appliedFilters.completionTimeframe !== "all"
-      ) {
-        let backendTimeframeValue = appliedFilters.completionTimeframe;
-        switch (appliedFilters.completionTimeframe) {
-          case "within_6m":
-            backendTimeframeValue = "6_months";
-            break;
-          case "within_12m":
-            backendTimeframeValue = "12_months";
-            break;
-          case "within_24m":
-            backendTimeframeValue = "24_months";
-            break;
-          case "beyond_24m":
-            backendTimeframeValue = "beyond_24_months";
-            break;
+        if (appliedFilters.priceRange[0] > 0) {
+          params.append("min_price", appliedFilters.priceRange[0].toString());
         }
-        params.append("completion_period", backendTimeframeValue);
-      }
-
-      const response = await axios.get(`/api/properties?${params.toString()}`);
-      const data = response.data;
-
-      if (data.success && data.data) {
-        const fetchedProperties = data.data || [];
-        setProperties(fetchedProperties);
-        if (data.pagination) {
-          setPagination({
-            page: data.pagination.page,
-            limit: data.pagination.limit,
-            total: data.pagination.total,
-            totalPages: data.pagination.totalPages,
-          });
-          setCurrentPage(data.pagination.page);
+        if (appliedFilters.priceRange[1] < 20000000) {
+          params.append("max_price", appliedFilters.priceRange[1].toString());
         }
-        console.log(
-          `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
-            data.pagination?.totalPages || 1
-          })`
-        );
-        console.log("📊 Pagination info:", data.pagination);
-        console.log(
-          "🔍 API URL called:",
+        if (appliedFilters.areaRange[0] > 0) {
+          params.append("min_area", appliedFilters.areaRange[0].toString());
+        }
+        if (appliedFilters.areaRange[1] < 50000) {
+          params.append("max_area", appliedFilters.areaRange[1].toString());
+        }
+        if (appliedFilters.developmentStatus.length > 0) {
+          params.append(
+            "development_status",
+            appliedFilters.developmentStatus.join(",")
+          );
+        }
+        if (appliedFilters.salesStatus.length > 0) {
+          params.append("sale_status", appliedFilters.salesStatus.join(","));
+        }
+        if (appliedFilters.unitType.length > 0) {
+          params.append("unit_type", appliedFilters.unitType.join(","));
+        }
+
+        if (appliedFilters.bedrooms.length > 0) {
+          params.append("bedrooms", appliedFilters.bedrooms.join(","));
+        }
+
+        // Add featured filter parameter
+        if (appliedFilters.featured !== null) {
+          params.append("featured", appliedFilters.featured.toString());
+        }
+
+        // Add completion timeframe parameter - map frontend values to backend values
+        if (
+          appliedFilters.completionTimeframe &&
+          appliedFilters.completionTimeframe !== "all"
+        ) {
+          let backendTimeframeValue = appliedFilters.completionTimeframe;
+          switch (appliedFilters.completionTimeframe) {
+            case "within_6m":
+              backendTimeframeValue = "6_months";
+              break;
+            case "within_12m":
+              backendTimeframeValue = "12_months";
+              break;
+            case "within_24m":
+              backendTimeframeValue = "24_months";
+              break;
+            case "beyond_24m":
+              backendTimeframeValue = "beyond_24_months";
+              break;
+          }
+          params.append("completion_period", backendTimeframeValue);
+        }
+
+        const response = await axios.get(
           `/api/properties?${params.toString()}`
         );
-      } else {
+        const data = response.data;
+
+        if (data.success && data.data) {
+          const fetchedProperties = data.data || [];
+          setProperties(fetchedProperties);
+          if (data.pagination) {
+            setPagination({
+              page: data.pagination.page,
+              limit: data.pagination.limit,
+              total: data.pagination.total,
+              totalPages: data.pagination.totalPages,
+            });
+            setCurrentPage(data.pagination.page);
+          }
+          console.log(
+            `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
+              data.pagination?.totalPages || 1
+            })`
+          );
+          console.log("📊 Pagination info:", data.pagination);
+          console.log(
+            "🔍 API URL called:",
+            `/api/properties?${params.toString()}`
+          );
+        } else {
+          setProperties([]);
+          setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
+        }
+      } catch (err) {
+        console.error("❌ Error fetching properties:", err);
+        if (axios.isAxiosError(err)) {
+          setError(
+            `Failed to fetch properties: ${err.response?.status || err.message}`
+          );
+        } else {
+          setError(
+            err instanceof Error ? err.message : "Failed to fetch properties"
+          );
+        }
         setProperties([]);
         setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("❌ Error fetching properties:", err);
-      if (axios.isAxiosError(err)) {
-        setError(
-          `Failed to fetch properties: ${err.response?.status || err.message}`
-        );
-      } else {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch properties"
-        );
-      }
-      setProperties([]);
-      setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [appliedFilters, sortBy]
+  ); // Dependencies for useCallback
 
   // Handle page change with server-side pagination
   const handlePageChange = (page: number) => {
@@ -518,27 +524,51 @@ export function AllPropertiesPage({
 
   // Apply filters and sorting - trigger new API call with server-side filtering
   useEffect(() => {
-    // Reset to page 1 when applied filters change and fetch new data
-    fetchProperties(1, pagination.limit);
-  }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
+    // Only fetch if filters have been initialized to avoid race conditions
+    if (filtersInitialized) {
+      console.log("🔄 Filters or sort changed - fetching properties");
+      fetchProperties(1, pagination.limit);
+    }
+  }, [
+    appliedFilters,
+    sortBy,
+    filtersInitialized,
+    fetchProperties,
+    pagination.limit,
+  ]); // Re-fetch when applied filters or sorting changes
 
   // Load saved filters from localStorage after component mounts (client-side only)
   useEffect(() => {
+    const defaultFilters = {
+      searchTerm: "",
+      priceRange: [0, 20000000] as [number, number],
+      priceDisplayMode: "total" as const,
+      areaRange: [0, 50000] as [number, number],
+      completionTimeframe: "all",
+      developmentStatus: [],
+      salesStatus: [],
+      unitType: [],
+      bedrooms: [],
+      featured: null as boolean | null,
+    };
+
     const savedFilters = loadFiltersFromStorage();
     if (savedFilters) {
       setAppliedFilters(savedFilters);
       setDialogFilters(savedFilters);
       console.log("🔄 Restored saved filters from localStorage");
     } else {
-      // Sync dialogFilters with default appliedFilters
-      setDialogFilters(appliedFilters);
+      // Sync dialogFilters with default filters
+      setDialogFilters(defaultFilters);
+      console.log("🔄 Using default filters");
     }
+    // Mark filters as initialized to trigger the first fetch
+    setFiltersInitialized(true);
   }, []); // Only run once on mount
 
-  // Load properties and statuses when component mounts
+  // Load statuses when component mounts (properties will be fetched by the appliedFilters useEffect)
   useEffect(() => {
-    console.log("🚀 AllPropertiesPage: Initial load - fetching first page");
-    fetchProperties(1, 12); // Explicitly pass page 1 and limit 12
+    console.log("🚀 AllPropertiesPage: Initial load - fetching statuses");
     fetchStatuses();
   }, []);
 

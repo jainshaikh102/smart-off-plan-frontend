@@ -22,6 +22,7 @@ import {
   Briefcase,
   CirclePlus,
   Building,
+  MessageCircle,
 } from "lucide-react";
 
 interface BecomeFranchiseePageProps {
@@ -207,6 +208,60 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         block: "start",
       });
     }
+  };
+
+  // WhatsApp and Call helper functions
+  const handleWhatsAppMessage = (message: string) => {
+    const phoneNumber = "+923454954954";
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleFranchiseFeeInquiry = () => {
+    const message = `Hello! I'm interested in learning more about the Smart Off Plan franchise opportunity and would like to inquire about the franchise fee details.
+
+I would like to know:
+- Franchise fee structure and payment terms
+- Initial investment requirements
+- Ongoing royalty fees and percentages
+- Territory licensing costs
+- Setup and training costs
+- Marketing and support fees
+- Return on investment projections
+- Payment schedule options
+
+Could you please provide detailed information about the franchise fee and investment requirements? I'm serious about this opportunity and would appreciate a comprehensive breakdown.
+
+Thank you for your time.`;
+
+    handleWhatsAppMessage(message);
+  };
+
+  const handleCallFranchiseTeam = () => {
+    const phoneNumber = "+923454954954";
+    window.location.href = `tel:${phoneNumber}`;
+  };
+
+  const handleScheduleDiscoveryCall = () => {
+    const message = `Hello! I'm interested in the Smart Off Plan franchise opportunity and would like to schedule a discovery call to learn more.
+
+I would like to discuss:
+- Franchise business model and opportunities
+- Territory availability and rights
+- Investment requirements and franchise fees
+- Training and support programs
+- Marketing and operational support
+- Expected ROI and business projections
+- Timeline for setup and launch
+- Ongoing partnership benefits
+
+Could you please help me schedule a convenient time for a detailed discovery call? I'm excited to explore this franchise opportunity with your team.
+
+Thank you for your consideration.`;
+
+    handleWhatsAppMessage(message);
   };
 
   const franchiseBenefits = [
@@ -408,6 +463,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
                       <Button
                         variant={"default"}
                         className="bg-[#8b7355] hover:bg-[#8b7355]/90 text-white px-6"
+                        onClick={handleFranchiseFeeInquiry}
                       >
                         {detail.amount}
                       </Button>
@@ -782,15 +838,18 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
               support system.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg">
+              <Button
+                className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 text-lg"
+                onClick={handleCallFranchiseTeam}
+              >
                 <Phone className="w-5 h-5 mr-2" />
                 Call Franchise Team
               </Button>
               <Button
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-[#8b7355] px-8 py-3 text-lg"
+                className="bg-white text-[rgba(30,26,26,1)] hover:bg-white/90 hover:text-[#8b7355] border-solid border-[1px] border-white px-8 py-4 text-lg rounded-xl text-[14px]"
+                onClick={handleScheduleDiscoveryCall}
               >
-                <Calendar className="w-5 h-5 mr-2" />
+                <MessageCircle className="w-5 h-5 mr-2" />
                 Schedule Discovery Call
               </Button>
             </div>
