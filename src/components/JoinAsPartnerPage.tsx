@@ -112,7 +112,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
 
   // WhatsApp, Call, and Email helper functions
   const handleWhatsAppMessage = (message: string) => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
       message
     )}`;
@@ -138,7 +138,7 @@ Thank you for your time and consideration.`;
   };
 
   const handleCallPartnershipTeam = () => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     window.location.href = `tel:${phoneNumber}`;
   };
 

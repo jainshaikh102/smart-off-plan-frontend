@@ -114,13 +114,13 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         return;
       }
 
-      // Validate timeline (2-100 characters)
+      // Validate timeline (3-100 characters)
       if (
         !formData.timeline.trim() ||
-        formData.timeline.trim().length < 2 ||
+        formData.timeline.trim().length < 3 ||
         formData.timeline.trim().length > 100
       ) {
-        // alert("Timeline must be between 2 and 100 characters");
+        // alert("Timeline must be between 3 and 100 characters");
         return;
       }
 
@@ -212,7 +212,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
 
   // WhatsApp and Call helper functions
   const handleWhatsAppMessage = (message: string) => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
       message
     )}`;
@@ -240,7 +240,7 @@ Thank you for your time.`;
   };
 
   const handleCallFranchiseTeam = () => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     window.location.href = `tel:${phoneNumber}`;
   };
 
@@ -726,23 +726,23 @@ Thank you for your consideration.`;
                       required
                       value={formData.timeline}
                       onChange={handleInputChange}
-                      placeholder="e.g., 3-6 months (10-100 characters)"
+                      placeholder="e.g., 3-6 months (3-100 characters)"
                       maxLength={100}
                       className={`w-full py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold ${
                         formData.timeline.length > 0 &&
-                        (formData.timeline.length < 10 ||
+                        (formData.timeline.length < 3 ||
                           formData.timeline.length > 100)
                           ? "border-red-300 focus:border-red-500"
-                          : formData.timeline.length >= 10 &&
+                          : formData.timeline.length >= 3 &&
                             formData.timeline.length <= 100
                           ? "border-green-300 focus:border-green-500"
                           : ""
                       }`}
                     />
                     {formData.timeline.length > 0 &&
-                      formData.timeline.length < 10 && (
+                      formData.timeline.length < 3 && (
                         <p className="text-red-500 text-xs mt-1">
-                          Timeline must be at least 10 characters
+                          Timeline must be at least 3 characters
                         </p>
                       )}
                   </div>

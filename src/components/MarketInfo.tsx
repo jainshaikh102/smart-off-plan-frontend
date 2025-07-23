@@ -107,12 +107,22 @@ export function MarketInfo({
         const requests = [axios.get("/api/areas")];
         if (!sharedAllProperties) {
           // Use the new /all endpoint to get ALL properties without pagination
+          console.log(
+            "🔄 MarketInfo: Fetching all properties from /api/properties/all"
+          );
           requests.push(axios.get("/api/properties/all"));
         }
 
         const responses = await Promise.all(requests);
         const areasResponse = responses[0];
         const propertiesResponse = responses[1];
+
+        console.log("📡 API Responses received:", {
+          areasSuccess: areasResponse?.data?.success,
+          areasCount: areasResponse?.data?.data?.length,
+          propertiesSuccess: propertiesResponse?.data?.success,
+          propertiesCount: propertiesResponse?.data?.data?.length,
+        });
 
         // Process areas
         if (areasResponse.data.success) {
@@ -122,15 +132,41 @@ export function MarketInfo({
         // Process properties only if not provided via props
         let properties = effectiveAllProperties;
         if (!sharedAllProperties && propertiesResponse) {
+          console.log("🔍 Raw API response:", propertiesResponse.data);
+
           if (propertiesResponse.data.success && propertiesResponse.data.data) {
             // The /all endpoint returns all properties directly in data array (no pagination)
             properties = propertiesResponse.data.data || [];
+            console.log(
+              `✅ Successfully parsed ${properties.length} properties from API response`
+            );
+
+            // Log first property structure for debugging
+            if (properties.length > 0) {
+              console.log("🏠 First property structure:", {
+                id: properties[0].id,
+                name: properties[0].name,
+                min_price: properties[0].min_price,
+                max_price: properties[0].max_price,
+                area: properties[0].area,
+                developer: properties[0].developer,
+              });
+            }
           } else if (Array.isArray(propertiesResponse.data)) {
             properties = propertiesResponse.data;
+            console.log(
+              `✅ Direct array response with ${properties.length} properties`
+            );
+          } else {
+            console.error(
+              "❌ Unexpected API response structure:",
+              propertiesResponse.data
+            );
+            properties = [];
           }
           setLocalAllProperties(properties);
           console.log(
-            `🏠 Fetched ${properties.length} properties from /api/properties/all`
+            `🏠 Final: Set ${properties.length} properties in local state`
           );
         }
 
@@ -140,6 +176,11 @@ export function MarketInfo({
         }
       } catch (error) {
         console.error("❌ Error fetching data:", error);
+        // Set empty arrays as fallback
+        if (!sharedAllProperties) {
+          setLocalAllProperties([]);
+        }
+        setAllAreas([]);
       } finally {
         setAreasLoading(false);
         if (!sharedAllProperties) {
@@ -201,17 +242,89 @@ export function MarketInfo({
     }
   };
 
+  // Calculate dynamic market statistics
+  const calculateMarketStats = () => {
+    const properties = effectiveAllProperties || [];
+
+    console.log(
+      `📊 MarketInfo: Calculating stats for ${properties.length} properties`
+    );
+    console.log("🔍 Properties array:", properties.slice(0, 2)); // Log first 2 properties
+
+    // Calculate total market value (sum of all min_price values)
+    let totalMarketValue = 0;
+    let propertiesWithPrice = 0;
+
+    properties.forEach((property, index) => {
+      // Try different possible field names for price
+      const minPrice =
+        property.min_price || property.min_price_aed || property.minPrice || 0;
+
+      if (minPrice > 0) {
+        totalMarketValue += minPrice;
+        propertiesWithPrice++;
+      }
+
+      // Log first few properties for debugging
+      if (index < 5) {
+        console.log(`🏠 Property ${index + 1}:`, {
+          id: property.id,
+          name: property.name,
+          min_price: property.min_price,
+          min_price_aed: property.min_price_aed,
+          minPrice: property.minPrice,
+          finalMinPrice: minPrice,
+        });
+      }
+    });
+
+    console.log(
+      `💰 Total Market Value: ${totalMarketValue} (from ${propertiesWithPrice} properties with prices)`
+    );
+
+    // Format the total market value
+    const formatMarketValue = (value: number) => {
+      if (value >= 1000000000) {
+        return `AED ${(value / 1000000000).toFixed(1)}B`;
+      } else if (value >= 1000000) {
+        return `AED ${(value / 1000000).toFixed(1)}M`;
+      } else if (value >= 1000) {
+        return `AED ${(value / 1000).toFixed(1)}K`;
+      } else if (value > 0) {
+        return `AED ${value.toLocaleString()}`;
+      } else {
+        return "AED 0";
+      }
+    };
+
+    // Count active projects (total number of properties)
+    const activeProjectsCount = properties.length;
+
+    console.log(`🏢 Active Projects Count: ${activeProjectsCount}`);
+
+    const result = {
+      totalMarketValue: formatMarketValue(totalMarketValue),
+      activeProjectsCount: activeProjectsCount.toLocaleString(),
+    };
+
+    console.log("📈 Final calculated stats:", result);
+
+    return result;
+  };
+
+  const { totalMarketValue, activeProjectsCount } = calculateMarketStats();
+
   const marketStats = [
     {
       title: "Total Market Value",
-      value: "AED 320B",
+      value: effectivePropertiesLoading ? "Loading..." : totalMarketValue,
       change: "+12.5%",
       icon: DollarSign,
       color: "text-gold",
     },
     {
       title: "Active Projects",
-      value: "1,247",
+      value: effectivePropertiesLoading ? "Loading..." : activeProjectsCount,
       change: "+8.3%",
       icon: Building,
       color: "text-[#8b7355]",
@@ -314,79 +427,6 @@ export function MarketInfo({
               </Card>
             );
           })}
-        </div>
-
-        {/* View Market Report Button */}
-        <div className="text-center mb-16">
-          <Dialog
-            open={isReportDialogOpen}
-            onOpenChange={setIsReportDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button className="bg-gold hover:bg-gold/90 text-charcoal px-8 py-3 rounded-xl shadow-[0_4px_20px_-2px_rgba(212,175,55,0.3)] hover:shadow-[0_8px_32px_-4px_rgba(212,175,55,0.4)] transition-all duration-300 hover:-translate-y-1">
-                <FileText className="w-5 h-5 mr-3" />
-                View Market Report
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-white">
-              <DialogHeader>
-                <DialogTitle className="text-[#8b7355]">
-                  Download Market Report
-                </DialogTitle>
-                <DialogDescription className="text-warm-gray">
-                  Get the latest Dubai real estate market insights and analysis
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm text-[#8b7355] font-medium">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    className="w-full p-3 border border-beige rounded-lg focus:border-gold focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-[#8b7355] font-medium">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full p-3 border border-beige rounded-lg focus:border-gold focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-[#8b7355] font-medium">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+971 50 123 4567"
-                    className="w-full p-3 border border-beige rounded-lg focus:border-gold focus:outline-none"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsReportDialogOpen(false)}
-                  className="border-warm-gray/30 text-warm-gray hover:bg-warm-gray/10"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => setIsReportDialogOpen(false)}
-                  className="bg-gold hover:bg-gold/90 text-charcoal"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Report
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Top Performing Areas */}

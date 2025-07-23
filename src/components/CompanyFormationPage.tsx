@@ -151,7 +151,7 @@ export function CompanyFormationPage({ onBack }: CompanyFormationPageProps) {
 
   // WhatsApp helper functions
   const handleWhatsAppMessage = (message: string) => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
       message
     )}`;

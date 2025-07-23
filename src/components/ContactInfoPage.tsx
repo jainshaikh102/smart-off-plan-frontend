@@ -109,7 +109,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       title: "Book Meeting",
       description: "Schedule a consultation",
       value: "Free 30-min session",
-      action: "https://calendly.com/smartoffplan/consultation",
+      action: "book-meeting", // Special action to trigger handleBookMeeting function
       color: "text-gold",
       bgColor: "from-gold/10 to-gold/5",
     },
@@ -348,11 +348,28 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
 
   // WhatsApp helper functions
   const handleWhatsAppMessage = (message: string) => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
       message
     )}`;
     window.open(whatsappUrl, "_blank");
+  };
+
+  const handleBookMeeting = () => {
+    const message = `Hello Smart Off Plan! I would like to schedule a meeting with you.
+
+Could you please help me book a consultation session to discuss property investment opportunities? I'm available for a free 30-minute session at your convenience.
+
+I'm interested in:
+- Property investment consultation
+- Off-plan project opportunities
+- Market analysis and insights
+- Investment strategy planning
+- Legal and documentation support
+
+Please let me know your available time slots. Thank you!`;
+
+    handleWhatsAppMessage(message);
   };
 
   const handleBookFreeConsultation = () => {
@@ -401,9 +418,19 @@ Thank you!`;
                   key={index}
                   className="group cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08)] hover:shadow-[0_8px_32px_-4px_rgba(139,115,85,0.15)] transition-all duration-300 border-0 hover:-translate-y-1 overflow-hidden "
                   onClick={() => {
-                    if (method.action.startsWith("http")) {
+                    if (method.action === "book-meeting") {
+                      // Handle book meeting action with WhatsApp
+                      handleBookMeeting();
+                    } else if (method.action.startsWith("http")) {
                       // Open external links (WhatsApp, Calendly) in new tab
                       window.open(method.action, "_blank");
+                    } else if (method.action.startsWith("whatsapp://")) {
+                      // Handle WhatsApp links - try app first, fallback to web
+                      const whatsappWebUrl = method.action.replace(
+                        "whatsapp://",
+                        "https://web.whatsapp.com/"
+                      );
+                      window.open(whatsappWebUrl, "_blank");
                     } else if (method.action.startsWith("tel:")) {
                       // Handle phone calls
                       window.location.href = method.action;

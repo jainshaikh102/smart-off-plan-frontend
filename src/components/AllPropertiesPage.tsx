@@ -1,13 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Slider } from "./ui/slider";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
-import { Separator } from "./ui/separator";
 import {
   Select,
   SelectContent,
@@ -15,14 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
 import {
   Pagination,
   PaginationContent,
@@ -32,25 +19,11 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "./ui/pagination";
-import {
-  Home,
-  ChevronRight,
-  MapPin,
-  Search,
-  Grid3X3,
-  List,
-  Building2,
-  SlidersHorizontal,
-  RotateCcw,
-  DollarSign,
-  Ruler,
-  Clock,
-  Hammer,
-  ShoppingCart,
-  TrendingUp,
-  Banknote,
-} from "lucide-react";
+import { MapPin, Grid3X3, List, Building2, Clock } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { PropertyFiltersDialog } from "./shared/PropertyFiltersDialog";
+
+import { usePropertyFilters } from "../hooks/usePropertyFilters";
 
 // Interfaces
 interface Property {
@@ -78,19 +51,6 @@ interface Property {
   __v: number;
 }
 
-interface Filters {
-  searchTerm: string;
-  priceRange: [number, number];
-  priceDisplayMode: "total" | "perSqFt";
-  areaRange: [number, number];
-  completionTimeframe: string;
-  developmentStatus: string[];
-  salesStatus: string[];
-  unitType: string[];
-  bedrooms: string[];
-  featured: boolean | null; // null = no filter, true = only featured, false = only non-featured
-}
-
 interface PaginationInfo {
   page: number;
   limit: number;
@@ -109,94 +69,42 @@ export function AllPropertiesPage({
   onBack,
   selectedDeveloper,
 }: AllPropertiesPageProps) {
+  // Use the shared filter hook
+  const {
+    appliedFilters,
+    searchTerm,
+    handleSearchChange,
+    handleFiltersChange,
+    resetFilters,
+    getActiveFilterCount,
+    initializeFiltersState,
+  } = usePropertyFilters({
+    storageKey: "allPropertiesFilters",
+  });
+
   // State management
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("latest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
 
-  // Helper functions for localStorage
-  const saveFiltersToStorage = (filters: Filters) => {
-    // Check if we're in the browser environment
-    if (typeof window === "undefined") {
-      return;
-    }
+  // Ref to track if filters have been initialized to prevent infinite loops
+  const hasInitializedFilters = useRef(false);
 
-    try {
-      localStorage.setItem(
-        "allPropertiesFilters",
-        JSON.stringify({
-          ...filters,
-          timestamp: Date.now(),
-        })
-      );
-      console.log("✅ Filters saved to localStorage");
-    } catch (error) {
-      console.warn("⚠️ Failed to save filters to localStorage:", error);
-    }
-  };
+  // Ref to store the latest fetchProperties function to avoid dependency issues
+  const fetchPropertiesRef = useRef<
+    ((page?: number, limit?: number) => Promise<void>) | null
+  >(null);
 
-  const loadFiltersFromStorage = (): Filters | null => {
-    // Check if we're in the browser environment
-    if (typeof window === "undefined") {
-      return null;
-    }
+  // Ref to track API call count for debugging
+  const apiCallCount = useRef(0);
 
-    try {
-      const saved = localStorage.getItem("allPropertiesFilters");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Check if filters are less than 24 hours old
-        const isRecent =
-          parsed.timestamp &&
-          Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
-        if (isRecent) {
-          const { timestamp, ...filters } = parsed;
-          console.log("✅ Loaded saved filters from localStorage");
-          return filters;
-        } else {
-          // Remove expired filters
-          localStorage.removeItem("allPropertiesFilters");
-          console.log("🗑️ Removed expired filters from localStorage");
-        }
-      }
-    } catch (error) {
-      console.warn("⚠️ Failed to load filters from localStorage:", error);
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("allPropertiesFilters");
-      }
-    }
-    return null;
-  };
-
-  // Dynamic filter options state
-  const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
-  const [unitType, setUnitType] = useState<string[]>([]);
-  const [bedrooms, setBedrooms] = useState<string[]>([]);
-  const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
-  const [statusesLoading, setStatusesLoading] = useState(false);
-  // Applied filters (used for API calls) - initialize with defaults, load from storage in useEffect
-  const [appliedFilters, setAppliedFilters] = useState<Filters>({
-    searchTerm: "",
-    priceRange: [0, 20000000],
-    priceDisplayMode: "total",
-    areaRange: [0, 50000], // sqft
-    completionTimeframe: "all",
-    developmentStatus: [],
-    salesStatus: [],
-    unitType: [],
-    bedrooms: [],
-    featured: null, // No featured filter by default
-  });
-
-  // Dialog filters (temporary state while user is selecting filters) - initialize with applied filters
-  const [dialogFilters, setDialogFilters] = useState<Filters>(appliedFilters);
+  // Ref to prevent API calls when already loading
+  const isLoadingRef = useRef(false);
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 12,
@@ -204,162 +112,22 @@ export function AllPropertiesPage({
     totalPages: 0,
   });
 
-  // Filter helper functions for dialog filters (temporary state)
-  const handleDialogFilterChange = (
-    key: keyof Filters,
-    value: Filters[keyof Filters]
-  ) => {
-    setDialogFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Filter helper functions for applied filters (search term only - immediate effect)
-  const handleSearchChange = (searchTerm: string) => {
-    setAppliedFilters((prev) => {
-      const newFilters = { ...prev, searchTerm };
-      // Save filters to localStorage for persistence
-      saveFiltersToStorage(newFilters);
-      return newFilters;
-    });
-  };
-
-  const resetFilters = () => {
-    const defaultFilters = {
-      searchTerm: "",
-      priceRange: [0, 20000000] as [number, number],
-      priceDisplayMode: "total" as const,
-      areaRange: [0, 50000] as [number, number],
-      completionTimeframe: "all",
-      developmentStatus: [],
-      salesStatus: [],
-      unitType: [],
-      bedrooms: [],
-      featured: null as boolean | null,
-    };
-    setDialogFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
-    // Clear saved filters from localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("allPropertiesFilters");
-      console.log("🗑️ Cleared saved filters from localStorage");
-    }
-  };
-
-  // Count active filters (excluding search term as it's visible in the search bar)
-  const getActiveFilterCount = () => {
-    let count = 0;
-
-    if (
-      appliedFilters.priceRange[0] > 0 ||
-      appliedFilters.priceRange[1] < 20000000
-    )
-      count++;
-    if (appliedFilters.areaRange[0] > 0 || appliedFilters.areaRange[1] < 50000)
-      count++;
-    if (appliedFilters.completionTimeframe !== "all") count++;
-    if (appliedFilters.developmentStatus.length > 0) count++;
-    if (appliedFilters.salesStatus.length > 0) count++;
-    if (appliedFilters.unitType.length > 0) count++;
-    if (appliedFilters.bedrooms.length > 0) count++;
-    if (appliedFilters.featured !== null) count++;
-
-    return count;
-  };
-
-  const handleApplyFilters = () => {
-    // Apply the dialog filters to the applied filters (this will trigger the API call)
-    const newFilters = { ...dialogFilters };
-    setAppliedFilters(newFilters);
-    // Save filters to localStorage for persistence
-    saveFiltersToStorage(newFilters);
-    setIsDialogOpen(false);
-  };
-
-  // Initialize dialog filters when dialog opens
-  const handleDialogOpen = (open: boolean) => {
-    if (open) {
-      // Copy current applied filters to dialog filters when opening
-      setDialogFilters({ ...appliedFilters });
-    }
-    setIsDialogOpen(open);
-  };
-
-  // Fetch development and sales statuses from API
-  const fetchStatuses = async () => {
-    setStatusesLoading(true);
-    try {
-      // Fetch development statuses
-      const devResponse = await axios.get("/api/project-statuses");
-      if (devResponse.data.success && devResponse.data.data) {
-        const statuses = devResponse.data.data.map(
-          (item: any) => item.name || item
-        );
-        setDevelopmentStatuses(statuses);
-      }
-
-      // Fetch sales statuses
-      const salesResponse = await axios.get("/api/sale-statuses");
-      if (salesResponse.data.success && salesResponse.data.data) {
-        const statuses = salesResponse.data.data.map(
-          (item: any) => item.name || item
-        );
-        setSalesStatuses(statuses);
-      }
-
-      // Use consolidated unit types (8 main categories only)
-      setUnitType([
-        "Apartments",
-        "Villa",
-        "Townhouse",
-        "Duplex",
-        "Penthouse",
-        "Loft",
-        "Mansion",
-        "Other",
-      ]);
-      console.log("✅ Using consolidated unit types (8 categories)");
-
-      // Use consolidated bedroom options (6 main categories only)
-      setBedrooms(["Studio", "Suite", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
-      console.log("✅ Using consolidated bedroom options (6 categories)");
-    } catch (error) {
-      console.error("❌ Error fetching statuses:", error);
-      // Fallback to hardcoded values
-      setDevelopmentStatuses(["Completed", "Under construction", "Presale"]);
-      setSalesStatuses([
-        "Presale(EOI)",
-        "On sale",
-        "Out of stock",
-        "Announced",
-        "Start of sales",
-      ]);
-      // Use consolidated fallback values (8 unit types, 6 bedroom categories)
-      setUnitType([
-        "Apartments",
-        "Villa",
-        "Townhouse",
-        "Duplex",
-        "Penthouse",
-        "Loft",
-        "Mansion",
-        "Other",
-      ]);
-      setBedrooms(["Studio", "Suite", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
-    } finally {
-      setStatusesLoading(false);
-    }
-  };
-
-  const completionTimeframes = [
-    { value: "all", label: "All Projects" },
-    { value: "within_6m", label: "Within 6 Months" },
-    { value: "within_12m", label: "Within 12 Months" },
-    { value: "within_24m", label: "Within 24 Months" },
-    { value: "beyond_24m", label: "Beyond 24 Months" },
-  ];
-
   // Fetch properties from API with server-side pagination
   const fetchProperties = useCallback(
     async (page: number = 1, limit: number = 12) => {
+      // Prevent multiple simultaneous API calls
+      if (isLoadingRef.current) {
+        console.log("⏸️ Skipping API call - already loading");
+        return;
+      }
+
+      // Track API calls for debugging
+      apiCallCount.current += 1;
+      console.log(
+        `🔄 API Call #${apiCallCount.current} - Fetching properties (page: ${page}, limit: ${limit})`
+      );
+
+      isLoadingRef.current = true;
       setLoading(true);
       setError(null);
 
@@ -474,7 +242,6 @@ export function AllPropertiesPage({
               total: data.pagination.total,
               totalPages: data.pagination.totalPages,
             });
-            setCurrentPage(data.pagination.page);
           }
           console.log(
             `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
@@ -504,11 +271,15 @@ export function AllPropertiesPage({
         setProperties([]);
         setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
       } finally {
+        isLoadingRef.current = false;
         setLoading(false);
       }
     },
     [appliedFilters, sortBy]
   ); // Dependencies for useCallback
+
+  // Store the latest fetchProperties function in ref to avoid dependency issues
+  fetchPropertiesRef.current = fetchProperties;
 
   // Handle page change with server-side pagination
   const handlePageChange = (page: number) => {
@@ -524,53 +295,29 @@ export function AllPropertiesPage({
 
   // Apply filters and sorting - trigger new API call with server-side filtering
   useEffect(() => {
+    console.log(
+      "🔄 useEffect triggered - filtersInitialized:",
+      filtersInitialized
+    );
     // Only fetch if filters have been initialized to avoid race conditions
-    if (filtersInitialized) {
-      console.log("🔄 Filters or sort changed - fetching properties");
-      fetchProperties(1, pagination.limit);
-    }
-  }, [
-    appliedFilters,
-    sortBy,
-    filtersInitialized,
-    fetchProperties,
-    pagination.limit,
-  ]); // Re-fetch when applied filters or sorting changes
-
-  // Load saved filters from localStorage after component mounts (client-side only)
-  useEffect(() => {
-    const defaultFilters = {
-      searchTerm: "",
-      priceRange: [0, 20000000] as [number, number],
-      priceDisplayMode: "total" as const,
-      areaRange: [0, 50000] as [number, number],
-      completionTimeframe: "all",
-      developmentStatus: [],
-      salesStatus: [],
-      unitType: [],
-      bedrooms: [],
-      featured: null as boolean | null,
-    };
-
-    const savedFilters = loadFiltersFromStorage();
-    if (savedFilters) {
-      setAppliedFilters(savedFilters);
-      setDialogFilters(savedFilters);
-      console.log("🔄 Restored saved filters from localStorage");
+    if (filtersInitialized && fetchPropertiesRef.current) {
+      console.log("✅ Conditions met - fetching properties");
+      fetchPropertiesRef.current(1, 12); // Use fixed limit instead of pagination.limit to avoid dependency loop
     } else {
-      // Sync dialogFilters with default filters
-      setDialogFilters(defaultFilters);
-      console.log("🔄 Using default filters");
+      console.log("⏸️ Skipping fetch - conditions not met");
     }
-    // Mark filters as initialized to trigger the first fetch
-    setFiltersInitialized(true);
-  }, []); // Only run once on mount
+  }, [appliedFilters, sortBy, filtersInitialized]); // Only depend on actual filter/sort changes
 
-  // Load statuses when component mounts (properties will be fetched by the appliedFilters useEffect)
+  // Initialize filters on component mount
   useEffect(() => {
-    console.log("🚀 AllPropertiesPage: Initial load - fetching statuses");
-    fetchStatuses();
-  }, []);
+    if (!hasInitializedFilters.current) {
+      console.log("🚀 AllPropertiesPage: Initial load - initializing filters");
+      initializeFiltersState();
+      // Mark filters as initialized to trigger the first fetch
+      setFiltersInitialized(true);
+      hasInitializedFilters.current = true;
+    }
+  }, [initializeFiltersState]); // Safe to include now with the ref guard
 
   // Format price display
   const formatPrice = (property: Property) => {
@@ -621,522 +368,17 @@ export function AllPropertiesPage({
 
           {/* Search and Controls */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mt-6">
-            {/* Search */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray w-5 h-5" />
-                <Input
-                  placeholder="Search properties..."
-                  value={appliedFilters.searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10 bg-white border-beige focus:border-gold rounded-xl"
-                />
-              </div>
-            </div>
-
             {/* Controls */}
-            <div className="flex items-center space-x-3">
-              {/* Filters */}
-              <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-[#8b7355]/30 text-[#8b7355] hover:bg-[#8b7355] hover:text-white rounded-xl relative"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Filters
-                    {getActiveFilterCount() > 0 && (
-                      <Badge className="ml-2 bg-gold text-charcoal text-xs px-1.5 py-0.5 min-w-[20px] h-5 rounded-full">
-                        {getActiveFilterCount()}
-                      </Badge>
-                    )}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-white flex flex-col overflow-hidden">
-                  <DialogHeader className="flex-shrink-0 pb-6 border-b border-[#F6F2ED]">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <DialogTitle className="text-2xl text-[#8b7355]">
-                          Advanced Filters
-                        </DialogTitle>
-                        <DialogDescription className="text-warm-gray mt-2">
-                          Refine your property search using the filters below.
-                        </DialogDescription>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-[#8b7355]/30 transition-all duration-200 text-warm-gray border-beige hover:bg-beige/50"
-                          onClick={resetFilters}
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Reset
-                        </Button>
-                        <Button
-                          className="bg-gold hover:bg-gold/90 text-charcoal"
-                          onClick={handleApplyFilters}
-                        >
-                          Apply Filters
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogHeader>
-
-                  <div className="flex-1 overflow-y-auto py-8 space-y-8">
-                    {/* Price Configuration */}
-                    <Card className="border-gold/40 bg-[#FDFCF9]">
-                      <CardHeader>
-                        <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-xl">
-                          <Banknote className="w-6 h-6 text-gold" />
-                          <span> Price Range (AED)</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                                Minimum
-                              </Label>
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                                  AED
-                                </span>
-                                <Input
-                                  type="number"
-                                  value={
-                                    dialogFilters.priceRange[0] === 0
-                                      ? ""
-                                      : dialogFilters.priceRange[0]
-                                  }
-                                  onChange={(e) =>
-                                    handleDialogFilterChange("priceRange", [
-                                      Number(e.target.value) || 0,
-                                      dialogFilters.priceRange[1],
-                                    ])
-                                  }
-                                  onFocus={(e) => {
-                                    if (dialogFilters.priceRange[0] === 0) {
-                                      e.target.select();
-                                    }
-                                  }}
-                                  className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                                  placeholder="0"
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                                Maximum
-                              </Label>
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                                  AED
-                                </span>
-                                <Input
-                                  type="number"
-                                  value={
-                                    dialogFilters.priceRange[1] === 20000000
-                                      ? ""
-                                      : dialogFilters.priceRange[1]
-                                  }
-                                  onChange={(e) =>
-                                    handleDialogFilterChange("priceRange", [
-                                      dialogFilters.priceRange[0],
-                                      Number(e.target.value) || 20000000,
-                                    ])
-                                  }
-                                  onFocus={(e) => {
-                                    if (
-                                      dialogFilters.priceRange[1] === 20000000
-                                    ) {
-                                      e.target.select();
-                                    }
-                                  }}
-                                  className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                                  placeholder="20,000,000"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-3 p-4 bg-beige/30 rounded-lg">
-                            <div className="flex justify-between text-sm text-warm-gray">
-                              <span>AED 0</span>
-                              <span>AED 20M</span>
-                            </div>
-                            <Slider
-                              value={dialogFilters.priceRange}
-                              onValueChange={(value) =>
-                                handleDialogFilterChange(
-                                  "priceRange",
-                                  value as [number, number]
-                                )
-                              }
-                              max={20000000}
-                              min={0}
-                              step={50000}
-                              className="w-full"
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Area Range */}
-                      <Card className="border-beige/60">
-                        <CardHeader>
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <Home className="w-5 h-5 text-gold" />
-                            <span>Area Range</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            {/* <div className="flex items-center space-x-2">
-                              <Home className="w-5 h-5 text-gold" />
-                              <Label className="text-[#8b7355] font-medium text-lg">
-                                Area Range (sqm)
-                              </Label>
-                            </div> */}
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                                  Min Area
-                                </Label>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                                    sqft
-                                  </span>
-                                  <Input
-                                    type="number"
-                                    value={
-                                      dialogFilters.areaRange[0] === 0
-                                        ? ""
-                                        : dialogFilters.areaRange[0]
-                                    }
-                                    onChange={(e) =>
-                                      handleDialogFilterChange("areaRange", [
-                                        Number(e.target.value) || 0,
-                                        dialogFilters.areaRange[1],
-                                      ])
-                                    }
-                                    onFocus={(e) => {
-                                      if (dialogFilters.areaRange[0] === 0) {
-                                        e.target.select();
-                                      }
-                                    }}
-                                    className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                                    placeholder="0"
-                                  />
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                                  Max Area
-                                </Label>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                                    sqft
-                                  </span>
-                                  <Input
-                                    type="number"
-                                    value={
-                                      dialogFilters.areaRange[1] === 50000
-                                        ? ""
-                                        : dialogFilters.areaRange[1]
-                                    }
-                                    onChange={(e) =>
-                                      handleDialogFilterChange("areaRange", [
-                                        dialogFilters.areaRange[0],
-                                        Number(e.target.value) || 50000,
-                                      ])
-                                    }
-                                    onFocus={(e) => {
-                                      if (
-                                        dialogFilters.areaRange[1] === 50000
-                                      ) {
-                                        e.target.select();
-                                      }
-                                    }}
-                                    className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                                    placeholder="50,000"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm text-warm-gray">
-                                <span>0 sqft</span>
-                                <span>50,000 sqft</span>
-                              </div>
-                              <Slider
-                                value={dialogFilters.areaRange}
-                                onValueChange={(value) =>
-                                  handleDialogFilterChange(
-                                    "areaRange",
-                                    value as [number, number]
-                                  )
-                                }
-                                max={50000}
-                                min={0}
-                                step={50}
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Project Completion */}
-                      <Card className="border-beige/60">
-                        <CardHeader>
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <Clock className="w-5 h-5 text-gold" />
-                            <span>Project Completion</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-warm-gray uppercase tracking-wide">
-                              Completion Timeframe
-                            </Label>
-                            <Select
-                              value={dialogFilters.completionTimeframe}
-                              onValueChange={(value) =>
-                                handleDialogFilterChange(
-                                  "completionTimeframe",
-                                  value
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-beige/50 focus:border-gold rounded-lg">
-                                <SelectValue placeholder="Select timeframe" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {completionTimeframes.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Development Status */}
-                      <Card className="border-beige/60 shadow-sm">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <Hammer className="w-5 h-5 text-gold" />
-                            <span>Development Status</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {statusesLoading ? (
-                            <div className="text-sm text-warm-gray">
-                              Loading statuses...
-                            </div>
-                          ) : (
-                            developmentStatuses.map((status: string) => (
-                              <div
-                                key={status}
-                                className="flex items-center space-x-3"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={dialogFilters.developmentStatus.includes(
-                                    status
-                                  )}
-                                  onChange={(e) => {
-                                    const newStatus = e.target.checked
-                                      ? [
-                                          ...dialogFilters.developmentStatus,
-                                          status,
-                                        ]
-                                      : dialogFilters.developmentStatus.filter(
-                                          (s: string) => s !== status
-                                        );
-                                    handleDialogFilterChange(
-                                      "developmentStatus",
-                                      newStatus
-                                    );
-                                  }}
-                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
-                                />
-                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
-                                  {status}
-                                </label>
-                              </div>
-                            ))
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Sales Status */}
-                      <Card className="border-beige/60 shadow-sm">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <ShoppingCart className="w-5 h-5 text-gold" />
-                            <span>Sales Status</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {statusesLoading ? (
-                            <div className="text-sm text-warm-gray">
-                              Loading statuses...
-                            </div>
-                          ) : (
-                            salesStatuses.map((status: string) => (
-                              <div
-                                key={status}
-                                className="flex items-center space-x-3"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={dialogFilters.salesStatus.includes(
-                                    status
-                                  )}
-                                  onChange={(e) => {
-                                    const newStatus = e.target.checked
-                                      ? [...dialogFilters.salesStatus, status]
-                                      : dialogFilters.salesStatus.filter(
-                                          (s: string) => s !== status
-                                        );
-                                    handleDialogFilterChange(
-                                      "salesStatus",
-                                      newStatus
-                                    );
-                                  }}
-                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
-                                />
-                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
-                                  {status}
-                                </label>
-                              </div>
-                            ))
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Unit Type  */}
-                      <Card className="border-beige/60 shadow-sm">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <Hammer className="w-5 h-5 text-gold" />
-                            <span>Unit Type</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {statusesLoading ? (
-                            <div className="text-sm text-warm-gray">
-                              Loading statuses...
-                            </div>
-                          ) : (
-                            unitType.map((type: string) => (
-                              <div
-                                key={type}
-                                className="flex items-center space-x-3"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={dialogFilters.unitType.includes(
-                                    type
-                                  )}
-                                  onChange={(e) => {
-                                    const newUnitType = e.target.checked
-                                      ? [...dialogFilters.unitType, type]
-                                      : dialogFilters.unitType.filter(
-                                          (t: string) => t !== type
-                                        );
-                                    handleDialogFilterChange(
-                                      "unitType",
-                                      newUnitType
-                                    ); // Update unitType
-                                  }}
-                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
-                                />
-                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
-                                  {type}
-                                </label>
-                              </div>
-                            ))
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Bedrooms */}
-                      <Card className="border-beige/60 shadow-sm">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="flex items-center space-x-2 text-[#8b7355] text-lg">
-                            <Hammer className="w-5 h-5 text-gold" />
-                            <span>Bedrooms</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {statusesLoading ? (
-                            <div className="text-sm text-warm-gray">
-                              Loading statuses...
-                            </div>
-                          ) : (
-                            bedrooms.map((type: string) => (
-                              <div
-                                key={type}
-                                className="flex items-center space-x-3"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={dialogFilters.bedrooms.includes(
-                                    type
-                                  )}
-                                  onChange={(e) => {
-                                    const newBedrooms = e.target.checked
-                                      ? [...dialogFilters.bedrooms, type]
-                                      : dialogFilters.bedrooms.filter(
-                                          (t: string) => t !== type
-                                        );
-                                    handleDialogFilterChange(
-                                      "bedrooms",
-                                      newBedrooms
-                                    );
-                                  }}
-                                  className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
-                                />
-                                <label className="text-sm text-warm-gray cursor-pointer flex-1">
-                                  {type}
-                                </label>
-                              </div>
-                            ))
-                          )}
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              {/* Clear Filters */}
-              {getActiveFilterCount() > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-warm-gray hover:text-gold rounded-xl"
-                  onClick={resetFilters}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Clear
-                </Button>
-              )}
+            <div className="flex items-center space-x-3 w-full">
+              {/* Property Filters Dialog Component */}
+              <PropertyFiltersDialog
+                appliedFilters={appliedFilters}
+                searchTerm={searchTerm}
+                onFiltersChange={handleFiltersChange}
+                onSearchChange={handleSearchChange}
+                getActiveFilterCount={getActiveFilterCount}
+                resetFilters={resetFilters}
+              />
 
               {/* Sort */}
               <Select value={sortBy} onValueChange={setSortBy}>

@@ -701,13 +701,13 @@ export function DevelopersListing({
                   <Users className="w-4 h-4 mr-2" />
                   Partner With Us
                 </Button>
-                <Button
+                {/* <Button
                   variant="outline"
                   className="border-soft-brown text-soft-brown hover:bg-soft-brown hover:text-white rounded-xl px-6 py-2"
                   onClick={() => router.push("/join-us/join-as-partner")}
                 >
                   Learn More
-                </Button>
+                </Button> */}
               </div>
             </div>
           </Card>

@@ -17,7 +17,7 @@ export function WhatsAppButton() {
   }, []);
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "+923454954954";
+    const phoneNumber = "+971543218123";
     const message =
       "Hello! I'm interested in your off-plan properties. Could you please provide more information?";
 
