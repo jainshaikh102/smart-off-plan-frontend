@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 900; // 15 minutes maximum duration (increased for large datasets)
+export const maxDuration = 300; // 5 minutes maximum duration (increased for large datasets)
 export const fetchCache = "force-no-store"; // Disable all caching
 
 /**
