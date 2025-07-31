@@ -10,6 +10,19 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+
+// Add custom styles for English-only map labels
+const mapStyles = `
+  .english-map {
+    font-family: 'Arial', 'Helvetica', sans-serif !important;
+  }
+  .english-map .leaflet-container {
+    font-family: 'Arial', 'Helvetica', sans-serif !important;
+  }
+  .leaflet-container {
+    direction: ltr !important;
+  }
+`;
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
@@ -92,9 +105,11 @@ interface PropertyFiltersTestingProps {
 export function PropertyFiltersTesting({
   onPropertySelect,
 }: PropertyFiltersTestingProps) {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]); // For property list (paginated)
+  const [mapProperties, setMapProperties] = useState<Property[]>([]); // For map markers (all properties)
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [mapLoading, setMapLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -131,6 +146,7 @@ export function PropertyFiltersTesting({
 
   const [hoveredProperty, setHoveredProperty] = useState<Property | null>(null);
   const [sortBy, setSortBy] = useState("featured");
+  const [currentZoom, setCurrentZoom] = useState(10);
   // Dynamic filter options state
   const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
   const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
@@ -139,6 +155,84 @@ export function PropertyFiltersTesting({
 
   // Ref for infinite scroll trigger
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all properties for map markers (no pagination)
+  const fetchMapProperties = async () => {
+    setMapLoading(true);
+    try {
+      console.log("🗺️ Fetching all properties for map markers...");
+
+      const params = new URLSearchParams();
+
+      // Apply same filters as the property list
+      if (appliedFilters.searchTerm) {
+        params.append("search", appliedFilters.searchTerm);
+      }
+
+      if (appliedFilters.priceRange[0] > 0) {
+        params.append("min_price", appliedFilters.priceRange[0].toString());
+      }
+      if (appliedFilters.priceRange[1] < 50000000) {
+        params.append("max_price", appliedFilters.priceRange[1].toString());
+      }
+
+      if (appliedFilters.developmentStatus.length > 0) {
+        appliedFilters.developmentStatus.forEach((status) => {
+          params.append("development_status", status);
+        });
+      }
+
+      if (appliedFilters.salesStatus.length > 0) {
+        appliedFilters.salesStatus.forEach((status) => {
+          params.append("sale_status", status);
+        });
+      }
+
+      if (
+        appliedFilters.completionTimeframe &&
+        appliedFilters.completionTimeframe !== "all"
+      ) {
+        let backendTimeframeValue = appliedFilters.completionTimeframe;
+        switch (appliedFilters.completionTimeframe) {
+          case "within_6m":
+            backendTimeframeValue = "6_months";
+            break;
+          case "within_12m":
+            backendTimeframeValue = "12_months";
+            break;
+          case "within_24m":
+            backendTimeframeValue = "24_months";
+            break;
+          case "beyond_24m":
+            backendTimeframeValue = "beyond_24_months";
+            break;
+        }
+        params.append("completion_period", backendTimeframeValue);
+      }
+
+      // Add sorting
+      if (sortBy && sortBy !== "featured") {
+        params.append("sort", sortBy);
+      }
+
+      const response = await axios.get(
+        `/api/properties/all?${params.toString()}`
+      );
+      const data = response.data;
+
+      if (data.success && data.data) {
+        setMapProperties(data.data || []);
+        console.log(`✅ Fetched ${data.data.length} properties for map`);
+      } else {
+        setMapProperties([]);
+      }
+    } catch (err) {
+      console.error("❌ Error fetching map properties:", err);
+      setMapProperties([]);
+    } finally {
+      setMapLoading(false);
+    }
+  };
 
   const fetchProperties = async (
     page: number = 1,
@@ -343,9 +437,10 @@ export function PropertyFiltersTesting({
 
   useEffect(() => {
     console.log(
-      "🚀 PropertyFiltersTesting: Initial load - fetching first page"
+      "🚀 PropertyFiltersTesting: Initial load - fetching first page and map properties"
     );
     fetchProperties(1, 12);
+    fetchMapProperties(); // Fetch all properties for map
     fetchStatuses();
   }, []);
 
@@ -355,6 +450,7 @@ export function PropertyFiltersTesting({
     setCurrentPage(1);
     setHasMore(true);
     fetchProperties(1, 12, false);
+    fetchMapProperties(); // Also update map properties when filters change
   }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
 
   // Infinite scroll effect
@@ -424,21 +520,22 @@ export function PropertyFiltersTesting({
     setIsDialogOpen(open);
   };
 
-  // Handle property hover from list - zoom to property and show popup
+  // Handle property hover from list - move to property but maintain zoom level 12
   const handlePropertyListHover = (property: Property) => {
     setHoveredProperty(property);
     if (mapRef.current) {
       // Parse coordinates from the property
       const coords = parseCoordinates(property.coordinates);
       if (coords) {
-        // Zoom to property location
+        // Move to property location but keep zoom at 12
         const map = mapRef.current;
-        map.setView([coords.lat, coords.lng], 16, {
+        map.setView([coords.lat, coords.lng], 12, {
           animate: true,
           duration: 0.8,
         });
-        // Show popup for this property
-        setSelectedProperty(property);
+        // Show popup for this property - find it in mapProperties for consistency
+        const mapProperty = mapProperties.find((p) => p.id === property.id);
+        setSelectedProperty(mapProperty || property);
       }
     }
   };
@@ -526,12 +623,16 @@ export function PropertyFiltersTesting({
       click: () => {
         setSelectedProperty(null);
       },
+      zoomend: (e) => {
+        setCurrentZoom(e.target.getZoom());
+      },
     });
     return null;
   }
 
   return (
     <section className="section-padding bg-white">
+      <style dangerouslySetInnerHTML={{ __html: mapStyles }} />
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-[#8b7355] mb-6">Find Your Perfect Property</h2>
@@ -669,13 +770,6 @@ export function PropertyFiltersTesting({
                             "Available"}
                         </Badge>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-gold p-1"
-                      >
-                        {/* <Heart className="w-4 h-4" /> */}
-                      </Button>
                     </div>
                   </div>
                 ))
@@ -724,8 +818,25 @@ export function PropertyFiltersTesting({
           <div className="lg:col-span-1">
             <Card className="h-[600px] border-beige shadow-sm overflow-hidden">
               <CardContent className="p-0 h-full relative">
+                {/* Zoom Level Display */}
+                <div className="absolute top-4 left-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                  <div className="text-sm font-medium text-gray-700">
+                    Zoom: {currentZoom.toFixed(1)}
+                  </div>
+                </div>
+
+                {/* Map Loading Indicator */}
+                {mapLoading && (
+                  <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                    <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
+                      Loading map...
+                    </div>
+                  </div>
+                )}
+
                 <MapContainer
-                  className="custom-map"
+                  className="custom-map english-map"
                   center={[
                     initialViewState.latitude,
                     initialViewState.longitude,
@@ -736,12 +847,12 @@ export function PropertyFiltersTesting({
                   ref={mapRef}
                 >
                   <TileLayer
-                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                   />
                   <ZoomControl position="topright" />
 
-                  {properties
+                  {mapProperties
                     .filter((property) => property.coordinates)
                     .map((property) => {
                       const coords = parseCoordinates(property.coordinates);

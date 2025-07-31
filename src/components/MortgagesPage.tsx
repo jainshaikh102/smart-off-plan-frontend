@@ -403,121 +403,21 @@ Could you please connect me with a mortgage specialist? Thank you!`;
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div>
-                <label className="block text-sm text-warm-gray mb-2">
-                  Property Value
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                    AED
-                  </span>
-                  <Input
-                    type="text"
-                    value={propertyValue}
-                    onChange={(e) => handlePropertyValueChange(e.target.value)}
-                    placeholder="2,000,000"
-                    className="pl-12 pr-3 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
+            {/* Option 1: Embedded Calculator */}
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 rounded-xl  border border-gold/20 mb-6">
+                <div className="relative w-full h-[800px] rounded-xl overflow-hidden shadow-lg">
+                  <iframe
+                    src="https://smartoffplan.useholo.com/en/wlp-mortgage-calculator"
+                    className="w-full h-full border-0"
+                    title="Mortgage Calculator"
+                    loading="lazy"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-top-navigation-by-user-activation allow-downloads allow-downloads-without-user-activation allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-storage-access-by-user-activation"
+                    allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; publickey-credentials-get; screen-wake-lock; sync-xhr; usb; web-share; xr-spatial-tracking"
+                    referrerpolicy="no-referrer-when-downgrade"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm text-warm-gray mb-2">
-                  Down Payment
-                </label>
-                <div className="relative">
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                    %
-                  </span>
-                  <Input
-                    type="number"
-                    value={downPaymentPercent}
-                    onChange={(e) => setDownPaymentPercent(e.target.value)}
-                    placeholder="25"
-                    min="0"
-                    max="100"
-                    className="pl-3 pr-8 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-warm-gray mb-2">
-                  Interest Rate
-                </label>
-                <div className="relative">
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                    %
-                  </span>
-                  <Input
-                    type="number"
-                    value={interestRate}
-                    onChange={(e) => setInterestRate(e.target.value)}
-                    placeholder="3.5"
-                    min="0"
-                    max="20"
-                    step="0.1"
-                    className="pl-3 pr-8 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-warm-gray mb-2">
-                  Loan Term
-                </label>
-                <div className="relative">
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-warm-gray text-sm">
-                    years
-                  </span>
-                  <Input
-                    type="number"
-                    value={loanTerm}
-                    onChange={(e) => setLoanTerm(e.target.value)}
-                    placeholder="25"
-                    min="1"
-                    max="30"
-                    className="pl-3 pr-12 py-3 border border-soft-gray/30 rounded-xl focus:border-gold focus:ring-gold"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-beige rounded-xl p-6 text-center">
-                <div className="text-2xl text-gold mb-2">
-                  {propertyValue &&
-                  downPaymentPercent &&
-                  interestRate &&
-                  loanTerm
-                    ? `AED ${formatNumber(mortgageResults.monthlyPayment)}`
-                    : "AED --"}
-                </div>
-                <div className="text-[rgba(30,26,26,1)]">Monthly Payment</div>
-              </div>
-              <div className="bg-beige rounded-xl p-6 text-center">
-                <div className="text-2xl text-gold mb-2">
-                  {propertyValue && downPaymentPercent
-                    ? `AED ${formatNumber(mortgageResults.downPaymentAmount)}`
-                    : "AED --"}
-                </div>
-                <div className="text-[rgba(30,26,26,1)]">Down Payment</div>
-              </div>
-              <div className="bg-beige rounded-xl p-6 text-center">
-                <div className="text-2xl text-gold mb-2">
-                  {propertyValue && downPaymentPercent
-                    ? `AED ${formatNumber(mortgageResults.loanAmount)}`
-                    : "AED --"}
-                </div>
-                <div className="text-[rgba(30,26,26,1)]">Loan Amount</div>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Button
-                className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8"
-                onClick={scrollToMortgageCalculator}
-              >
-                Get Pre-Approved
-              </Button>
             </div>
           </div>
         </div>

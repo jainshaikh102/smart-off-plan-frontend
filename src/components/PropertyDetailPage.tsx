@@ -1663,7 +1663,7 @@ Please send me the detailed brochure for this property. Thank you!`;
                   </div>
                   <div>
                     <div className="text-[#8b7355] font-medium">
-                      invest@smartoffplan.com
+                      accounts@smartoffplan.com
                     </div>
                     <div className="text-xs text-warm-gray">
                       Response within 2 hours

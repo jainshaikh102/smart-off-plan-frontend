@@ -143,7 +143,7 @@ Thank you for your time and consideration.`;
   };
 
   const handleEmailUs = () => {
-    const emailAddress = "invest@smartoffplan.com";
+    const emailAddress = "accounts@smartoffplan.com";
     const subject = "Partnership Inquiry - Join as Partner";
     const body = `Hello Smart Off Plan Team,
 

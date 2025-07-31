@@ -151,7 +151,7 @@ export function Footer() {
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Email</p> */}
                   <p className="text-[#d2c7b8] text-sm">
-                    📧 invest@smartoffplan.com
+                    📧 accounts@smartoffplan.com
                   </p>
                 </div>
                 <div>

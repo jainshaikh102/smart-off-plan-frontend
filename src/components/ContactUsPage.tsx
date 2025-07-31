@@ -57,7 +57,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       icon: Mail,
       title: "Email",
-      primary: "invest@smartoffplan.com",
+      primary: "accounts@smartoffplan.com",
       secondary: "sales@smartoffplan.ae",
       description: "Send us your inquiries anytime",
       color: "text-[#8b7355]",

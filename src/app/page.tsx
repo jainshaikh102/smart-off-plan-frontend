@@ -160,14 +160,34 @@ export default function HomePage() {
     }
   };
 
-  // Fetch all properties once and share across components
-  const fetchAllProperties = async () => {
+  // Enhanced fetch all properties with timeout, retry logic, and fallback
+  const fetchAllProperties = async (retryCount = 0) => {
+    const MAX_RETRIES = 3;
+    const TIMEOUT_MS = 60000; // 60 seconds timeout
+    const RETRY_DELAY = 2000; // 2 seconds delay between retries
+
     setPropertiesLoading(true);
-    setPropertiesError(null);
+    if (retryCount === 0) {
+      setPropertiesError(null);
+    }
 
     try {
+      console.log(
+        `🔄 HomePage: Fetching properties (attempt ${retryCount + 1}/${
+          MAX_RETRIES + 1
+        })`
+      );
+
+      // Create axios instance with timeout configuration
+      const axiosInstance = axios.create({
+        timeout: TIMEOUT_MS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
       // Use the new /all endpoint to get ALL properties without pagination
-      const response = await axios.get("/api/properties/all");
+      const response = await axiosInstance.get("/api/properties/all");
       const data = response.data;
 
       let properties: any[] = [];
@@ -178,22 +198,61 @@ export default function HomePage() {
         properties = data;
       }
 
+      console.log(
+        `✅ HomePage: Successfully fetched ${properties.length} properties`
+      );
       setAllProperties(properties);
+      setPropertiesError(null);
     } catch (err) {
-      console.error("❌ HomePage: Error fetching shared properties:", err);
-      if (axios.isAxiosError(err)) {
-        setPropertiesError(
-          `Failed to fetch properties: ${err.response?.status || err.message}`
-        );
-      } else {
-        setPropertiesError(
-          err instanceof Error ? err.message : "Failed to fetch properties"
-        );
+      console.error(
+        `❌ HomePage: Error fetching properties (attempt ${retryCount + 1}):`,
+        err
+      );
+
+      // Determine if we should retry
+      const shouldRetry =
+        retryCount < MAX_RETRIES &&
+        axios.isAxiosError(err) &&
+        (err.code === "ECONNABORTED" || // Timeout
+          err.code === "ENOTFOUND" || // Network error
+          err.code === "ECONNRESET" || // Connection reset
+          (err.response?.status && err.response.status >= 500)); // Server errors
+
+      if (shouldRetry) {
+        console.log(`🔄 HomePage: Retrying in ${RETRY_DELAY}ms...`);
+        setTimeout(() => {
+          fetchAllProperties(retryCount + 1);
+        }, RETRY_DELAY);
+        return; // Don't set error state yet, we're retrying
       }
+
+      // Set error message based on error type
+      let errorMessage = "Failed to fetch properties";
+      if (axios.isAxiosError(err)) {
+        if (err.code === "ECONNABORTED") {
+          errorMessage =
+            "Request timed out. The server is taking too long to respond.";
+        } else if (err.response?.status) {
+          errorMessage = `Server error: ${err.response.status} - ${err.response.statusText}`;
+        } else if (err.message) {
+          errorMessage = `Network error: ${err.message}`;
+        }
+      } else {
+        errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
+      }
+
+      setPropertiesError(errorMessage);
       setAllProperties([]);
     } finally {
       setPropertiesLoading(false);
     }
+  };
+
+  // Manual retry function for user-triggered retries
+  const handleRetryFetch = () => {
+    console.log("🔄 HomePage: Manual retry triggered by user");
+    fetchAllProperties(0); // Reset retry count for manual retry
   };
 
   // Fetch properties when component mounts
@@ -368,6 +427,90 @@ export default function HomePage() {
             {/* Hero Section */}
             <HeroSection />
 
+            {/* Loading Banner - Show during initial load or retries */}
+            {propertiesLoading && (
+              <div className="section-padding bg-blue-50 border-l-4 border-blue-400">
+                <div className="container">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="animate-spin h-5 w-5 text-blue-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        Loading property data...
+                      </h3>
+                      <div className="mt-1 text-sm text-blue-700">
+                        <p>
+                          Please wait while we fetch the latest properties. This
+                          may take up to 60 seconds.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* API Error Banner - Show if there's a critical error */}
+            {propertiesError && !propertiesLoading && (
+              <div className="section-padding bg-red-50 border-l-4 border-red-400">
+                <div className="container">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-5 w-5 text-red-400"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-red-800">
+                          Unable to load property data
+                        </h3>
+                        <div className="mt-2 text-sm text-red-700">
+                          <p>{propertiesError}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <button
+                        onClick={handleRetryFetch}
+                        className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Featured Projects */}
             <FeaturedProjects
               onProjectSelect={handleProjectSelect}
@@ -378,12 +521,7 @@ export default function HomePage() {
 
             {/* Property Filters & Map */}
             {/* <PropertyFilters onPropertySelect={handleProjectSelect} /> */}
-            <PropertyFiltersTesting
-              onPropertySelect={handleProjectSelect}
-              allProperties={allProperties}
-              propertiesLoading={propertiesLoading}
-              propertiesError={propertiesError}
-            />
+            <PropertyFiltersTesting onPropertySelect={handleProjectSelect} />
 
             {/* Partners Section */}
             <DevelopersListing

@@ -160,7 +160,7 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Email Us</h4>
-                        <p className="text-tan">invest@smartoffplan.com</p>
+                        <p className="text-tan">accounts@smartoffplan.com</p>
                       </div>
                     </div>
 
