@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🏙️ Frontend areas API called");
+    // console.log("🏙️ Frontend areas API called");
 
     // Backend URL
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/properties/areas`;
 
-    console.log("🔗 Calling backend API:", backendApiUrl);
+    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await backendResponse.json();
-    console.log("✅ Successfully fetched areas from backend");
+    // console.log("✅ Successfully fetched areas from backend");
 
     return NextResponse.json(data);
   } catch (error) {

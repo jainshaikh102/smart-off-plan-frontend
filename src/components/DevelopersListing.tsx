@@ -73,7 +73,7 @@ export function DevelopersListing({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTier, setSelectedTier] = useState("all");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("projects");
   const [minRating, setMinRating] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -94,7 +94,7 @@ export function DevelopersListing({
       setLoading(true);
       setError(null);
 
-      console.log("🏢 Fetching developers from API...");
+      // console.log("🏢 Fetching developers from API...");
 
       const response = await fetch("/api/developers");
       const data = await response.json();
@@ -106,7 +106,7 @@ export function DevelopersListing({
       }
 
       if (data.success && Array.isArray(data.data)) {
-        console.log(`✅ Fetched ${data.data.length} developers successfully`);
+        // console.log(`✅ Fetched ${data.data.length} developers successfully`);
         setDevelopers(data.data);
       } else {
         console.warn("⚠️ No developers data found in response");

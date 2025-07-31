@@ -4,7 +4,6 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -94,9 +93,18 @@ export function PropertyFiltersDialog({
   };
 
   const handleApplyFilters = () => {
-    // Apply the dialog filters to the applied filters (this will trigger the API call)
-    const newFilters = { ...dialogFilters };
-    onFiltersChange(newFilters);
+    // Validate ranges before applying
+    const validatedFilters = { ...dialogFilters };
+    validatedFilters.priceRange = [
+      dialogFilters.priceRange[0],
+      Math.max(dialogFilters.priceRange[0], dialogFilters.priceRange[1]),
+    ];
+    validatedFilters.areaRange = [
+      dialogFilters.areaRange[0],
+      Math.max(dialogFilters.areaRange[0], dialogFilters.areaRange[1]),
+    ];
+    onFiltersChange(validatedFilters);
+    setDialogFilters(validatedFilters);
     setIsDialogOpen(false);
   };
 
@@ -107,6 +115,25 @@ export function PropertyFiltersDialog({
       setDialogFilters({ ...appliedFilters });
     }
     setIsDialogOpen(open);
+  };
+
+  // Modified reset function to ensure input fields are zeroed
+  const handleResetFilters = () => {
+    const resetFiltersState: Filters = {
+      searchTerm: "",
+      priceRange: [0, 0],
+      priceDisplayMode: "total",
+      areaRange: [0, 0],
+      completionTimeframe: "all",
+      developmentStatus: [],
+      salesStatus: [],
+      unitType: [],
+      bedrooms: [],
+      featured: null,
+    };
+    setDialogFilters(resetFiltersState);
+    onFiltersChange(resetFiltersState);
+    resetFilters();
   };
 
   // Fetch development and sales statuses from API
@@ -142,11 +169,9 @@ export function PropertyFiltersDialog({
         "Mansion",
         "Other",
       ]);
-      console.log("✅ Using consolidated unit types (8 categories)");
 
       // Use consolidated bedroom options (6 main categories only)
       setBedrooms(["Studio", "Suite", "1 BR", "2 BR", "3 BR", "4 BR", "5+ BR"]);
-      console.log("✅ Using consolidated bedroom options (6 categories)");
     } catch (error) {
       console.error("❌ Error fetching statuses:", error);
       // Fallback to hardcoded values
@@ -177,7 +202,6 @@ export function PropertyFiltersDialog({
 
   // Load statuses when component mounts
   useEffect(() => {
-    console.log("🚀 PropertyFiltersDialog: Initial load - fetching statuses");
     fetchStatuses();
   }, []);
 
@@ -231,7 +255,7 @@ export function PropertyFiltersDialog({
                   variant="outline"
                   size="sm"
                   className="border-[#8b7355]/30 transition-all duration-200 text-warm-gray border-beige hover:bg-beige/50"
-                  onClick={resetFilters}
+                  onClick={handleResetFilters}
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset
@@ -282,14 +306,9 @@ export function PropertyFiltersDialog({
                             // Only allow positive values or 0
                             if (value >= 0 || e.target.value === "") {
                               const newMinValue = value || 0;
-                              // Ensure min is not greater than max
-                              const finalMaxValue = Math.max(
-                                newMinValue,
-                                dialogFilters.priceRange[1]
-                              );
                               handleDialogFilterChange("priceRange", [
                                 newMinValue,
-                                finalMaxValue,
+                                dialogFilters.priceRange[1],
                               ]);
                             }
                           }}
@@ -326,28 +345,23 @@ export function PropertyFiltersDialog({
                           type="number"
                           min="0"
                           value={
-                            dialogFilters.priceRange[1] === 20000000
+                            dialogFilters.priceRange[1] === 0
                               ? ""
                               : dialogFilters.priceRange[1]
                           }
                           onChange={(e) => {
                             const value = Number(e.target.value);
-                            // Only allow positive values or 0, with minimum being the current min value
+                            // Only allow positive values or 0, no min constraint during input
                             if (value >= 0 || e.target.value === "") {
-                              const newMaxValue = value || 20000000;
-                              // Ensure max is not less than min
-                              const finalMaxValue = Math.max(
-                                newMaxValue,
-                                dialogFilters.priceRange[0]
-                              );
+                              const newMaxValue = value || 0;
                               handleDialogFilterChange("priceRange", [
                                 dialogFilters.priceRange[0],
-                                finalMaxValue,
+                                newMaxValue,
                               ]);
                             }
                           }}
                           onFocus={(e) => {
-                            if (dialogFilters.priceRange[1] === 20000000) {
+                            if (dialogFilters.priceRange[1] === 0) {
                               e.target.select();
                             }
                           }}
@@ -362,31 +376,23 @@ export function PropertyFiltersDialog({
                               e.preventDefault();
                             }
                           }}
+                          onBlur={() => {
+                            // Validate on blur
+                            if (
+                              dialogFilters.priceRange[1] <
+                              dialogFilters.priceRange[0]
+                            ) {
+                              handleDialogFilterChange("priceRange", [
+                                dialogFilters.priceRange[0],
+                                dialogFilters.priceRange[0],
+                              ]);
+                            }
+                          }}
                           className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                          placeholder="20,000,000"
+                          placeholder="0"
                         />
                       </div>
                     </div>
-                  </div>
-
-                  <div className="space-y-3 p-4 bg-beige/30 rounded-lg">
-                    <div className="flex justify-between text-sm text-warm-gray">
-                      <span>AED 0</span>
-                      <span>AED 20M</span>
-                    </div>
-                    <Slider
-                      value={dialogFilters.priceRange}
-                      onValueChange={(value) =>
-                        handleDialogFilterChange(
-                          "priceRange",
-                          value as [number, number]
-                        )
-                      }
-                      max={20000000}
-                      min={0}
-                      step={50000}
-                      className="w-full"
-                    />
                   </div>
                 </div>
               </CardContent>
@@ -428,14 +434,9 @@ export function PropertyFiltersDialog({
                               // Only allow positive values or 0
                               if (value >= 0 || e.target.value === "") {
                                 const newMinValue = value || 0;
-                                // Ensure min is not greater than max
-                                const finalMaxValue = Math.max(
-                                  newMinValue,
-                                  dialogFilters.areaRange[1]
-                                );
                                 handleDialogFilterChange("areaRange", [
                                   newMinValue,
-                                  finalMaxValue,
+                                  dialogFilters.areaRange[1],
                                 ]);
                               }
                             }}
@@ -472,28 +473,23 @@ export function PropertyFiltersDialog({
                             type="number"
                             min="0"
                             value={
-                              dialogFilters.areaRange[1] === 50000
+                              dialogFilters.areaRange[1] === 0
                                 ? ""
                                 : dialogFilters.areaRange[1]
                             }
                             onChange={(e) => {
                               const value = Number(e.target.value);
-                              // Only allow positive values or 0, with minimum being the current min value
+                              // Only allow positive values or 0, no min constraint during input
                               if (value >= 0 || e.target.value === "") {
-                                const newMaxValue = value || 50000;
-                                // Ensure max is not less than min
-                                const finalMaxValue = Math.max(
-                                  newMaxValue,
-                                  dialogFilters.areaRange[0]
-                                );
+                                const newMaxValue = value || 0;
                                 handleDialogFilterChange("areaRange", [
                                   dialogFilters.areaRange[0],
-                                  finalMaxValue,
+                                  newMaxValue,
                                 ]);
                               }
                             }}
                             onFocus={(e) => {
-                              if (dialogFilters.areaRange[1] === 50000) {
+                              if (dialogFilters.areaRange[1] === 0) {
                                 e.target.select();
                               }
                             }}
@@ -508,30 +504,23 @@ export function PropertyFiltersDialog({
                                 e.preventDefault();
                               }
                             }}
+                            onBlur={() => {
+                              // Validate on blur
+                              if (
+                                dialogFilters.areaRange[1] <
+                                dialogFilters.areaRange[0]
+                              ) {
+                                handleDialogFilterChange("areaRange", [
+                                  dialogFilters.areaRange[0],
+                                  dialogFilters.areaRange[0],
+                                ]);
+                              }
+                            }}
                             className="pl-12 border-beige/50 focus:border-gold rounded-lg"
-                            placeholder="50,000"
+                            placeholder="0"
                           />
                         </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm text-warm-gray">
-                        <span>0 sqft</span>
-                        <span>50,000 sqft</span>
-                      </div>
-                      <Slider
-                        value={dialogFilters.areaRange}
-                        onValueChange={(value) =>
-                          handleDialogFilterChange(
-                            "areaRange",
-                            value as [number, number]
-                          )
-                        }
-                        max={50000}
-                        min={0}
-                        step={50}
-                        className="w-full"
-                      />
                     </div>
                   </div>
                 </CardContent>
@@ -679,7 +668,7 @@ export function PropertyFiltersDialog({
                               : dialogFilters.unitType.filter(
                                   (t: string) => t !== type
                                 );
-                            handleDialogFilterChange("unitType", newUnitType); // Update unitType
+                            handleDialogFilterChange("unitType", newUnitType);
                           }}
                           className="w-5 h-5 rounded-md border-2 border-[#8b7355]/30 text-gold focus:ring-gold"
                         />
@@ -740,7 +729,7 @@ export function PropertyFiltersDialog({
           variant="ghost"
           size="sm"
           className="text-warm-gray hover:text-gold rounded-xl"
-          onClick={resetFilters}
+          onClick={handleResetFilters}
         >
           <RotateCcw className="w-4 h-4 mr-2" />
           Clear

@@ -160,10 +160,10 @@ export default function HomePage() {
     }
   };
 
-  // Enhanced fetch all properties with timeout, retry logic, and fallback
+  // Enhanced fetch all properties with NO timeout for large datasets
   const fetchAllProperties = async (retryCount = 0) => {
     const MAX_RETRIES = 3;
-    const TIMEOUT_MS = 60000; // 60 seconds timeout
+    const TIMEOUT_MS = 0; // NO timeout - let it take as long as needed
     const RETRY_DELAY = 2000; // 2 seconds delay between retries
 
     setPropertiesLoading(true);
@@ -172,15 +172,9 @@ export default function HomePage() {
     }
 
     try {
-      console.log(
-        `🔄 HomePage: Fetching properties (attempt ${retryCount + 1}/${
-          MAX_RETRIES + 1
-        })`
-      );
-
-      // Create axios instance with timeout configuration
+      // Create axios instance with NO timeout for large datasets
       const axiosInstance = axios.create({
-        timeout: TIMEOUT_MS,
+        timeout: TIMEOUT_MS || 0, // No timeout if TIMEOUT_MS is 0
         headers: {
           "Content-Type": "application/json",
         },
@@ -194,21 +188,14 @@ export default function HomePage() {
       if (data.success && data.data) {
         // The /all endpoint returns all properties directly in data array (no pagination)
         properties = data.data || [];
+        console.log("All Properties Data Without Pagination", properties);
       } else if (Array.isArray(data)) {
         properties = data;
       }
 
-      console.log(
-        `✅ HomePage: Successfully fetched ${properties.length} properties`
-      );
       setAllProperties(properties);
       setPropertiesError(null);
     } catch (err) {
-      console.error(
-        `❌ HomePage: Error fetching properties (attempt ${retryCount + 1}):`,
-        err
-      );
-
       // Determine if we should retry
       const shouldRetry =
         retryCount < MAX_RETRIES &&
@@ -219,7 +206,6 @@ export default function HomePage() {
           (err.response?.status && err.response.status >= 500)); // Server errors
 
       if (shouldRetry) {
-        console.log(`🔄 HomePage: Retrying in ${RETRY_DELAY}ms...`);
         setTimeout(() => {
           fetchAllProperties(retryCount + 1);
         }, RETRY_DELAY);
@@ -251,7 +237,6 @@ export default function HomePage() {
 
   // Manual retry function for user-triggered retries
   const handleRetryFetch = () => {
-    console.log("🔄 HomePage: Manual retry triggered by user");
     fetchAllProperties(0); // Reset retry count for manual retry
   };
 
@@ -292,13 +277,6 @@ export default function HomePage() {
     setSelectedDeveloper(null);
     setSelectedArea(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
   };
 
   // Main application content generator

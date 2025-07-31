@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🌍 Frontend regions API called");
+    // console.log("🌍 Frontend regions API called");
 
     // Backend URL - using database-only approach
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/regions`;
 
-    console.log("🔗 Calling backend API:", backendApiUrl);
+    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const response = await fetch(backendApiUrl, {
       method: "GET",
@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("✅ Successfully fetched regions from Reelly API");
-    console.log(
-      "📊 Regions count:",
-      Array.isArray(data) ? data.length : "Unknown"
-    );
+    // console.log("✅ Successfully fetched regions from Reelly API");
+    // console.log(
+    //   "📊 Regions count:",
+    //   Array.isArray(data) ? data.length : "Unknown"
+    // );
 
     // Return the data directly as it comes from Reelly API
     return NextResponse.json(data);

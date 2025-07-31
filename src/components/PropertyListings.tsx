@@ -146,20 +146,34 @@ export function PropertyListings({
   const effectiveError =
     propertiesError !== undefined ? propertiesError : error;
 
-  // Filter properties to only show those with completion dates within 12 months
-  const filterPropertiesWithin12Months = (properties: Project[]) => {
+  const filterPropertiesWithin18Months = (properties: Project[]) => {
     const now = new Date();
-    const twelveMonthsFromNow = new Date(now);
-    twelveMonthsFromNow.setFullYear(now.getFullYear() + 1);
+    const eighteenMonthsFromNow = new Date(now);
+    eighteenMonthsFromNow.setMonth(now.getMonth() + 18); // Changed to 18 months
 
     return properties.filter((property) => {
       if (!property.completion_datetime) return false;
 
       const completionDate = new Date(property.completion_datetime);
 
-      return completionDate >= now && completionDate <= twelveMonthsFromNow;
+      return completionDate >= now && completionDate <= eighteenMonthsFromNow;
     });
   };
+
+  // Filter properties to only show those with completion dates within 12 months
+  // const filterPropertiesWithin12Months = (properties: Project[]) => {
+  //   const now = new Date();
+  //   const twelveMonthsFromNow = new Date(now);
+  //   twelveMonthsFromNow.setFullYear(now.getFullYear() + 1);
+
+  //   return properties.filter((property) => {
+  //     if (!property.completion_datetime) return false;
+
+  //     const completionDate = new Date(property.completion_datetime);
+
+  //     return completionDate >= now && completionDate <= twelveMonthsFromNow;
+  //   });
+  // };
 
   // Fetch properties with completion dates within 12 months (backend filtering)
   const fetchPropertiesForCompletion = async () => {
@@ -167,15 +181,9 @@ export function PropertyListings({
     setError(null);
 
     try {
-      // Calculate 12 months from now for backend filtering
-      const now = new Date();
-      const twelveMonthsFromNow = new Date(now);
-      twelveMonthsFromNow.setFullYear(now.getFullYear() + 1);
-
-      // Use backend filtering instead of frontend filtering
       const response = await axios.get("/api/properties", {
         params: {
-          completion_datetime: twelveMonthsFromNow.toISOString(),
+          completion_period: "18_months", // Changed to 18_months
           limit: 100, // Get more properties since we're filtering on backend
           page: 1,
         },
@@ -270,9 +278,9 @@ export function PropertyListings({
   useEffect(() => {
     if (effectiveAllProperties.length > 0) {
       // No need for frontend filtering since backend handles completion date filtering
-      // When using shared properties, we still need to filter for 12-month completion
+      // When using shared properties, we still need to filter for 18-month completion
       const filteredProperties = allProperties
-        ? filterPropertiesWithin12Months(effectiveAllProperties)
+        ? filterPropertiesWithin18Months(effectiveAllProperties)
         : effectiveAllProperties; // Backend already filtered, no need to filter again
 
       const sortedProperties = sortProperties(filteredProperties, sortBy);
@@ -424,7 +432,7 @@ export function PropertyListings({
             </h2>
             <p className="text-[rgba(30,26,26,1)] text-xl max-w-2xl leading-relaxed">
               Move in soon with these exceptional properties completing within
-              12 months. Secure your investment with immediate handover
+              18 months. Secure your investment with immediate handover
               opportunities.
             </p>
           </div>
@@ -467,7 +475,7 @@ export function PropertyListings({
                     <span className="text-[rgba(30,26,26,0.5)]">
                       {properties.length} nearly ready properties
                     </span>{" "}
-                    • Completion within 12 months
+                    • Completion within 18 months
                   </p>
                   <div className="text-sm text-warm-gray flex items-center">
                     <CalendarDays className="w-4 h-4 mr-1" />

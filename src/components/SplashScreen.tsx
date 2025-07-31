@@ -9,7 +9,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [isExiting, setIsExiting] = useState(false);
 
   const handleSkip = () => {
-    console.log("🎬 SplashScreen: Skip clicked");
+    // console.log("🎬 SplashScreen: Skip clicked");
     if (!isExiting) {
       setIsExiting(true);
       setTimeout(() => {
@@ -19,23 +19,23 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   };
 
   useEffect(() => {
-    console.log("🎬 SplashScreen: Starting splash screen animation");
+    // console.log("🎬 SplashScreen: Starting splash screen animation");
 
     // Reduced timing for testing - normally 3000ms
     const exitTimer = setTimeout(() => {
-      console.log("🎬 SplashScreen: Starting exit animation");
+      // console.log("🎬 SplashScreen: Starting exit animation");
       setIsExiting(true);
 
       // Complete transition after exit animation (1000ms exit animation)
       setTimeout(() => {
-        console.log("🎬 SplashScreen: Calling onComplete");
+        // console.log("🎬 SplashScreen: Calling onComplete");
         onComplete();
       }, 1000);
     }, 2000); // Reduced from 3000ms to 2000ms for testing
 
     // Cleanup timer on unmount
     return () => {
-      console.log("🎬 SplashScreen: Cleaning up timers");
+      // console.log("🎬 SplashScreen: Cleaning up timers");
       clearTimeout(exitTimer);
     };
   }, [onComplete]);
@@ -62,9 +62,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             src="/Logo/Logo.png"
             alt="Smart Off Plan Logo"
             width={280}
-            height={100}
+            height={0}
             className="splash-logo"
             priority
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
 

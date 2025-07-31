@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 900; // 15 minutes maximum duration (increased for large datasets)
+export const fetchCache = "force-no-store"; // Disable all caching
 
 /**
  * GET /api/properties/all - Get all properties without pagination
@@ -34,15 +36,11 @@ export async function GET(request: NextRequest) {
       queryString ? `?${queryString}` : ""
     }`;
 
-    console.log("🔗 [ALL-PROPERTIES] Primary backend API:", primaryApiUrl);
-    console.log("🔗 [ALL-PROPERTIES] Fallback backend API:", fallbackApiUrl);
+    // console.log("🔗 [ALL-PROPERTIES] Primary backend API:", primaryApiUrl);
+    // console.log("🔗 [ALL-PROPERTIES] Fallback backend API:", fallbackApiUrl);
 
-    // Create AbortController for timeout handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      console.log("⏰ [ALL-PROPERTIES] Request timeout after 60 seconds");
-      controller.abort();
-    }, 60000); // 60 seconds timeout
+    // No timeout - let the request take as long as needed
+    // console.log("⏳ [ALL-PROPERTIES] No timeout set - waiting for response...");
 
     try {
       let backendResponse;
@@ -50,26 +48,25 @@ export async function GET(request: NextRequest) {
 
       // Try primary backend first
       try {
-        console.log("🔄 [ALL-PROPERTIES] Trying primary backend...");
+        // console.log("🔄 [ALL-PROPERTIES] Trying primary backend...");
         backendResponse = await fetch(primaryApiUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          signal: controller.signal,
-          next: { revalidate: 300 }, // Cache for 5 minutes
+          cache: "no-store", // No caching
         });
 
         if (!backendResponse.ok) {
           throw new Error(`Primary backend failed: ${backendResponse.status}`);
         }
-        console.log(
-          "✅ [ALL-PROPERTIES] Primary backend responded successfully"
-        );
+        // console.log(
+        //   "✅ [ALL-PROPERTIES] Primary backend responded successfully"
+        // );
       } catch (primaryError) {
-        console.log(
-          "⚠️ [ALL-PROPERTIES] Primary backend failed, trying fallback..."
-        );
+        // console.log(
+        //   "⚠️ [ALL-PROPERTIES] Primary backend failed, trying fallback..."
+        // );
         console.log("Primary error:", primaryError);
 
         // Try fallback backend
@@ -79,21 +76,17 @@ export async function GET(request: NextRequest) {
             headers: {
               "Content-Type": "application/json",
             },
-            signal: controller.signal,
-            next: { revalidate: 300 }, // Cache for 5 minutes
+            cache: "no-store", // No caching
           });
           usedFallback = true;
-          console.log(
-            "✅ [ALL-PROPERTIES] Fallback backend responded successfully"
-          );
+          // console.log(
+          //   "✅ [ALL-PROPERTIES] Fallback backend responded successfully"
+          // );
         } catch (fallbackError) {
           console.error("❌ [ALL-PROPERTIES] Both backends failed");
           throw fallbackError;
         }
       }
-
-      // Clear timeout if request completes successfully
-      clearTimeout(timeoutId);
 
       if (!backendResponse.ok) {
         console.error(
@@ -111,33 +104,19 @@ export async function GET(request: NextRequest) {
 
       const data = await backendResponse.json();
 
-      console.log(
-        `✅ [ALL-PROPERTIES] Successfully fetched ${
-          data.data?.length || 0
-        } properties (no pagination) using ${
-          usedFallback ? "fallback" : "primary"
-        } backend`
-      );
+      // console.log(
+      //   `✅ [ALL-PROPERTIES] Successfully fetched ${
+      //     data.data?.length || 0
+      //   } properties (no pagination) using ${
+      //     usedFallback ? "fallback" : "primary"
+      //   } backend`
+      // );
 
       return NextResponse.json(data);
     } catch (fetchError) {
-      // Clear timeout in case of error
-      clearTimeout(timeoutId);
+      console.error("❌ [ALL-PROPERTIES] Fetch error:", fetchError);
 
-      // Handle specific timeout error
-      if (fetchError instanceof Error && fetchError.name === "AbortError") {
-        console.error("⏰ [ALL-PROPERTIES] Request timed out after 60 seconds");
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Request timeout",
-            message: "The request took too long to complete. Please try again.",
-          },
-          { status: 408 } // Request Timeout
-        );
-      }
-
-      // Re-throw other fetch errors to be handled by outer catch
+      // Re-throw fetch errors to be handled by outer catch
       throw fetchError;
     }
   } catch (error) {
@@ -148,13 +127,12 @@ export async function GET(request: NextRequest) {
     let statusCode = 500;
 
     if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        errorMessage = "Request timed out. Please try again.";
-        statusCode = 408;
-      } else if (error.message.includes("fetch")) {
+      if (error.message.includes("fetch")) {
         errorMessage =
           "Network error. Please check your connection and try again.";
         statusCode = 503;
+      } else {
+        errorMessage = error.message || "Unknown error occurred";
       }
     }
 

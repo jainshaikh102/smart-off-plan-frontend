@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("📊 Frontend project-statuses API called");
+    // console.log("📊 Frontend project-statuses API called");
 
     // Backend URL
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/properties/project-statuses`;
 
-    console.log("🔗 Calling backend API:", backendApiUrl);
+    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (!backendResponse.ok) {
-      console.error("❌ Backend API error:", backendResponse.status, backendResponse.statusText);
+      console.error(
+        "❌ Backend API error:",
+        backendResponse.status,
+        backendResponse.statusText
+      );
       return NextResponse.json(
         {
           success: false,
@@ -31,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await backendResponse.json();
-    console.log("✅ Successfully fetched project statuses from backend");
+    // console.log("✅ Successfully fetched project statuses from backend");
 
     return NextResponse.json(data);
   } catch (error) {

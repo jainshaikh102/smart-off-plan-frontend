@@ -23,9 +23,11 @@ export async function GET(
 
     // Get properties by developer from backend database
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
-    const backendApiUrl = `${backendUrl}/api/properties/by-developer/${encodeURIComponent(decodedDeveloper)}`;
+    const backendApiUrl = `${backendUrl}/api/properties/by-developer/${encodeURIComponent(
+      decodedDeveloper
+    )}`;
 
-    console.log(`🏢 [DEVELOPER] Fetching properties by developer "${decodedDeveloper}" from backend database:`, backendApiUrl);
+    // console.log(`🏢 [DEVELOPER] Fetching properties by developer "${decodedDeveloper}" from backend database:`, backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -37,8 +39,12 @@ export async function GET(
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("❌ Backend developer API error:", backendResponse.status, errorText);
-      
+      console.error(
+        "❌ Backend developer API error:",
+        backendResponse.status,
+        errorText
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -52,10 +58,15 @@ export async function GET(
     }
 
     const backendData = await backendResponse.json();
-    console.log(`✅ [DEVELOPER] Properties by "${decodedDeveloper}" fetched successfully:`, {
-      success: backendData.success,
-      dataLength: Array.isArray(backendData.data) ? backendData.data.length : "N/A",
-    });
+    // console.log(
+    //   `✅ [DEVELOPER] Properties by "${decodedDeveloper}" fetched successfully:`,
+    //   {
+    //     success: backendData.success,
+    //     dataLength: Array.isArray(backendData.data)
+    //       ? backendData.data.length
+    //       : "N/A",
+    //   }
+    // );
 
     return NextResponse.json(backendData);
   } catch (error) {
@@ -64,7 +75,8 @@ export async function GET(
       {
         success: false,
         error: "Internal server error",
-        message: "An unexpected error occurred while fetching properties by developer.",
+        message:
+          "An unexpected error occurred while fetching properties by developer.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

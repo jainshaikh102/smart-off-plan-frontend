@@ -44,7 +44,7 @@ export function usePropertyFilters({
             timestamp: Date.now(),
           })
         );
-        console.log(`✅ Filters saved to localStorage (${storageKey})`);
+        // console.log(`✅ Filters saved to localStorage (${storageKey})`);
       } catch (error) {
         console.warn(`⚠️ Failed to save filters to localStorage:`, error);
       }
@@ -68,16 +68,16 @@ export function usePropertyFilters({
           Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
         if (isRecent) {
           const { timestamp, ...filters } = parsed;
-          console.log(
-            `✅ Loaded saved filters from localStorage (${storageKey})`
-          );
+          // console.log(
+          //   `✅ Loaded saved filters from localStorage (${storageKey})`
+          // );
           return filters;
         } else {
           // Remove expired filters
           localStorage.removeItem(storageKey);
-          console.log(
-            `🗑️ Removed expired filters from localStorage (${storageKey})`
-          );
+          // console.log(
+          //   `🗑️ Removed expired filters from localStorage (${storageKey})`
+          // );
         }
       }
     } catch (error) {
@@ -148,7 +148,7 @@ export function usePropertyFilters({
     // Clear saved filters from localStorage
     if (typeof window !== "undefined") {
       localStorage.removeItem(storageKey);
-      console.log(`🗑️ Cleared saved filters from localStorage (${storageKey})`);
+      // console.log(`🗑️ Cleared saved filters from localStorage (${storageKey})`);
     }
   }, [storageKey, getDefaultFilters]);
 

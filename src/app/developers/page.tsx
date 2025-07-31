@@ -7,7 +7,7 @@ export default function DevelopersRoute() {
   const router = useRouter();
 
   const handleDeveloperSelect = (developer: any) => {
-    console.log("Developer selected:", developer);
+    // console.log("Developer selected:", developer);
     if (developer && developer.name) {
       // Navigate to developer detail page using proper nested route
       const developerName = encodeURIComponent(developer.name);

@@ -1266,9 +1266,7 @@ main {
   transform-origin: top left !important;
 }
 
-/* Keep this temporarily to confirm class application */
 .custom-map {
-  /* border: 2px solid red !important; */
 }
 
 /* Tailwind utility classes for shadows instead of custom classes */

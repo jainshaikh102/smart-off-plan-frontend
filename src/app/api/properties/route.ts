@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       queryString ? `?${queryString}` : ""
     }`;
 
-    console.log("🔗 Calling backend API:", backendApiUrl);
+    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -24,24 +24,24 @@ export async function GET(request: NextRequest) {
     });
 
     if (!backendResponse.ok) {
-      console.log("⚠️ Backend API failed with status:", backendResponse.status);
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Backend API error",
-          message: `Failed to fetch properties: ${backendResponse.status}`,
-        },
-        { status: backendResponse.status }
-      );
+      // console.log("⚠️ Backend API failed with status:", backendResponse.status);
+      // return NextResponse.json(
+      //   {
+      //     success: false,
+      //     error: "Backend API error",
+      //     message: `Failed to fetch properties: ${backendResponse.status}`,
+      //   },
+      //   { status: backendResponse.status }
+      // );
     }
 
     const backendData = await backendResponse.json();
-    console.log("✅ Backend API response received:", {
-      success: backendData.success,
-      dataLength: Array.isArray(backendData.data)
-        ? backendData.data.length
-        : "N/A",
-    });
+    // console.log("✅ Backend API response received:", {
+    //   success: backendData.success,
+    //   dataLength: Array.isArray(backendData.data)
+    //     ? backendData.data.length
+    //     : "N/A",
+    // });
 
     return NextResponse.json(backendData);
   } catch (error) {

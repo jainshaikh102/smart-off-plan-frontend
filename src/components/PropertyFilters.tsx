@@ -134,7 +134,6 @@ export function PropertyFilters({ onPropertySelect }: PropertyFiltersProps) {
           "Mansion",
           "Other",
         ]);
-        console.log("✅ Using consolidated unit types (8 categories)");
 
         // Use consolidated bedroom options (6 main categories only)
         setBedroomOptions([
@@ -146,9 +145,7 @@ export function PropertyFilters({ onPropertySelect }: PropertyFiltersProps) {
           "4 BR",
           "5+ BR",
         ]);
-        console.log("✅ Using consolidated bedroom options (6 categories)");
       } catch (error) {
-        console.error("❌ Error fetching filter options:", error);
         // Use consolidated fallback values on error (8 main categories only)
         setUnitTypeOptions([
           "Apartments",
@@ -169,7 +166,6 @@ export function PropertyFilters({ onPropertySelect }: PropertyFiltersProps) {
           "4 BR",
           "5+ BR",
         ]);
-        console.log("⚠️ Using fallback values due to API error (8 categories)");
       }
     };
 

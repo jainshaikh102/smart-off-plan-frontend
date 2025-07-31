@@ -304,9 +304,7 @@ export function PropertyDetailPage({
             });
           }
         }
-      } catch (e) {
-        console.warn("Error parsing cover_image_url:", e);
-      }
+      } catch (e) {}
     }
 
     // 2. Add architecture images from API data
@@ -368,34 +366,6 @@ export function PropertyDetailPage({
     //   });
     // }
 
-    // 7. Add unit images from unit_blocks if available
-    // if (
-    //   project?.apiData?.unit_blocks &&
-    //   project.apiData.unit_blocks.length > 0
-    // ) {
-    //   project.apiData.unit_blocks.forEach((unit: any, unitIndex: number) => {
-    //     if (unit.typical_unit_image_url) {
-    //       try {
-    //         const unitImages = JSON.parse(unit.typical_unit_image_url);
-    //         unitImages.forEach((img: any, imgIndex: number) => {
-    //           if (img.url) {
-    //             images.push({
-    //               id: images.length + 1,
-    //               src: img.url,
-    //               category: "unit",
-    //               title: `${unit.name || `Unit ${unitIndex + 1}`} - Image ${
-    //                 imgIndex + 1
-    //               }`,
-    //             });
-    //           }
-    //         });
-    //       } catch (e) {
-    //         console.warn("Error parsing unit image URL:", e);
-    //       }
-    //     }
-    //   });
-    // }
-
     // Return images array (empty if no images found)
     return images;
   })();
@@ -424,10 +394,6 @@ export function PropertyDetailPage({
 
   // Helper function to get available units for a specific bedroom type
   const getAvailableUnitsForBedroom = (bedroomType: string) => {
-    // console.log("🔍 DEBUG: Function called with bedroomType:", bedroomType);
-    // console.log("🔍 DEBUG: unitAvailability:", unitAvailability);
-    // console.log("🔍 DEBUG: unitAvailability.length:", unitAvailability.length);
-
     if (!bedroomType || !unitAvailability.length) {
       return 0;
     }
@@ -491,9 +457,7 @@ export function PropertyDetailPage({
             fileName = `${
               unit.name?.replace(/[^a-zA-Z0-9]/g, "-") || "floor-plan"
             }.png`;
-          } catch (e) {
-            console.warn("Error parsing unit image URL:", e);
-          }
+          } catch (e) {}
         }
       }
 
@@ -523,7 +487,6 @@ export function PropertyDetailPage({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading image:", error);
       alert("Failed to download image. Please try again.");
     }
   };
@@ -544,8 +507,6 @@ export function PropertyDetailPage({
     }
 
     try {
-      console.log("📧 Submitting property inquiry form...");
-
       const inquiryData = {
         fullName: contactFormData.fullName,
         email: contactFormData.email,
@@ -570,7 +531,6 @@ export function PropertyDetailPage({
       const result = await response.json();
 
       if (result.success) {
-        console.log("✅ Property inquiry email sent successfully");
         alert(
           "Thank you for your inquiry! We'll get back to you within 24 hours."
         );
@@ -585,7 +545,6 @@ export function PropertyDetailPage({
           referralName: "",
         });
       } else {
-        console.error("❌ Failed to send property inquiry:", result);
         alert(
           `Failed to send inquiry: ${
             result.message || "Please try again later"
@@ -593,7 +552,6 @@ export function PropertyDetailPage({
         );
       }
     } catch (error) {
-      console.error("❌ Error submitting property inquiry:", error);
       alert(
         "An error occurred while sending your inquiry. Please try again later."
       );
@@ -667,11 +625,6 @@ Please send me the detailed brochure for this property. Thank you!`;
 
     // Open WhatsApp
     window.open(whatsappUrl, "_blank");
-
-    console.log(
-      "📱 Opening WhatsApp with brochure request for property:",
-      project.name
-    );
   };
 
   // Loading State Component
@@ -1199,10 +1152,6 @@ Please send me the detailed brochure for this property. Thank you!`;
                                   );
                                   return imageData[0]?.url || "";
                                 } catch (error) {
-                                  console.warn(
-                                    "Error parsing unit image URL:",
-                                    error
-                                  );
                                   return "";
                                 }
                               }

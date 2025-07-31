@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🏢 Frontend developers API called");
+    // console.log("🏢 Frontend developers API called");
 
     // Backend URL
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/developers`;
 
-    console.log("🔗 Calling backend developers API:", backendApiUrl);
+    // console.log("🔗 Calling backend developers API:", backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -20,8 +20,12 @@ export async function GET(request: NextRequest) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("❌ Backend developers API error:", backendResponse.status, errorText);
-      
+      console.error(
+        "❌ Backend developers API error:",
+        backendResponse.status,
+        errorText
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -35,15 +39,17 @@ export async function GET(request: NextRequest) {
     }
 
     const backendData = await backendResponse.json();
-    console.log(`✅ Developers fetched successfully:`, {
-      success: backendData.success,
-      dataLength: Array.isArray(backendData.data) ? backendData.data.length : "N/A",
-    });
+    // console.log(`✅ Developers fetched successfully:`, {
+    //   success: backendData.success,
+    //   dataLength: Array.isArray(backendData.data)
+    //     ? backendData.data.length
+    //     : "N/A",
+    // });
 
     return NextResponse.json(backendData);
   } catch (error) {
     console.error("❌ Error in frontend developers API:", error);
-    
+
     return NextResponse.json(
       {
         success: false,

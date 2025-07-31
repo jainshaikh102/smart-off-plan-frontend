@@ -50,7 +50,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
     e.preventDefault();
 
     try {
-      console.log("📧 Submitting partner application:", formData);
+      // console.log("📧 Submitting partner application:", formData);
 
       // Call the Join Partner API
       const backendUrl =
@@ -74,7 +74,7 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        console.log("✅ Partner application sent successfully:", result);
+        // console.log("✅ Partner application sent successfully:", result);
         alert(
           "Thank you for your application! We will review it and contact you within 48 hours."
         );

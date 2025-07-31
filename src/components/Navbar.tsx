@@ -84,6 +84,7 @@ export function Navbar({
               src={TransparentLogoDark}
               alt="Smart Off Plan Logo"
               className="h-14 w-auto"
+              priority
             />
           </button>
 

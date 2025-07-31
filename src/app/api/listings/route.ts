@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("📋 Frontend listings API called");
+    // console.log("📋 Frontend listings API called");
 
     // Get query parameters from the request
     const searchParams = request.nextUrl.searchParams;
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       queryString ? `?${queryString}` : ""
     }`;
 
-    console.log(`🔗 Calling backend listings API: ${backendUrl}`);
+    // console.log(`🔗 Calling backend listings API: ${backendUrl}`);
 
     // Call the backend listings API
     const response = await axios.get(backendUrl, {
@@ -27,13 +27,13 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log(
-      `✅ Backend listings API response received: { success: ${
-        response.data.success
-      }, dataLength: ${
-        response.data.data?.items?.length || response.data.data?.length || 0
-      } }`
-    );
+    // console.log(
+    //   `✅ Backend listings API response received: { success: ${
+    //     response.data.success
+    //   }, dataLength: ${
+    //     response.data.data?.items?.length || response.data.data?.length || 0
+    //   } }`
+    // );
 
     // Return the response from backend
     return NextResponse.json(response.data);
@@ -67,12 +67,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("📋 Frontend listings refresh API called");
+    // console.log("📋 Frontend listings refresh API called");
 
     // Call the backend listings refresh endpoint
     const backendUrl = `${BACKEND_URL}/api/listings/refresh`;
 
-    console.log(`🔄 Calling backend listings refresh API: ${backendUrl}`);
+    // console.log(`🔄 Calling backend listings refresh API: ${backendUrl}`);
 
     const response = await axios.post(
       backendUrl,
@@ -86,9 +86,9 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    console.log(
-      `✅ Backend listings refresh API response received: { success: ${response.data.success} }`
-    );
+    // console.log(
+    //   `✅ Backend listings refresh API response received: { success: ${response.data.success} }`
+    // );
 
     // Return the response from backend
     return NextResponse.json(response.data);

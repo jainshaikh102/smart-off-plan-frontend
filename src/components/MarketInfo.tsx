@@ -107,9 +107,9 @@ export function MarketInfo({
         const requests = [axios.get("/api/areas")];
         if (!sharedAllProperties) {
           // Use the new /all endpoint to get ALL properties without pagination
-          console.log(
-            "🔄 MarketInfo: Fetching all properties from /api/properties/all"
-          );
+          // console.log(
+          //   "🔄 MarketInfo: Fetching all properties from /api/properties/all"
+          // );
           requests.push(axios.get("/api/properties/all"));
         }
 
@@ -117,12 +117,12 @@ export function MarketInfo({
         const areasResponse = responses[0];
         const propertiesResponse = responses[1];
 
-        console.log("📡 API Responses received:", {
-          areasSuccess: areasResponse?.data?.success,
-          areasCount: areasResponse?.data?.data?.length,
-          propertiesSuccess: propertiesResponse?.data?.success,
-          propertiesCount: propertiesResponse?.data?.data?.length,
-        });
+        // console.log("📡 API Responses received:", {
+        //   areasSuccess: areasResponse?.data?.success,
+        //   areasCount: areasResponse?.data?.data?.length,
+        //   propertiesSuccess: propertiesResponse?.data?.success,
+        //   propertiesCount: propertiesResponse?.data?.data?.length,
+        // });
 
         // Process areas
         if (areasResponse.data.success) {
@@ -132,31 +132,31 @@ export function MarketInfo({
         // Process properties only if not provided via props
         let properties = effectiveAllProperties;
         if (!sharedAllProperties && propertiesResponse) {
-          console.log("🔍 Raw API response:", propertiesResponse.data);
+          // console.log("🔍 Raw API response:", propertiesResponse.data);
 
           if (propertiesResponse.data.success && propertiesResponse.data.data) {
             // The /all endpoint returns all properties directly in data array (no pagination)
             properties = propertiesResponse.data.data || [];
-            console.log(
-              `✅ Successfully parsed ${properties.length} properties from API response`
-            );
+            // console.log(
+            //   `✅ Successfully parsed ${properties.length} properties from API response`
+            // );
 
             // Log first property structure for debugging
             if (properties.length > 0) {
-              console.log("🏠 First property structure:", {
-                id: properties[0].id,
-                name: properties[0].name,
-                min_price: properties[0].min_price,
-                max_price: properties[0].max_price,
-                area: properties[0].area,
-                developer: properties[0].developer,
-              });
+              // console.log("🏠 First property structure:", {
+              //   id: properties[0].id,
+              //   name: properties[0].name,
+              //   min_price: properties[0].min_price,
+              //   max_price: properties[0].max_price,
+              //   area: properties[0].area,
+              //   developer: properties[0].developer,
+              // });
             }
           } else if (Array.isArray(propertiesResponse.data)) {
             properties = propertiesResponse.data;
-            console.log(
-              `✅ Direct array response with ${properties.length} properties`
-            );
+            // console.log(
+            //   `✅ Direct array response with ${properties.length} properties`
+            // );
           } else {
             console.error(
               "❌ Unexpected API response structure:",
@@ -165,9 +165,9 @@ export function MarketInfo({
             properties = [];
           }
           setLocalAllProperties(properties);
-          console.log(
-            `🏠 Final: Set ${properties.length} properties in local state`
-          );
+          // console.log(
+          //   `🏠 Final: Set ${properties.length} properties in local state`
+          // );
         }
 
         // Calculate property counts per area using frontend filtering
@@ -202,9 +202,9 @@ export function MarketInfo({
   // Calculate property counts per area using frontend filtering
   const calculateAreaPropertyCounts = (areas: any[], properties: any[]) => {
     try {
-      console.log("🔢 Calculating property counts for areas...");
-      console.log("📊 Total properties:", properties.length);
-      console.log("🏙️ Total areas:", areas.length);
+      // console.log("🔢 Calculating property counts for areas...");
+      // console.log("📊 Total properties:", properties.length);
+      // console.log("🏙️ Total areas:", areas.length);
 
       const areasWithCounts = areas.map((area) => {
         // Filter properties by area name (case-insensitive)
@@ -232,10 +232,10 @@ export function MarketInfo({
         .sort((a, b) => b.propertyCount - a.propertyCount)
         .slice(0, 6);
 
-      console.log(
-        "✅ Top areas with properties:",
-        sortedAreas.map((a) => `${a.name}: ${a.propertyCount}`)
-      );
+      // console.log(
+      //   "✅ Top areas with properties:",
+      //   sortedAreas.map((a) => `${a.name}: ${a.propertyCount}`)
+      // );
       setAreasWithProperties(sortedAreas);
     } catch (error) {
       console.error("❌ Error calculating property counts:", error);
@@ -246,10 +246,10 @@ export function MarketInfo({
   const calculateMarketStats = () => {
     const properties = effectiveAllProperties || [];
 
-    console.log(
-      `📊 MarketInfo: Calculating stats for ${properties.length} properties`
-    );
-    console.log("🔍 Properties array:", properties.slice(0, 2)); // Log first 2 properties
+    // console.log(
+    //   `📊 MarketInfo: Calculating stats for ${properties.length} properties`
+    // );
+    // console.log("🔍 Properties array:", properties.slice(0, 2)); // Log first 2 properties
 
     // Calculate total market value (sum of all min_price values)
     let totalMarketValue = 0;
@@ -267,20 +267,20 @@ export function MarketInfo({
 
       // Log first few properties for debugging
       if (index < 5) {
-        console.log(`🏠 Property ${index + 1}:`, {
-          id: property.id,
-          name: property.name,
-          min_price: property.min_price,
-          min_price_aed: property.min_price_aed,
-          minPrice: property.minPrice,
-          finalMinPrice: minPrice,
-        });
+        // console.log(`🏠 Property ${index + 1}:`, {
+        //   id: property.id,
+        //   name: property.name,
+        //   min_price: property.min_price,
+        //   min_price_aed: property.min_price_aed,
+        //   minPrice: property.minPrice,
+        //   finalMinPrice: minPrice,
+        // });
       }
     });
 
-    console.log(
-      `💰 Total Market Value: ${totalMarketValue} (from ${propertiesWithPrice} properties with prices)`
-    );
+    // console.log(
+    //   `💰 Total Market Value: ${totalMarketValue} (from ${propertiesWithPrice} properties with prices)`
+    // );
 
     // Format the total market value
     const formatMarketValue = (value: number) => {
@@ -300,14 +300,14 @@ export function MarketInfo({
     // Count active projects (total number of properties)
     const activeProjectsCount = properties.length;
 
-    console.log(`🏢 Active Projects Count: ${activeProjectsCount}`);
+    // console.log(`🏢 Active Projects Count: ${activeProjectsCount}`);
 
     const result = {
       totalMarketValue: formatMarketValue(totalMarketValue),
       activeProjectsCount: activeProjectsCount.toLocaleString(),
     };
 
-    console.log("📈 Final calculated stats:", result);
+    // console.log("📈 Final calculated stats:", result);
 
     return result;
   };

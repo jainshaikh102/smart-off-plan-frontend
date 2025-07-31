@@ -117,15 +117,15 @@ export function AllPropertiesPage({
     async (page: number = 1, limit: number = 12) => {
       // Prevent multiple simultaneous API calls
       if (isLoadingRef.current) {
-        console.log("⏸️ Skipping API call - already loading");
+        // console.log("⏸️ Skipping API call - already loading");
         return;
       }
 
       // Track API calls for debugging
       apiCallCount.current += 1;
-      console.log(
-        `🔄 API Call #${apiCallCount.current} - Fetching properties (page: ${page}, limit: ${limit})`
-      );
+      // console.log(
+      //   `🔄 API Call #${apiCallCount.current} - Fetching properties (page: ${page}, limit: ${limit})`
+      // );
 
       isLoadingRef.current = true;
       setLoading(true);
@@ -243,16 +243,16 @@ export function AllPropertiesPage({
               totalPages: data.pagination.totalPages,
             });
           }
-          console.log(
-            `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
-              data.pagination?.totalPages || 1
-            })`
-          );
-          console.log("📊 Pagination info:", data.pagination);
-          console.log(
-            "🔍 API URL called:",
-            `/api/properties?${params.toString()}`
-          );
+          // console.log(
+          //   `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
+          //     data.pagination?.totalPages || 1
+          //   })`
+          // );
+          // console.log("📊 Pagination info:", data.pagination);
+          // console.log(
+          //   "🔍 API URL called:",
+          //   `/api/properties?${params.toString()}`
+          // );
         } else {
           setProperties([]);
           setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
@@ -295,23 +295,23 @@ export function AllPropertiesPage({
 
   // Apply filters and sorting - trigger new API call with server-side filtering
   useEffect(() => {
-    console.log(
-      "🔄 useEffect triggered - filtersInitialized:",
-      filtersInitialized
-    );
+    // console.log(
+    //   "🔄 useEffect triggered - filtersInitialized:",
+    //   filtersInitialized
+    // );
     // Only fetch if filters have been initialized to avoid race conditions
     if (filtersInitialized && fetchPropertiesRef.current) {
-      console.log("✅ Conditions met - fetching properties");
+      // console.log("✅ Conditions met - fetching properties");
       fetchPropertiesRef.current(1, 12); // Use fixed limit instead of pagination.limit to avoid dependency loop
     } else {
-      console.log("⏸️ Skipping fetch - conditions not met");
+      // console.log("⏸️ Skipping fetch - conditions not met");
     }
   }, [appliedFilters, sortBy, filtersInitialized]); // Only depend on actual filter/sort changes
 
   // Initialize filters on component mount
   useEffect(() => {
     if (!hasInitializedFilters.current) {
-      console.log("🚀 AllPropertiesPage: Initial load - initializing filters");
+      // console.log("🚀 AllPropertiesPage: Initial load - initializing filters");
       initializeFiltersState();
       // Mark filters as initialized to trigger the first fetch
       setFiltersInitialized(true);

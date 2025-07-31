@@ -23,9 +23,11 @@ export async function GET(
 
     // Get properties by area from backend database
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
-    const backendApiUrl = `${backendUrl}/api/properties/by-area/${encodeURIComponent(decodedArea)}`;
+    const backendApiUrl = `${backendUrl}/api/properties/by-area/${encodeURIComponent(
+      decodedArea
+    )}`;
 
-    console.log(`🏙️ [AREA] Fetching properties in area "${decodedArea}" from backend database:`, backendApiUrl);
+    // console.log(`🏙️ [AREA] Fetching properties in area "${decodedArea}" from backend database:`, backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -37,8 +39,12 @@ export async function GET(
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("❌ Backend area API error:", backendResponse.status, errorText);
-      
+      console.error(
+        "❌ Backend area API error:",
+        backendResponse.status,
+        errorText
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -52,10 +58,15 @@ export async function GET(
     }
 
     const backendData = await backendResponse.json();
-    console.log(`✅ [AREA] Properties in "${decodedArea}" fetched successfully:`, {
-      success: backendData.success,
-      dataLength: Array.isArray(backendData.data) ? backendData.data.length : "N/A",
-    });
+    // console.log(
+    //   `✅ [AREA] Properties in "${decodedArea}" fetched successfully:`,
+    //   {
+    //     success: backendData.success,
+    //     dataLength: Array.isArray(backendData.data)
+    //       ? backendData.data.length
+    //       : "N/A",
+    //   }
+    // );
 
     return NextResponse.json(backendData);
   } catch (error) {
@@ -64,7 +75,8 @@ export async function GET(
       {
         success: false,
         error: "Internal server error",
-        message: "An unexpected error occurred while fetching properties by area.",
+        message:
+          "An unexpected error occurred while fetching properties by area.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

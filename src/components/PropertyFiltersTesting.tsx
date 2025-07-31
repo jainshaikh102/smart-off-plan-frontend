@@ -160,7 +160,7 @@ export function PropertyFiltersTesting({
   const fetchMapProperties = async () => {
     setMapLoading(true);
     try {
-      console.log("🗺️ Fetching all properties for map markers...");
+      // console.log("🗺️ Fetching all properties for map markers...");
 
       const params = new URLSearchParams();
 
@@ -222,7 +222,7 @@ export function PropertyFiltersTesting({
 
       if (data.success && data.data) {
         setMapProperties(data.data || []);
-        console.log(`✅ Fetched ${data.data.length} properties for map`);
+        // console.log(`✅ Fetched ${data.data.length} properties for map`);
       } else {
         setMapProperties([]);
       }
@@ -338,16 +338,16 @@ export function PropertyFiltersTesting({
           setHasMore(data.pagination.page < data.pagination.totalPages);
         }
 
-        console.log(
-          `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
-            data.pagination?.totalPages || 1
-          })`
-        );
-        console.log("📊 Pagination info:", data.pagination);
-        console.log(
-          "🔍 API URL called:",
-          `/api/properties?${params.toString()}`
-        );
+        // console.log(
+        //   `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
+        //     data.pagination?.totalPages || 1
+        //   })`
+        // );
+        // console.log("📊 Pagination info:", data.pagination);
+        // console.log(
+        //   "🔍 API URL called:",
+        //   `/api/properties?${params.toString()}`
+        // );
       } else {
         if (!append) {
           setProperties([]);
@@ -436,9 +436,9 @@ export function PropertyFiltersTesting({
   };
 
   useEffect(() => {
-    console.log(
-      "🚀 PropertyFiltersTesting: Initial load - fetching first page and map properties"
-    );
+    // console.log(
+    //   "🚀 PropertyFiltersTesting: Initial load - fetching first page and map properties"
+    // );
     fetchProperties(1, 12);
     fetchMapProperties(); // Fetch all properties for map
     fetchStatuses();
@@ -862,7 +862,10 @@ export function PropertyFiltersTesting({
                         <Marker
                           key={property.id}
                           position={[coords.lat, coords.lng]}
-                          icon={createCustomIcon(isHovered)} // Use custom icon
+                          icon={createCustomIcon(
+                            isHovered,
+                            getImageUrl(property.cover_image_url)
+                          )} // Use custom icon with property image
                           eventHandlers={{
                             click: () => {
                               setSelectedProperty(property);
@@ -946,22 +949,26 @@ export function PropertyFiltersTesting({
   );
 }
 
-const createCustomIcon = (isHovered = false) => {
+const createCustomIcon = (
+  isHovered = false,
+  imageUrl = "/placeholder-property.jpg"
+) => {
   return L.divIcon({
     className: "custom-marker",
     html: `
           <div style="
             position: relative;
-            width: ${isHovered ? "48px" : "32px"};
-            height: ${isHovered ? "48px" : "32px"};
-            background: #FFD700;
-            border: 3px solid white;
+            width: ${isHovered ? "48px" : "20px"};
+            height: ${isHovered ? "48px" : "20px"};
+            background: #d4af37;
+            border: 2px solid white;
             border-radius: 50%;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 300ms ease;
+            overflow: hidden;
             ${
               isHovered
                 ? "transform: scale(1.1); box-shadow: 0 25px 50px -12px rgba(255, 215, 0, 0.5);"
@@ -969,12 +976,18 @@ const createCustomIcon = (isHovered = false) => {
             }
           " class="marker-inner ${isHovered ? "hovered" : ""}">
             <div style="
-              width: ${isHovered ? "16px" : "12px"};
-              height: ${isHovered ? "16px" : "12px"};
-              background: white;
+              width: ${isHovered ? "40px" : "16px"};
+              height: ${isHovered ? "40px" : "16px"};
+              background-image: url('${imageUrl}');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
               border-radius: 50%;
               transition: all 300ms ease;
-            "></div>
+
+            ">
+
+            </div>
             ${
               isHovered
                 ? `
@@ -1012,8 +1025,9 @@ const createCustomIcon = (isHovered = false) => {
             }
           </style>
         `,
-    iconSize: [isHovered ? 48 : 32, isHovered ? 48 : 32], // Match width/height
-    iconAnchor: [isHovered ? 24 : 16, isHovered ? 24 : 16], // Center of circle
+    iconSize: [isHovered ? 48 : 16, isHovered ? 48 : 16], // Match width/height
+    iconAnchor: [isHovered ? 24 : 8, isHovered ? 24 : 8], // Center of circle
     popupAnchor: [0, isHovered ? -24 : -16], // Popup above marker
   });
 };
+// border: 1px solid rgba(255, 255, 255, 0.3);

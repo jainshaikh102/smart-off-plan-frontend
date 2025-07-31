@@ -5,6 +5,7 @@ const nextConfig = {
     unoptimized: true,
   },
   eslint: {
+    // Temporarily disable ESLint during builds for clean deployment
     ignoreDuringBuilds: true,
   },
   typescript: {

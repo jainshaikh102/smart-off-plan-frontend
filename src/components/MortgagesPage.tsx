@@ -182,6 +182,7 @@ Could you please connect me with a mortgage specialist? Thank you!`;
         "Quick approval",
       ],
       popular: true,
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
     },
     {
       title: "Non-Resident Mortgage",
@@ -196,6 +197,7 @@ Could you please connect me with a mortgage specialist? Thank you!`;
         "Remote processing",
       ],
       popular: false,
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
     },
     {
       title: "Islamic Mortgage",
@@ -210,16 +212,47 @@ Could you please connect me with a mortgage specialist? Thank you!`;
         "Ethical financing",
       ],
       popular: false,
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
     },
   ];
 
   const lenders = [
-    { name: "Emirates NBD", rate: "3.49%", processing: "0.25%" },
-    { name: "ADCB", rate: "3.55%", processing: "0.30%" },
-    { name: "FAB", rate: "3.65%", processing: "0.25%" },
-    { name: "ENBD", rate: "3.75%", processing: "0.35%" },
-    { name: "HSBC", rate: "3.85%", processing: "0.40%" },
-    { name: "Mashreq", rate: "3.95%", processing: "0.30%" },
+    {
+      name: "Emirates NBD",
+      rate: "3.49%",
+      processing: "0.25%",
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
+    },
+    {
+      name: "ADCB",
+      rate: "3.55%",
+      processing: "0.30%",
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
+    },
+    {
+      name: "FAB",
+      rate: "3.65%",
+      processing: "0.25%",
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
+    },
+    {
+      name: "ENBD",
+      rate: "3.75%",
+      processing: "0.35%",
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
+    },
+    {
+      name: "HSBC",
+      rate: "3.85%",
+      processing: "0.40%",
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
+    },
+    {
+      name: "Mashreq",
+      rate: "3.95%",
+      processing: "0.30%",
+      link: "https://smartoffplan.useholo.com/en/mortgage-products-services",
+    },
   ];
 
   const eligibilityUAE = [
@@ -773,7 +806,7 @@ Could you please connect me with a mortgage specialist? Thank you!`;
                         ? "bg-gold hover:bg-gold/90 text-[#8b7355]"
                         : "bg-[#8b7355] hover:bg-[#8b7355]/90 text-white"
                     } transition-all duration-300`}
-                    onClick={() => handleMortgageApplyNow(type.title)}
+                    onClick={() => window.open(type.link, "_blank")}
                   >
                     Apply Now
                   </Button>
@@ -824,13 +857,7 @@ Could you please connect me with a mortgage specialist? Thank you!`;
                   <Button
                     variant="outline"
                     className="w-full border-gold text-gold hover:bg-gold hover:text-[#8b7355]"
-                    onClick={() =>
-                      handleBankQuote(
-                        lender.name,
-                        lender.rate,
-                        lender.processing
-                      )
-                    }
+                    onClick={() => window.open(lender.link, "_blank")}
                   >
                     Get Quote
                   </Button>

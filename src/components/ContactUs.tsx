@@ -60,8 +60,6 @@ export function ContactUs() {
         throw new Error("Phone number must be at least 8 characters");
       }
 
-      console.log("📧 Submitting contact form:", formData);
-
       // Call the Contact Us API (use local backend)
       const backendUrl =
         process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
@@ -91,8 +89,6 @@ export function ContactUs() {
         throw new Error(result.message || "Failed to send message");
       }
 
-      console.log("✅ Contact form submitted successfully:", result);
-
       // Show success message
       setIsSubmitted(true);
 
@@ -102,7 +98,6 @@ export function ContactUs() {
         setFormData({ name: "", email: "", phone: "", message: "" });
       }, 5000);
     } catch (error) {
-      console.error("❌ Error submitting contact form:", error);
       setError(
         error instanceof Error
           ? error.message

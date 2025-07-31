@@ -257,7 +257,7 @@ export default function AreaPage({}: AreaPageProps) {
       try {
         setLoading(true);
         setError(null);
-        console.log("🏙️ Fetching properties for area:", areaName);
+        // console.log("🏙️ Fetching properties for area:", areaName);
 
         // Use the new /all endpoint with area filtering for better performance
         const response = await axios.get(
@@ -266,9 +266,9 @@ export default function AreaPage({}: AreaPageProps) {
 
         if (response.data.success) {
           const areaProperties = response.data.data || [];
-          console.log(
-            `✅ Found ${areaProperties.length} properties in ${areaName}`
-          );
+          // console.log(
+          //   `✅ Found ${areaProperties.length} properties in ${areaName}`
+          // );
 
           // Set all properties
           setAllProperties(areaProperties);

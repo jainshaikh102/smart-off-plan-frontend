@@ -134,7 +134,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         return;
       }
 
-      console.log("📧 Submitting franchisee application:", formData);
+      // console.log("📧 Submitting franchisee application:", formData);
 
       // Call the Become Franchisee API
       const backendUrl =
@@ -162,7 +162,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        console.log("✅ Franchisee application sent successfully:", result);
+        // console.log("✅ Franchisee application sent successfully:", result);
         alert(
           "Thank you for your application! Our franchise team will review it and contact you within 72 hours."
         );

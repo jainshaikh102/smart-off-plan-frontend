@@ -63,7 +63,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
     {
       id: "main",
       name: "Business Bay Headquarters",
-      shortName: "Business Bay",
+      shortName: "UK",
       address: "240 London Road, Bagshot, GU19 5EZ, UK",
       phone: "‪+971543218123",
       email: "accounts@smartoffplan.com",
@@ -280,7 +280,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
         }
       }
 
-      console.log("📧 Submitting detailed message form:", formData);
+      // console.log("📧 Submitting detailed message form:", formData);
 
       // Call the Message Us API
       const backendUrl =
@@ -313,7 +313,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
         throw new Error(result.message || "Failed to send message");
       }
 
-      console.log("✅ Message form submitted successfully:", result);
+      // console.log("✅ Message form submitted successfully:", result);
 
       // Show success message
       setIsSubmitted(true);
@@ -778,7 +778,7 @@ Thank you!`;
                             : "bg-beige/30 hover:bg-beige/50 border-2 border-transparent"
                         }`}
                       >
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center justify-between gap-2 mb-2">
                           <h4 className="text-[rgba(30,26,26,1)] text-sm">
                             {office.shortName}
                           </h4>

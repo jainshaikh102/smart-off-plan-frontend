@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const propertyId = params.id;
-    console.log(`🏠 Frontend property detail API called for ID: ${propertyId}`);
+    // console.log(`🏠 Frontend property detail API called for ID: ${propertyId}`);
 
     if (!propertyId) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function GET(
     // Build backend URL
     const backendUrl = `${BACKEND_URL}/api/properties/${propertyId}`;
 
-    console.log(`🔗 Calling backend property API: ${backendUrl}`);
+    // console.log(`🔗 Calling backend property API: ${backendUrl}`);
 
     // Call the backend property API (which implements caching strategy)
     const response = await axios.get(backendUrl, {
@@ -49,11 +49,11 @@ export async function GET(
       },
     });
 
-    console.log(
-      `✅ Backend property API response received: { success: ${
-        response.data.success
-      }, hasData: ${!!response.data.data} }`
-    );
+    // console.log(
+    //   `✅ Backend property API response received: { success: ${
+    //     response.data.success
+    //   }, hasData: ${!!response.data.data} }`
+    // );
 
     // Return the response from backend
     return NextResponse.json(response.data);

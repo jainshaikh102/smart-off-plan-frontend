@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("📧 Frontend property inquiry API called");
+    // console.log("📧 Frontend property inquiry API called");
 
     // Parse the request body
     const body = await request.json();
@@ -36,13 +36,13 @@ export async function POST(request: NextRequest) {
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/email/property-inquiry`;
 
-    console.log("🔗 Calling backend email API:", backendApiUrl);
-    console.log("📧 Property inquiry data:", {
-      propertyId: body.propertyId,
-      propertyName: body.propertyName,
-      customerEmail: body.email,
-      interest: body.interest,
-    });
+    // console.log("🔗 Calling backend email API:", backendApiUrl);
+    // console.log("📧 Property inquiry data:", {
+    //   propertyId: body.propertyId,
+    //   propertyName: body.propertyName,
+    //   customerEmail: body.email,
+    //   interest: body.interest,
+    // });
 
     // Forward the request to the backend
     const backendResponse = await fetch(backendApiUrl, {
@@ -84,11 +84,11 @@ export async function POST(request: NextRequest) {
     }
 
     const backendData = await backendResponse.json();
-    console.log("✅ Property inquiry email sent successfully:", {
-      success: backendData.success,
-      propertyId: backendData.data?.propertyId,
-      propertyName: backendData.data?.propertyName,
-    });
+    // console.log("✅ Property inquiry email sent successfully:", {
+    //   success: backendData.success,
+    //   propertyId: backendData.data?.propertyId,
+    //   propertyName: backendData.data?.propertyName,
+    // });
 
     return NextResponse.json(backendData);
   } catch (error) {

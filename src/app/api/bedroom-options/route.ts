@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🛏️ Frontend bedroom options API called");
+    // console.log("🛏️ Frontend bedroom options API called");
 
     // Backend URL
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/properties/bedroom-options`;
 
-    console.log("🔗 Calling backend API:", backendApiUrl);
+    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",
@@ -38,12 +38,12 @@ export async function GET(request: NextRequest) {
     }
 
     const backendData = await backendResponse.json();
-    console.log("✅ Bedroom options fetched successfully:", {
-      success: backendData.success,
-      dataLength: Array.isArray(backendData.data)
-        ? backendData.data.length
-        : "N/A",
-    });
+    // console.log("✅ Bedroom options fetched successfully:", {
+    //   success: backendData.success,
+    //   dataLength: Array.isArray(backendData.data)
+    //     ? backendData.data.length
+    //     : "N/A",
+    // });
 
     return NextResponse.json(backendData);
   } catch (error) {

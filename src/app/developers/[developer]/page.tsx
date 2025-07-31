@@ -235,20 +235,20 @@ export default function DeveloperPage() {
     setError(null);
 
     try {
-      console.log(`🏢 Fetching properties for developer: ${developerName}`);
+      // console.log(`🏢 Fetching properties for developer: ${developerName}`);
 
       const response = await axios.get(
         `/api/properties/by-developer/${encodeURIComponent(developerName)}`
       );
       const data = response.data;
 
-      console.log("🏢 [DEVELOPER] API Response:", data);
+      // console.log("🏢 [DEVELOPER] API Response:", data);
 
       if (data.success && data.data) {
         const developerProperties = Array.isArray(data.data) ? data.data : [];
-        console.log(
-          `🏢 Found ${developerProperties.length} properties for ${developerName}`
-        );
+        // console.log(
+        //   `🏢 Found ${developerProperties.length} properties for ${developerName}`
+        // );
         setAllProperties(developerProperties);
         setFilteredProperties(developerProperties);
         setSortedProperties(developerProperties);
