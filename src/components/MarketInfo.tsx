@@ -329,20 +329,6 @@ export function MarketInfo({
       icon: Building,
       color: "text-[#8b7355]",
     },
-    {
-      title: "International Investors",
-      value: "89,450",
-      change: "+15.7%",
-      icon: Users,
-      color: "text-gold",
-    },
-    {
-      title: "Average ROI",
-      value: "8.4%",
-      change: "+2.1%",
-      icon: TrendingUp,
-      color: "text-warm-gray",
-    },
   ];
 
   // Get properties for a specific area using frontend filtering
@@ -402,7 +388,7 @@ export function MarketInfo({
         </div>
 
         {/* Market Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-16">
           {marketStats.map((stat, index) => {
             const IconComponent = stat.icon;
             return (
@@ -415,9 +401,9 @@ export function MarketInfo({
                     <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center">
                       <IconComponent className="w-6 h-6 text-gold" />
                     </div>
-                    <div className="text-gold text-sm font-medium">
+                    {/* <div className="text-gold text-sm font-medium">
                       {stat.change}
-                    </div>
+                    </div> */}
                   </div>
                   <div className={`text-3xl font-bold ${stat.color} mb-2`}>
                     {stat.value}
@@ -487,32 +473,13 @@ export function MarketInfo({
 
                           {/* Content Overlay */}
                           <div className="relative h-full flex flex-col justify-between p-6 text-white">
-                            {/* Top Content */}
-                            <div>
-                              <h4 className="text-xl text-white group-hover:text-gold transition-colors">
+                            <div className="h-full w-full flex items-center justify-center flex-col">
+                              <h4 className="text-xl text-white group-hover:text-gold transition-colors text-center">
                                 {area.name}
                               </h4>
                               <p className="text-white/70 text-sm mt-1">
                                 {area.propertyCount} Properties
                               </p>
-                            </div>
-
-                            {/* Bottom Content */}
-                            <div className="space-y-3">
-                              <div className="text-4xl text-gold group-hover:scale-105 transition-transform">
-                                +12.5%
-                              </div>
-                              <div className="text-lg text-white/90">
-                                AED 1,200 /sq ft
-                              </div>
-
-                              {/* Hover Details */}
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div className="flex items-center text-white/80 text-sm">
-                                  <ArrowRight className="w-4 h-4 mr-2" />
-                                  <span>View Market Details</span>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
