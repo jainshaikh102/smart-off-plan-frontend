@@ -201,6 +201,9 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
 
   // Handle smooth scrolling to franchise application form
   const handleScrollToApplication = () => {
+    // Check if document is available (client-side)
+    if (typeof document === "undefined") return;
+
     const applicationSection = document.getElementById("franchise-application");
     if (applicationSection) {
       applicationSection.scrollIntoView({
@@ -212,6 +215,9 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
 
   // WhatsApp and Call helper functions
   const handleWhatsAppMessage = (message: string) => {
+    // Check if window is available (client-side)
+    if (typeof window === "undefined") return;
+
     const phoneNumber = "+971543218123";
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
       message

@@ -17,6 +17,9 @@ export function WhatsAppButton() {
   }, []);
 
   const handleWhatsAppClick = () => {
+    // Check if window is available (client-side)
+    if (typeof window === "undefined") return;
+
     const phoneNumber = "+971543218123";
     const message =
       "Hello! I'm interested in your off-plan properties. Could you please provide more information?";

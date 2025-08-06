@@ -57,6 +57,9 @@ export function AboutUsPage({ onBack }: AboutUsPageProps) {
 
   // WhatsApp helper functions
   const handleWhatsAppMessage = (message: string) => {
+    // Check if window is available (client-side)
+    if (typeof window === "undefined") return;
+
     const phoneNumber = "+971543218123";
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(
       message

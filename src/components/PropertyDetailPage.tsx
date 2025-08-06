@@ -475,6 +475,10 @@ export function PropertyDetailPage({
       // Convert to blob
       const blob = await response.blob();
 
+      // Check if window and document are available (client-side)
+      if (typeof window === "undefined" || typeof document === "undefined")
+        return;
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -562,6 +566,9 @@ export function PropertyDetailPage({
     const url = typeof window !== "undefined" ? window.location.href : "";
     const text = `Check out this amazing property: ${project.name} in ${project.location}`;
 
+    // Check if window is available (client-side)
+    if (typeof window === "undefined") return;
+
     switch (platform) {
       case "facebook":
         window.open(
@@ -594,7 +601,9 @@ export function PropertyDetailPage({
         );
         break;
       case "copy":
-        navigator.clipboard.writeText(url);
+        if (navigator?.clipboard) {
+          navigator.clipboard.writeText(url);
+        }
         break;
     }
   };
@@ -624,7 +633,9 @@ Please send me the detailed brochure for this property. Thank you!`;
     )}`;
 
     // Open WhatsApp
-    window.open(whatsappUrl, "_blank");
+    if (typeof window !== "undefined") {
+      window.open(whatsappUrl, "_blank");
+    }
   };
 
   // Loading State Component
@@ -1355,12 +1366,14 @@ Please send me the detailed brochure for this property. Thank you!`;
                     <Button
                       size="sm"
                       variant="secondary"
-                      onClick={() =>
-                        window.open(
-                          `https://maps.google.com/?q=${propertyCoordinates[0]},${propertyCoordinates[1]}`,
-                          "_blank"
-                        )
-                      }
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          window.open(
+                            `https://maps.google.com/?q=${propertyCoordinates[0]},${propertyCoordinates[1]}`,
+                            "_blank"
+                          );
+                        }
+                      }}
                       className="bg-white/90 hover:bg-white text-[#8b7355] border border-beige shadow-sm"
                     >
                       <ExternalLink className="w-3 h-3 mr-1" />

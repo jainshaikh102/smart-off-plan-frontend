@@ -195,6 +195,9 @@ export function AreaDetailPage({
     onBack();
     // Small delay to ensure page transition completes before scrolling
     setTimeout(() => {
+      // Check if document is available (client-side)
+      if (typeof document === "undefined") return;
+
       const marketElement = document.getElementById("market-info");
       if (marketElement) {
         marketElement.scrollIntoView({ behavior: "smooth", block: "start" });

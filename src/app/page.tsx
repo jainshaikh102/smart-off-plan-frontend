@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { SplashScreen } from "@/components/SplashScreen";
 import { HeroSection } from "@/components/HeroSection";
 
-// Force dynamic rendering for this page
+// Force dynamic rendering for this page - prevent static generation
 export const dynamic = "force-dynamic";
-import { FeaturedProjects } from "@/components/FeaturedProjects";
-import { PropertyFiltersTesting } from "@/components/PropertyFiltersTesting";
-import { DevelopersListing } from "@/components/DevelopersListing";
-import { PropertyListings } from "@/components/PropertyListings";
+export const runtime = "nodejs";
+// Restore imports one by one to identify window error source
+// import { FeaturedProjects } from "@/components/FeaturedProjects";
+// import { PropertyFiltersTesting } from "@/components/PropertyFiltersTesting";
+// import { DevelopersListing } from "@/components/DevelopersListing";
+// import { PropertyListings } from "@/components/PropertyListings";
 import { MarketInfo } from "@/components/MarketInfo";
 import { AboutCompany } from "@/components/AboutCompany";
 import { Testimonials } from "@/components/Testimonials";
@@ -312,26 +314,13 @@ export default function HomePage() {
             {/* Hero Section */}
             <HeroSection />
 
-            {/* Featured Projects - now handles its own API call */}
-            <FeaturedProjects onProjectSelect={handleProjectSelect} />
+            {/* Restore components one by one to identify window error source */}
+            {/* <FeaturedProjects onProjectSelect={handleProjectSelect} /> */}
+            {/* <PropertyFiltersTesting onPropertySelect={handleProjectSelect} /> */}
+            {/* <DevelopersListing onPartnerSelect={handleDeveloperSelect} displayMode="simple" maxItems={8} /> */}
+            {/* <PropertyListings onProjectSelect={handleProjectSelect} onLoadMore={() => handlePageNavigation("all-properties")} /> */}
 
-            {/* Property Filters & Map */}
-            <PropertyFiltersTesting onPropertySelect={handleProjectSelect} />
-
-            {/* Partners Section */}
-            <DevelopersListing
-              onPartnerSelect={handleDeveloperSelect}
-              displayMode="simple"
-              maxItems={8}
-            />
-
-            {/* Property Listings - now handles its own API call */}
-            <PropertyListings
-              onProjectSelect={handleProjectSelect}
-              onLoadMore={() => handlePageNavigation("all-properties")}
-            />
-
-            {/* Market Information - fetches all properties independently for accurate market statistics */}
+            {/* Test MarketInfo - this was optimized and should work */}
             <MarketInfo onAreaSelect={handleAreaSelect} />
 
             {/* About Company */}
