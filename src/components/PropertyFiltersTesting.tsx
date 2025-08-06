@@ -1,15 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  ZoomControl,
-  useMapEvents,
-} from "react-leaflet";
+import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+
+// Dynamically import Leaflet components to avoid SSR issues
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
+const ZoomControl = dynamic(
+  () => import("react-leaflet").then((mod) => mod.ZoomControl),
+  { ssr: false }
+);
 
 // Add custom styles for English-only map labels
 const mapStyles = `
@@ -111,6 +124,7 @@ export function PropertyFiltersTesting({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Infinite scroll pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -372,6 +386,9 @@ export function PropertyFiltersTesting({
   };
 
   useEffect(() => {
+    // Set client-side flag to enable map rendering
+    setIsClient(true);
+
     // console.log(
     //   "🚀 PropertyFiltersTesting: Initial load - fetching first page (map properties loaded progressively)"
     // );
@@ -552,17 +569,24 @@ export function PropertyFiltersTesting({
   };
 
   // MapEvents component for handling map interactions
-  function MapEvents() {
-    useMapEvents({
-      click: () => {
-        setSelectedProperty(null);
-      },
-      zoomend: (e) => {
-        setCurrentZoom(e.target.getZoom());
-      },
-    });
-    return null;
-  }
+  const MapEvents = dynamic(
+    () =>
+      import("react-leaflet").then((mod) => {
+        const { useMapEvents } = mod;
+        return function MapEventsComponent() {
+          useMapEvents({
+            click: () => {
+              setSelectedProperty(null);
+            },
+            zoomend: (e) => {
+              setCurrentZoom(e.target.getZoom());
+            },
+          });
+          return null;
+        };
+      }),
+    { ssr: false }
+  );
 
   return (
     <section className="section-padding bg-white">
@@ -752,133 +776,148 @@ export function PropertyFiltersTesting({
           <div className="lg:col-span-1">
             <Card className="h-[600px] border-beige shadow-sm overflow-hidden">
               <CardContent className="p-0 h-full relative">
-                {/* Zoom Level Display */}
-                <div className="absolute top-4 left-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
-                  <div className="text-sm font-medium text-gray-700">
-                    Zoom: {currentZoom.toFixed(1)}
-                  </div>
-                </div>
-
-                {/* Progressive Map Loading Indicator */}
-                {loading && currentPage === 1 && (
-                  <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
-                    <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
-                      Loading properties...
+                {!isClient ? (
+                  // Show loading placeholder during SSR
+                  <div className="flex items-center justify-center h-full bg-gray-100">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <div className="text-gray-600">Loading map...</div>
                     </div>
                   </div>
-                )}
-
-                {/* Progressive Loading Indicator */}
-                {loadingMore && (
-                  <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
-                    <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
-                      Loading more properties...
+                ) : (
+                  <>
+                    {/* Zoom Level Display */}
+                    <div className="absolute top-4 left-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                      <div className="text-sm font-medium text-gray-700">
+                        Zoom: {currentZoom.toFixed(1)}
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Map Properties Counter */}
-                {mapProperties.length > 0 && (
-                  <div className="absolute bottom-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
-                    <div className="text-sm font-medium text-gray-700">
-                      {mapProperties.length} properties on map
-                      {hasMore && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Scroll down to load more
+                    {/* Progressive Map Loading Indicator */}
+                    {loading && currentPage === 1 && (
+                      <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                        <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
+                          Loading properties...
                         </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                <MapContainer
-                  className="custom-map english-map"
-                  center={[
-                    initialViewState.latitude,
-                    initialViewState.longitude,
-                  ]}
-                  zoom={initialViewState.zoom}
-                  style={{ height: "100%", width: "100%" }}
-                  zoomControl={false}
-                  ref={mapRef}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                  />
-                  <ZoomControl position="topright" />
+                    {/* Progressive Loading Indicator */}
+                    {loadingMore && (
+                      <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                        <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
+                          Loading more properties...
+                        </div>
+                      </div>
+                    )}
 
-                  {mapProperties
-                    .filter((property) => property.coordinates)
-                    .map((property) => {
-                      const coords = parseCoordinates(property.coordinates);
-                      const isHovered = hoveredProperty?.id === property.id;
+                    {/* Map Properties Counter */}
+                    {mapProperties.length > 0 && (
+                      <div className="absolute bottom-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                        <div className="text-sm font-medium text-gray-700">
+                          {mapProperties.length} properties on map
+                          {hasMore && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Scroll down to load more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-                      return (
-                        <Marker
-                          key={property.id}
-                          position={[coords.lat, coords.lng]}
-                          icon={createCustomIcon(
-                            isHovered,
-                            getImageUrl(property.cover_image_url)
-                          )} // Use custom icon with property image
-                          eventHandlers={{
-                            click: () => {
-                              setSelectedProperty(property);
-                              // Don't interfere with list hover - only handle clicks
-                            },
-                          }}
-                        >
-                          {(selectedProperty?.id === property.id ||
-                            isHovered) && (
-                            <Popup>
-                              <div className="flex gap-3">
-                                <ImageWithFallback
-                                  src={getImageUrl(property.cover_image_url)}
-                                  alt={property.name}
-                                  className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                />
+                    <MapContainer
+                      className="custom-map english-map"
+                      center={[
+                        initialViewState.latitude,
+                        initialViewState.longitude,
+                      ]}
+                      zoom={initialViewState.zoom}
+                      style={{ height: "100%", width: "100%" }}
+                      zoomControl={false}
+                      ref={mapRef}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                      />
+                      <ZoomControl position="topright" />
 
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="mb-1 truncate text-sm text-[#D4AF37]">
-                                    {property.name}
-                                  </h4>
-                                  <div className="flex items-center text-muted-foreground text-xs mb-1">
-                                    <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                                    <span className="truncate">
-                                      {property.area}
-                                    </span>
-                                  </div>
-                                  <div className="mb-2 text-sm text-[#D4AF37]">
-                                    {property.min_price && property.max_price
-                                      ? `${property.price_currency} ${(
-                                          property.min_price / 1000000
-                                        ).toFixed(1)}M - ${(
-                                          property.max_price / 1000000
-                                        ).toFixed(1)}M`
-                                      : property.min_price
-                                      ? `${property.price_currency} ${(
-                                          property.min_price / 1000000
-                                        ).toFixed(1)}M+`
-                                      : "Price on Request"}
-                                  </div>
-                                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                    <div className="flex items-center">
-                                      <Building className="w-3 h-3 mr-1" />
-                                      {property.developer}
+                      {mapProperties
+                        .filter((property) => property.coordinates)
+                        .map((property) => {
+                          const coords = parseCoordinates(property.coordinates);
+                          const isHovered = hoveredProperty?.id === property.id;
+
+                          return (
+                            <Marker
+                              key={property.id}
+                              position={[coords.lat, coords.lng]}
+                              icon={createCustomIcon(
+                                isHovered,
+                                getImageUrl(property.cover_image_url)
+                              )} // Use custom icon with property image
+                              eventHandlers={{
+                                click: () => {
+                                  setSelectedProperty(property);
+                                  // Don't interfere with list hover - only handle clicks
+                                },
+                              }}
+                            >
+                              {(selectedProperty?.id === property.id ||
+                                isHovered) && (
+                                <Popup>
+                                  <div className="flex gap-3">
+                                    <ImageWithFallback
+                                      src={getImageUrl(
+                                        property.cover_image_url
+                                      )}
+                                      alt={property.name}
+                                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                    />
+
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="mb-1 truncate text-sm text-[#D4AF37]">
+                                        {property.name}
+                                      </h4>
+                                      <div className="flex items-center text-muted-foreground text-xs mb-1">
+                                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                                        <span className="truncate">
+                                          {property.area}
+                                        </span>
+                                      </div>
+                                      <div className="mb-2 text-sm text-[#D4AF37]">
+                                        {property.min_price &&
+                                        property.max_price
+                                          ? `${property.price_currency} ${(
+                                              property.min_price / 1000000
+                                            ).toFixed(1)}M - ${(
+                                              property.max_price / 1000000
+                                            ).toFixed(1)}M`
+                                          : property.min_price
+                                          ? `${property.price_currency} ${(
+                                              property.min_price / 1000000
+                                            ).toFixed(1)}M+`
+                                          : "Price on Request"}
+                                      </div>
+                                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                        <div className="flex items-center">
+                                          <Building className="w-3 h-3 mr-1" />
+                                          {property.developer}
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                            </Popup>
-                          )}
-                        </Marker>
-                      );
-                    })}
-                  <MapEvents />
-                </MapContainer>
+                                </Popup>
+                              )}
+                            </Marker>
+                          );
+                        })}
+                      <MapEvents />
+                    </MapContainer>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -911,6 +950,14 @@ const createCustomIcon = (
   isHovered = false,
   imageUrl = "/placeholder-property.jpg"
 ) => {
+  // Only create icon on client side
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  // Dynamically import Leaflet only on client side
+  const L = require("leaflet");
+
   return L.divIcon({
     className: "custom-marker",
     html: `

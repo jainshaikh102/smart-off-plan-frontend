@@ -318,13 +318,20 @@ export default function HomePage() {
             <FeaturedProjects onProjectSelect={handleProjectSelect} />
 
             {/* Property Filters & Map - LIKELY CULPRIT (has map/window usage) */}
-            {/* <PropertyFiltersTesting onPropertySelect={handleProjectSelect} /> */}
+            <PropertyFiltersTesting onPropertySelect={handleProjectSelect} />
 
             {/* Partners Section */}
-            {/* <DevelopersListing onPartnerSelect={handleDeveloperSelect} displayMode="simple" maxItems={8} /> */}
+            <DevelopersListing
+              onPartnerSelect={handleDeveloperSelect}
+              displayMode="simple"
+              maxItems={8}
+            />
 
             {/* Property Listings - now handles its own API call */}
-            {/* <PropertyListings onProjectSelect={handleProjectSelect} onLoadMore={() => handlePageNavigation("all-properties")} /> */}
+            <PropertyListings
+              onProjectSelect={handleProjectSelect}
+              onLoadMore={() => handlePageNavigation("all-properties")}
+            />
 
             {/* Market Information - optimized with 99.6% performance improvement */}
             <MarketInfo onAreaSelect={handleAreaSelect} />
