@@ -259,9 +259,9 @@ export default function AreaPage({}: AreaPageProps) {
         setError(null);
         // console.log("🏙️ Fetching properties for area:", areaName);
 
-        // Use the new /all endpoint with area filtering for better performance
+        // Use the paginated endpoint with area filtering for better performance
         const response = await axios.get(
-          `/api/properties/all?area=${encodeURIComponent(areaName)}`
+          `/api/properties?area=${encodeURIComponent(areaName)}`
         );
 
         if (response.data.success) {

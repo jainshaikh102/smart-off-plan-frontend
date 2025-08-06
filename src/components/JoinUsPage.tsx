@@ -581,7 +581,7 @@ export function JoinUsPage({ onBack }: JoinUsPageProps) {
                   <Phone className="w-6 h-6 text-[#8b7355]" />
                 </div>
                 <h5 className="text-white mb-2">Phone</h5>
-                <p className="text-tan">‪+971543218123</p>
+                <p className="text-tan">‪+971543218123 / 03301330888</p>
               </div>
 
               <div className="text-center">

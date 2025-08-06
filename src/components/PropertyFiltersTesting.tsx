@@ -106,10 +106,9 @@ export function PropertyFiltersTesting({
   onPropertySelect,
 }: PropertyFiltersTestingProps) {
   const [properties, setProperties] = useState<Property[]>([]); // For property list (paginated)
-  const [mapProperties, setMapProperties] = useState<Property[]>([]); // For map markers (all properties)
+  const [mapProperties, setMapProperties] = useState<Property[]>([]); // For map markers (progressively loaded)
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [mapLoading, setMapLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -117,6 +116,9 @@ export function PropertyFiltersTesting({
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalProperties, setTotalProperties] = useState(0);
+
+  // Progressive map loading state
+  const [mapLoadedPages, setMapLoadedPages] = useState<Set<number>>(new Set());
 
   const mapRef = useRef<L.Map | null>(null);
 
@@ -155,84 +157,6 @@ export function PropertyFiltersTesting({
 
   // Ref for infinite scroll trigger
   const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  // Fetch all properties for map markers (no pagination)
-  const fetchMapProperties = async () => {
-    setMapLoading(true);
-    try {
-      // console.log("🗺️ Fetching all properties for map markers...");
-
-      const params = new URLSearchParams();
-
-      // Apply same filters as the property list
-      if (appliedFilters.searchTerm) {
-        params.append("search", appliedFilters.searchTerm);
-      }
-
-      if (appliedFilters.priceRange[0] > 0) {
-        params.append("min_price", appliedFilters.priceRange[0].toString());
-      }
-      if (appliedFilters.priceRange[1] < 50000000) {
-        params.append("max_price", appliedFilters.priceRange[1].toString());
-      }
-
-      if (appliedFilters.developmentStatus.length > 0) {
-        appliedFilters.developmentStatus.forEach((status) => {
-          params.append("development_status", status);
-        });
-      }
-
-      if (appliedFilters.salesStatus.length > 0) {
-        appliedFilters.salesStatus.forEach((status) => {
-          params.append("sale_status", status);
-        });
-      }
-
-      if (
-        appliedFilters.completionTimeframe &&
-        appliedFilters.completionTimeframe !== "all"
-      ) {
-        let backendTimeframeValue = appliedFilters.completionTimeframe;
-        switch (appliedFilters.completionTimeframe) {
-          case "within_6m":
-            backendTimeframeValue = "6_months";
-            break;
-          case "within_12m":
-            backendTimeframeValue = "12_months";
-            break;
-          case "within_24m":
-            backendTimeframeValue = "24_months";
-            break;
-          case "beyond_24m":
-            backendTimeframeValue = "beyond_24_months";
-            break;
-        }
-        params.append("completion_period", backendTimeframeValue);
-      }
-
-      // Add sorting
-      if (sortBy && sortBy !== "featured") {
-        params.append("sort", sortBy);
-      }
-
-      const response = await axios.get(
-        `/api/properties/all?${params.toString()}`
-      );
-      const data = response.data;
-
-      if (data.success && data.data) {
-        setMapProperties(data.data || []);
-        // console.log(`✅ Fetched ${data.data.length} properties for map`);
-      } else {
-        setMapProperties([]);
-      }
-    } catch (err) {
-      console.error("❌ Error fetching map properties:", err);
-      setMapProperties([]);
-    } finally {
-      setMapLoading(false);
-    }
-  };
 
   const fetchProperties = async (
     page: number = 1,
@@ -327,8 +251,18 @@ export function PropertyFiltersTesting({
         // Update properties - append for infinite scroll or replace for new search
         if (append) {
           setProperties((prev) => [...prev, ...fetchedProperties]);
+          // Also add to map properties progressively
+          setMapProperties((prev) => [...prev, ...fetchedProperties]);
         } else {
           setProperties(fetchedProperties);
+          // Reset map properties and add first page
+          setMapProperties(fetchedProperties);
+          setMapLoadedPages(new Set([page]));
+        }
+
+        // Track which pages have been loaded for the map
+        if (append) {
+          setMapLoadedPages((prev) => new Set([...prev, page]));
         }
 
         // Update pagination info from server response
@@ -369,6 +303,8 @@ export function PropertyFiltersTesting({
       }
       if (!append) {
         setProperties([]);
+        setMapProperties([]); // Also reset map properties on error
+        setMapLoadedPages(new Set()); // Reset loaded pages tracking
         setCurrentPage(1);
         setTotalProperties(0);
         setHasMore(false);
@@ -437,10 +373,9 @@ export function PropertyFiltersTesting({
 
   useEffect(() => {
     // console.log(
-    //   "🚀 PropertyFiltersTesting: Initial load - fetching first page and map properties"
+    //   "🚀 PropertyFiltersTesting: Initial load - fetching first page (map properties loaded progressively)"
     // );
     fetchProperties(1, 12);
-    fetchMapProperties(); // Fetch all properties for map
     fetchStatuses();
   }, []);
 
@@ -449,8 +384,7 @@ export function PropertyFiltersTesting({
     // Reset pagination and fetch new data when filters change
     setCurrentPage(1);
     setHasMore(true);
-    fetchProperties(1, 12, false);
-    fetchMapProperties(); // Also update map properties when filters change
+    fetchProperties(1, 12, false); // This will reset map properties and start progressive loading
   }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
 
   // Infinite scroll effect
@@ -825,12 +759,36 @@ export function PropertyFiltersTesting({
                   </div>
                 </div>
 
-                {/* Map Loading Indicator */}
-                {mapLoading && (
+                {/* Progressive Map Loading Indicator */}
+                {loading && currentPage === 1 && (
                   <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
                     <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
-                      Loading map...
+                      Loading properties...
+                    </div>
+                  </div>
+                )}
+
+                {/* Progressive Loading Indicator */}
+                {loadingMore && (
+                  <div className="absolute top-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                    <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
+                      Loading more properties...
+                    </div>
+                  </div>
+                )}
+
+                {/* Map Properties Counter */}
+                {mapProperties.length > 0 && (
+                  <div className="absolute bottom-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
+                    <div className="text-sm font-medium text-gray-700">
+                      {mapProperties.length} properties on map
+                      {hasMore && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Scroll down to load more
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

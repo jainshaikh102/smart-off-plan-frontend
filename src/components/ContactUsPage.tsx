@@ -49,7 +49,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       icon: Phone,
       title: "Phone",
-      primary: "‪+971543218123",
+      primary: "‪+971543218123 / 03301330888",
       secondary: "+971 50 123 4567",
       description: "Call us for immediate assistance",
       color: "text-gold",
@@ -108,7 +108,7 @@ export function ContactUsPage({ onBack }: ContactUsPageProps) {
     {
       title: "Dubai Office",
       address: "240 London Road, Bagshot, GU19 5EZ, UK",
-      phone: "‪+971543218123",
+      phone: "‪+971543218123 / 03301330888",
       email: "dubai@smartoffplan.ae",
       hours: "Mon-Fri: 9AM-7PM, Sat: 10AM-4PM",
     },

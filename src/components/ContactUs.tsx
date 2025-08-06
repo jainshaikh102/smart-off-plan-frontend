@@ -144,7 +144,7 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Call Us</h4>
-                        <p className="text-tan">‪+971543218123</p>
+                        <p className="text-tan">‪+971543218123 / 03301330888</p>
                       </div>
                     </div>
 

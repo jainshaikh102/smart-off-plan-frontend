@@ -1600,7 +1600,7 @@ Please send me the detailed brochure for this property. Thank you!`;
                   </div>
                   <div>
                     <div className="text-[#8b7355] font-medium">
-                      ‪+971543218123
+                      ‪+971543218123 / 03301330888
                     </div>
                     <div className="text-xs text-warm-gray">Available 24/7</div>
                   </div>

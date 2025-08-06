@@ -99,70 +99,95 @@ interface Property {
 interface FeaturedProjectsProps {
   onProjectSelect?: (project: any) => void;
   onViewAllProjects?: () => void;
-  // Optional props for shared data to avoid multiple API calls
-  allProperties?: any[];
-  propertiesLoading?: boolean;
-  propertiesError?: string | null;
 }
 
 export function FeaturedProjects({
   onProjectSelect,
   onViewAllProjects,
-  allProperties: sharedAllProperties,
-  propertiesLoading,
-  propertiesError,
 }: FeaturedProjectsProps) {
   const [localProperties, setLocalProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Use shared properties if available, otherwise use local state
-  const effectiveAllProperties = sharedAllProperties || localProperties;
-  const effectiveLoading =
-    propertiesLoading !== undefined ? propertiesLoading : loading;
-  const effectiveError =
-    propertiesError !== undefined ? propertiesError : error;
+  // Always use local properties for better control and debugging
+  const effectiveLoading = loading;
+  const effectiveError = error;
 
-  // Filter for featured properties and limit to 3
-  const featuredProperties = effectiveAllProperties
-    .filter((property: any) => property.featured === true)
-    .slice(0, 3);
+  // Use local properties directly (already filtered for featured in fetchProperties)
+  const featuredProperties = localProperties;
 
-  // Fetch all properties and filter for featured (fallback when shared props not available)
+  // Fetch featured properties directly with backend filtering
   const fetchProperties = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Use main properties API instead of dedicated featured endpoint
-      const response = await axios.get(`/api/properties`);
+      // console.log(
+      //   "🌟 FeaturedProjects: Fetching featured properties with backend filtering"
+      // );
 
+      // Use dedicated featured properties endpoint for better debugging
+      const params = new URLSearchParams({
+        page: "1",
+        limit: "6", // Get more than 3 in case some don't have images
+        sort: "latest",
+      });
+
+      const response = await axios.get(
+        `/api/properties/featured?${params.toString()}`
+      );
       const data = response.data;
-      let allProperties: Property[] = [];
+
+      // console.log("🔍 FeaturedProjects API response:", {
+      //   success: data.success,
+      //   dataLength: data.data?.length,
+      //   pagination: data.pagination,
+      // });
+
+      let featuredProperties: Property[] = [];
 
       // Handle API response structure
       if (data.success && data.data) {
-        allProperties = data.data.items || data.data || [];
+        featuredProperties = data.data || [];
+        // console.log(
+        //   `✅ Found ${featuredProperties.length} featured properties from backend`
+        // );
+
+        // Log first few properties to debug
+        featuredProperties.slice(0, 3).forEach((prop, index) => {
+          // console.log(`🏠 Featured Property ${index + 1}:`, {
+          //   id: prop.id,
+          //   name: prop.name,
+          //   featured: prop.featured,
+          //   area: prop.area,
+          //   developer: prop.developer,
+          // });
+        });
       } else if (Array.isArray(data)) {
-        allProperties = data;
+        featuredProperties = data;
       }
 
-      // Filter for featured properties and limit to 3
-      const featuredProps = allProperties
-        .filter((property: Property) => property.featured === true)
-        .slice(0, 3);
+      // Take only first 3 for display
+      const displayProperties = featuredProperties.slice(0, 3);
+      setLocalProperties(displayProperties);
 
-      setLocalProperties(featuredProps);
+      // console.log(
+      //   `🎯 Setting ${displayProperties.length} properties for display`
+      // );
     } catch (err) {
-      console.error("❌ Error fetching properties for featured section:", err);
+      console.error("❌ Error fetching featured properties:", err);
       if (axios.isAxiosError(err)) {
         setError(
-          `Failed to fetch properties: ${err.response?.status || err.message}`
+          `Failed to fetch featured properties: ${
+            err.response?.status || err.message
+          }`
         );
       } else {
         setError(
-          err instanceof Error ? err.message : "Failed to fetch properties"
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch featured properties"
         );
       }
       setLocalProperties([]);
@@ -172,11 +197,9 @@ export function FeaturedProjects({
   };
 
   useEffect(() => {
-    // Only fetch properties if not provided via props
-    if (!sharedAllProperties) {
-      fetchProperties();
-    }
-  }, [sharedAllProperties]);
+    // Always fetch featured properties independently for better control and debugging
+    fetchProperties();
+  }, []);
 
   // Get image URL from JSON string
   const getImageUrl = (coverImageUrl?: string) => {
@@ -327,8 +350,13 @@ export function FeaturedProjects({
                       <Button
                         className="w-full bg-[#8b7355] hover:bg-[#8b7355]/90 mt-auto text-white"
                         onClick={() => {
-                          const propertyId = property.externalId || property.id;
-                          router.push(`/properties/${propertyId}`);
+                          if (onProjectSelect) {
+                            onProjectSelect(property);
+                          } else {
+                            const propertyId =
+                              property.externalId || property.id;
+                            router.push(`/properties/${propertyId}`);
+                          }
                         }}
                       >
                         View Details

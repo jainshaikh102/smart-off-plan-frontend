@@ -22,6 +22,9 @@ export function Navbar({
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check if window is available (client-side)
+    if (typeof window === "undefined") return;
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };

@@ -119,18 +119,11 @@ interface Project {
 interface PropertyListingsProps {
   onProjectSelect: (project: Project) => void;
   onLoadMore: () => void;
-  // Optional props for shared data to avoid multiple API calls
-  allProperties?: any[];
-  propertiesLoading?: boolean;
-  propertiesError?: string | null;
 }
 
 export function PropertyListings({
   onProjectSelect,
   onLoadMore,
-  allProperties,
-  propertiesLoading,
-  propertiesError,
 }: PropertyListingsProps) {
   const [sortBy, setSortBy] = useState("completion");
   const [properties, setProperties] = useState<Project[]>([]);
@@ -139,26 +132,12 @@ export function PropertyListings({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Use shared properties if available, otherwise use local state
-  const effectiveAllProperties = allProperties || localAllProperties;
-  const effectiveLoading =
-    propertiesLoading !== undefined ? propertiesLoading : loading;
-  const effectiveError =
-    propertiesError !== undefined ? propertiesError : error;
+  // Always use local state - component handles its own API calls
+  const effectiveAllProperties = localAllProperties;
+  const effectiveLoading = loading;
+  const effectiveError = error;
 
-  const filterPropertiesWithin18Months = (properties: Project[]) => {
-    const now = new Date();
-    const eighteenMonthsFromNow = new Date(now);
-    eighteenMonthsFromNow.setMonth(now.getMonth() + 18); // Changed to 18 months
-
-    return properties.filter((property) => {
-      if (!property.completion_datetime) return false;
-
-      const completionDate = new Date(property.completion_datetime);
-
-      return completionDate >= now && completionDate <= eighteenMonthsFromNow;
-    });
-  };
+  // Frontend filtering removed - backend now handles 18-month completion filtering
 
   // Filter properties to only show those with completion dates within 12 months
   // const filterPropertiesWithin12Months = (properties: Project[]) => {
@@ -175,32 +154,79 @@ export function PropertyListings({
   //   });
   // };
 
-  // Fetch properties with completion dates within 12 months (backend filtering)
+  // Fetch properties with completion dates within 18 months (backend filtering)
   const fetchPropertiesForCompletion = async () => {
     setLoading(true);
     setError(null);
 
     try {
+      // console.log(
+      //   "🏠 PropertyListings: Fetching properties with 18-month completion filter"
+      // );
+
+      // First try without completion_period filter to see if we get any properties
+      const apiParams = {
+        limit: 12,
+        page: 1,
+        sort: "latest",
+      };
+
+      // TODO: Add back completion_period filter once we confirm basic API works
+      // completion_period: "18_months", // Backend filters for 18-month completion first
+
+      // console.log("📋 PropertyListings API params:", apiParams);
+
       const response = await axios.get("/api/properties", {
-        params: {
-          completion_period: "18_months", // Changed to 18_months
-          limit: 100, // Get more properties since we're filtering on backend
-          page: 1,
-        },
+        params: apiParams,
       });
+
+      // console.log("📡 PropertyListings API response:", {
+      //   status: response.status,
+      //   success: response.data?.success,
+      //   dataLength: response.data?.data?.length,
+      //   pagination: response.data?.pagination,
+      // });
+
       const data = response.data;
 
-      let allPropertiesData: Project[] = [];
+      let filteredProperties: Project[] = [];
 
       if (data.success && data.data) {
-        // Handle different response structures
-        allPropertiesData = data.data.items || data.data || [];
+        // Get properties from API response
+        filteredProperties = data.data || [];
+        // console.log(
+        //   `✅ Received ${filteredProperties.length} properties from backend`
+        // );
+
+        // Log first few properties to verify data
+        filteredProperties.slice(0, 3).forEach((prop, index) => {
+          // console.log(`🏠 Property ${index + 1}:`, {
+          //   id: prop.id,
+          //   name: prop.name,
+          //   completion_datetime: prop.completion_datetime,
+          //   area: prop.area,
+          //   min_price: prop.min_price,
+          // });
+        });
+
+        // If no properties found, log for debugging
+        if (filteredProperties.length === 0) {
+          console.warn("⚠️ No properties returned from API");
+        }
       } else if (Array.isArray(data)) {
-        allPropertiesData = data;
+        filteredProperties = data;
+        // console.log(
+        //   `✅ Received ${filteredProperties.length} properties (array format)`
+        // );
+      } else {
+        console.warn("⚠️ Unexpected API response format:", data);
       }
 
-      // No need for frontend filtering since backend already filtered
-      setLocalAllProperties(allPropertiesData);
+      // Store the backend-filtered properties directly
+      setLocalAllProperties(filteredProperties);
+      // console.log(
+      //   `📊 PropertyListings: Set ${filteredProperties.length} properties for display`
+      // );
       // Initial sorting will be applied by useEffect
     } catch (err) {
       console.error("❌ Error fetching properties:", err);
@@ -274,26 +300,22 @@ export function PropertyListings({
     }
   };
 
-  // Apply sorting when sortBy changes or when shared properties are provided
+  // Apply sorting when sortBy changes or when properties are loaded
   useEffect(() => {
     if (effectiveAllProperties.length > 0) {
-      // No need for frontend filtering since backend handles completion date filtering
-      // When using shared properties, we still need to filter for 18-month completion
-      const filteredProperties = allProperties
-        ? filterPropertiesWithin18Months(effectiveAllProperties)
-        : effectiveAllProperties; // Backend already filtered, no need to filter again
-
-      const sortedProperties = sortProperties(filteredProperties, sortBy);
+      // Backend has already filtered for 18-month completion, just apply sorting
+      const sortedProperties = sortProperties(effectiveAllProperties, sortBy);
       setProperties(sortedProperties);
+      // console.log(
+      //   `🔄 PropertyListings: Applied ${sortBy} sorting to ${effectiveAllProperties.length} properties`
+      // );
     }
-  }, [sortBy, effectiveAllProperties, allProperties]);
+  }, [sortBy, effectiveAllProperties]);
 
-  // Fetch properties on component mount only if shared properties are not provided
+  // Always fetch properties on component mount
   useEffect(() => {
-    if (!allProperties) {
-      fetchPropertiesForCompletion();
-    }
-  }, [allProperties]);
+    fetchPropertiesForCompletion();
+  }, []);
 
   // Get image URL from JSON string
   const getImageUrl = (coverImageUrl?: string) => {
@@ -511,7 +533,10 @@ export function PropertyListings({
           </div>
         ) : effectiveError ? (
           <div className="text-center py-12">
-            <p className="text-red-500 mb-4">{error}</p>
+            <p className="text-red-500 mb-4">{effectiveError}</p>
+            <p className="text-gray-500 text-sm mb-4">
+              Unable to load properties with 18-month completion dates
+            </p>
             <Button
               onClick={fetchPropertiesForCompletion}
               variant="outline"
@@ -537,7 +562,7 @@ export function PropertyListings({
               No Properties Found
             </h3>
             <p className="text-sm text-gray-500 mb-4">
-              No properties completing within the next 12 months are currently
+              No properties completing within the next 18 months are currently
               available.
             </p>
             <Button

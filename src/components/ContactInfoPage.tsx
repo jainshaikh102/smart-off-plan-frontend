@@ -65,7 +65,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       name: "Business Bay Headquarters",
       shortName: "UK",
       address: "240 London Road, Bagshot, GU19 5EZ, UK",
-      phone: "‪+971543218123",
+      phone: "‪+971543218123 / 03301330888",
       email: "accounts@smartoffplan.com",
       hours: "Mon-Fri: 9:00 AM - 7:00 PM, Sat: 10:00 AM - 4:00 PM",
       image:
@@ -80,7 +80,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: Phone,
       title: "Call Us",
       description: "Speak directly with our property experts",
-      value: "+971 54 321 8123",
+      value: "+971 54 321 8123 / 03301330888",
       action: "tel:+971 54 321 8123",
       color: "text-gold",
       bgColor: "from-gold/10 to-gold/5",
@@ -98,7 +98,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       icon: MessageSquare,
       title: "WhatsApp",
       description: "Chat with us instantly",
-      value: "+971 54 321 8123",
+      value: "+971 54 321 8123 / 03301330888",
       action:
         "https://web.whatsapp.com/send?phone=971543218123&text=Hello%20Smart%20Off%20Plan!%20I'm%20interested%20in%20learning%20more%20about%20your%20property%20investment%20opportunities.%20Could%20you%20please%20help%20me%20get%20started?",
       color: "text-green-600",
@@ -947,7 +947,7 @@ Thank you!`;
                     onClick={() => (window.location.href = "tel:+971543218123")}
                   >
                     <Phone className="w-4 h-4 mr-2" />
-                    ‪+971543218123
+                    ‪+971543218123 / 03301330888
                   </Button>
                 </CardContent>
               </Card>

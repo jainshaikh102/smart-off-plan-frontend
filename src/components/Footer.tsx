@@ -144,10 +144,12 @@ export function Footer() {
             <div>
               <h4 className="mb-6 text-white">Get In Touch</h4>
               <div className="space-y-4">
+                {/* <p className="text-[#d2c7b8] text-sm">Phone</p> */}
                 <div>
-                  {/* <p className="text-[#d2c7b8] text-sm">Phone</p> */}
                   <p className="text-[#d2c7b8] text-sm">📞 ‪+971543218123</p>
+                  <p className="text-[#d2c7b8] text-sm">📞 03301330888</p>
                 </div>
+
                 <div>
                   {/* <p className="text-[#d2c7b8] text-sm">Email</p> */}
                   <p className="text-[#d2c7b8] text-sm">
