@@ -6,13 +6,9 @@ export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   try {
-    // console.log("🛏️ Frontend bedroom options API called");
-
     // Backend URL
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/properties/bedroom-options`;
-
-    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const backendResponse = await fetch(backendApiUrl, {
       method: "GET",

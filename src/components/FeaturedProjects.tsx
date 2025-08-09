@@ -123,15 +123,11 @@ export function FeaturedProjects({
     setError(null);
 
     try {
-      // console.log(
-      //   "🌟 FeaturedProjects: Fetching featured properties with backend filtering"
-      // );
-
       // Use dedicated featured properties endpoint for better debugging
       const params = new URLSearchParams({
         page: "1",
         limit: "6", // Get more than 3 in case some don't have images
-        sort: "latest",
+        // Remove sort parameter to let backend use default featured sorting
       });
 
       const response = await axios.get(
@@ -139,31 +135,11 @@ export function FeaturedProjects({
       );
       const data = response.data;
 
-      // console.log("🔍 FeaturedProjects API response:", {
-      //   success: data.success,
-      //   dataLength: data.data?.length,
-      //   pagination: data.pagination,
-      // });
-
       let featuredProperties: Property[] = [];
 
       // Handle API response structure
       if (data.success && data.data) {
         featuredProperties = data.data || [];
-        // console.log(
-        //   `✅ Found ${featuredProperties.length} featured properties from backend`
-        // );
-
-        // Log first few properties to debug
-        featuredProperties.slice(0, 3).forEach((prop, index) => {
-          // console.log(`🏠 Featured Property ${index + 1}:`, {
-          //   id: prop.id,
-          //   name: prop.name,
-          //   featured: prop.featured,
-          //   area: prop.area,
-          //   developer: prop.developer,
-          // });
-        });
       } else if (Array.isArray(data)) {
         featuredProperties = data;
       }
@@ -171,10 +147,6 @@ export function FeaturedProjects({
       // Take only first 3 for display
       const displayProperties = featuredProperties.slice(0, 3);
       setLocalProperties(displayProperties);
-
-      // console.log(
-      //   `🎯 Setting ${displayProperties.length} properties for display`
-      // );
     } catch (err) {
       console.error("❌ Error fetching featured properties:", err);
       if (axios.isAxiosError(err)) {
@@ -198,6 +170,7 @@ export function FeaturedProjects({
 
   useEffect(() => {
     // Always fetch featured properties independently for better control and debugging
+
     fetchProperties();
   }, []);
 
@@ -268,7 +241,7 @@ export function FeaturedProjects({
                     <Badge
                       className={`absolute top-4 left-4 capitalize bg-[#8b7355] text-white `}
                     >
-                      {property.featured || property.featured || "featured"}
+                      Featured
                     </Badge>
 
                     {/* Partner Project Badge */}

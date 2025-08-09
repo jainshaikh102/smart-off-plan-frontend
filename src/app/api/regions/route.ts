@@ -6,13 +6,9 @@ export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   try {
-    // console.log("🌍 Frontend regions API called");
-
     // Backend URL - using database-only approach
     const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     const backendApiUrl = `${backendUrl}/api/regions`;
-
-    // console.log("🔗 Calling backend API:", backendApiUrl);
 
     const response = await fetch(backendApiUrl, {
       method: "GET",
