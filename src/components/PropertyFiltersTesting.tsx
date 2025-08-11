@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
@@ -37,38 +37,9 @@ const mapStyles = `
   }
 `;
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Slider } from "./ui/slider";
+import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import {
-  MapPin,
-  Search,
-  SlidersHorizontal,
-  RotateCcw,
-  TrendingUp,
-  Clock,
-  ShoppingCart,
-  Banknote,
-  Hammer,
-  Building,
-} from "lucide-react";
+import { MapPin, Building, ExternalLink } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useRouter } from "next/navigation";
 
@@ -100,73 +71,39 @@ interface Property {
   createdAt: Date;
   updatedAt: Date;
   __v: number;
-}
-
-interface Filters {
-  searchTerm: string;
-  priceRange: [number, number];
-  priceDisplayMode: "total" | "perSqFt";
-  completionTimeframe: string;
-  developmentStatus: string[];
-  salesStatus: string[];
+  developer_logo?: string; // Developer logo URL for map markers
 }
 
 interface PropertyFiltersTestingProps {
   onPropertySelect: (property: Property) => void;
 }
 
-export function PropertyFiltersTesting({
-  onPropertySelect,
-}: PropertyFiltersTestingProps) {
+export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
   const [properties, setProperties] = useState<Property[]>([]); // For property list (paginated)
   const [mapProperties, setMapProperties] = useState<Property[]>([]); // For map markers (progressively loaded)
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [mapKey, setMapKey] = useState(0); // Key to force map re-initialization if needed
 
   // Infinite scroll pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [totalProperties, setTotalProperties] = useState(0);
 
-  // Progressive map loading state
-  const [mapLoadedPages, setMapLoadedPages] = useState<Set<number>>(new Set());
+  // Map loading state (developer-based)
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapCurrentDeveloperPage, setMapCurrentDeveloperPage] = useState(1);
+  const [mapHasMoreDevelopers, setMapHasMoreDevelopers] = useState(true);
 
   const mapRef = useRef<L.Map | null>(null);
-
-  // Applied filters (used for API calls)
-  const [appliedFilters, setAppliedFilters] = useState<Filters>({
-    searchTerm: "",
-    priceRange: [0, 20000000],
-    priceDisplayMode: "total",
-    completionTimeframe: "all",
-    developmentStatus: [],
-    salesStatus: [],
-  });
-
-  // Dialog filters (temporary state while user is selecting filters)
-  const [dialogFilters, setDialogFilters] = useState<Filters>({
-    searchTerm: "",
-    priceRange: [0, 20000000],
-    priceDisplayMode: "total",
-    completionTimeframe: "all",
-    developmentStatus: [],
-    salesStatus: [],
-  });
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null
   );
 
   const [hoveredProperty, setHoveredProperty] = useState<Property | null>(null);
-  const [sortBy, setSortBy] = useState("featured");
   const [currentZoom, setCurrentZoom] = useState(10);
-  // Dynamic filter options state
-  const [developmentStatuses, setDevelopmentStatuses] = useState<string[]>([]);
-  const [salesStatuses, setSalesStatuses] = useState<string[]>([]);
-  const [statusesLoading, setStatusesLoading] = useState(false);
   const router = useRouter();
 
   // Ref for infinite scroll trigger
@@ -191,70 +128,9 @@ export function PropertyFiltersTesting({
         limit: limit.toString(),
       });
 
-      // Add sorting parameter - map frontend values to backend values
-      if (sortBy) {
-        let backendSortValue = sortBy;
-        switch (sortBy) {
-          case "price-low":
-            backendSortValue = "price_min_to_max";
-            break;
-          case "price-high":
-            backendSortValue = "price_max_to_min";
-            break;
-          case "location":
-            backendSortValue = "name_asc"; // Location sorting by area name
-            break;
-          case "featured":
-            backendSortValue = "featured";
-            break;
-          default:
-            backendSortValue = "featured"; // Default to featured
-        }
-        params.append("sort", backendSortValue);
-      }
+      // No sorting - just basic property fetching
 
-      // Add filter parameters (use appliedFilters for API calls)
-      if (appliedFilters.searchTerm) {
-        params.append("name", appliedFilters.searchTerm);
-      }
-      if (appliedFilters.priceRange[0] > 0) {
-        params.append("min_price", appliedFilters.priceRange[0].toString());
-      }
-      if (appliedFilters.priceRange[1] < 20000000) {
-        params.append("max_price", appliedFilters.priceRange[1].toString());
-      }
-      if (appliedFilters.developmentStatus.length > 0) {
-        params.append(
-          "development_status",
-          appliedFilters.developmentStatus.join(",")
-        );
-      }
-      if (appliedFilters.salesStatus.length > 0) {
-        params.append("sale_status", appliedFilters.salesStatus.join(","));
-      }
-
-      // Add completion timeframe parameter - map frontend values to backend values
-      if (
-        appliedFilters.completionTimeframe &&
-        appliedFilters.completionTimeframe !== "all"
-      ) {
-        let backendTimeframeValue = appliedFilters.completionTimeframe;
-        switch (appliedFilters.completionTimeframe) {
-          case "within_6m":
-            backendTimeframeValue = "6_months";
-            break;
-          case "within_12m":
-            backendTimeframeValue = "12_months";
-            break;
-          case "within_24m":
-            backendTimeframeValue = "24_months";
-            break;
-          case "beyond_24m":
-            backendTimeframeValue = "beyond_24_months";
-            break;
-        }
-        params.append("completion_period", backendTimeframeValue);
-      }
+      // No filters - just basic property fetching
 
       const response = await axios.get(`/api/properties?${params.toString()}`);
       const data = response.data;
@@ -265,47 +141,23 @@ export function PropertyFiltersTesting({
         // Update properties - append for infinite scroll or replace for new search
         if (append) {
           setProperties((prev) => [...prev, ...fetchedProperties]);
-          // Also add to map properties progressively
-          setMapProperties((prev) => [...prev, ...fetchedProperties]);
         } else {
           setProperties(fetchedProperties);
-          // Reset map properties and add first page
-          setMapProperties(fetchedProperties);
-          setMapLoadedPages(new Set([page]));
-        }
-
-        // Track which pages have been loaded for the map
-        if (append) {
-          setMapLoadedPages((prev) => new Set([...prev, page]));
         }
 
         // Update pagination info from server response
         if (data.pagination) {
           setCurrentPage(data.pagination.page);
-          setTotalProperties(data.pagination.total);
           setHasMore(data.pagination.page < data.pagination.totalPages);
         }
-
-        // console.log(
-        //   `✅ Fetched ${fetchedProperties.length} properties (page ${page}/${
-        //     data.pagination?.totalPages || 1
-        //   })`
-        // );
-        // console.log("📊 Pagination info:", data.pagination);
-        // console.log(
-        //   "🔍 API URL called:",
-        //   `/api/properties?${params.toString()}`
-        // );
       } else {
         if (!append) {
           setProperties([]);
           setCurrentPage(1);
-          setTotalProperties(0);
           setHasMore(false);
         }
       }
     } catch (err) {
-      console.error("❌ Error fetching properties:", err);
       if (axios.isAxiosError(err)) {
         setError(
           `Failed to fetch properties: ${err.response?.status || err.message}`
@@ -317,10 +169,7 @@ export function PropertyFiltersTesting({
       }
       if (!append) {
         setProperties([]);
-        setMapProperties([]); // Also reset map properties on error
-        setMapLoadedPages(new Set()); // Reset loaded pages tracking
         setCurrentPage(1);
-        setTotalProperties(0);
         setHasMore(false);
       }
     } finally {
@@ -332,51 +181,6 @@ export function PropertyFiltersTesting({
     }
   };
 
-  // Fetch development and sales statuses from API
-  const fetchStatuses = async () => {
-    setStatusesLoading(true);
-    try {
-      // Fetch development statuses
-      const devResponse = await axios.get("/api/project-statuses");
-      if (devResponse.data.success && devResponse.data.data) {
-        const statuses = devResponse.data.data.map(
-          (item: any) => item.name || item
-        );
-        setDevelopmentStatuses(statuses);
-      }
-
-      // Fetch sales statuses
-      const salesResponse = await axios.get("/api/sale-statuses");
-      if (salesResponse.data.success && salesResponse.data.data) {
-        const statuses = salesResponse.data.data.map(
-          (item: any) => item.name || item
-        );
-        setSalesStatuses(statuses);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching statuses:", error);
-      // Fallback to hardcoded values
-      setDevelopmentStatuses(["Completed", "Under construction", "Presale"]);
-      setSalesStatuses([
-        "Presale(EOI)",
-        "On sale",
-        "Out of stock",
-        "Announced",
-        "Start of sales",
-      ]);
-    } finally {
-      setStatusesLoading(false);
-    }
-  };
-
-  const completionTimeframes = [
-    { value: "all", label: "All Projects" },
-    { value: "within_6m", label: "Within 6 Months" },
-    { value: "within_12m", label: "Within 12 Months" },
-    { value: "within_24m", label: "Within 24 Months" },
-    { value: "beyond_24m", label: "Beyond 24 Months" },
-  ];
-
   // Load more properties for infinite scroll
   const loadMoreProperties = () => {
     if (!loadingMore && hasMore) {
@@ -385,24 +189,206 @@ export function PropertyFiltersTesting({
     }
   };
 
+  // Fetch map properties in batches of 100 - much more efficient than developer-based loading
+  const fetchMapPropertiesBatch100 = useCallback(
+    async (page: number = 1, limit: number = 100, append: boolean = false) => {
+      if (!append) {
+        setMapLoading(true);
+      }
+
+      try {
+        // Build query parameters for API call
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+
+        // No filters for map loading - just load all properties in batches
+
+        const response = await axios.get(
+          `/api/properties/batch-100?${params.toString()}`
+        );
+        const data = response.data;
+
+        if (data.success && data.data) {
+          const fetchedProperties = data.data;
+
+          if (append) {
+            setMapProperties((prev) => [...prev, ...fetchedProperties]);
+          } else {
+            setMapProperties(fetchedProperties);
+          }
+
+          // Update map pagination info
+          if (data.pagination) {
+            setMapCurrentDeveloperPage(data.pagination.page);
+            const hasMore = data.pagination.page < data.pagination.totalPages;
+            setMapHasMoreDevelopers(hasMore);
+
+            console.log(
+              `📦 Batch Loading: Page ${data.pagination.page}/${data.pagination.totalPages}, HasMore: ${hasMore}, Properties: ${fetchedProperties.length}`
+            );
+          }
+        } else {
+          if (!append) {
+            setMapProperties([]);
+            setMapCurrentDeveloperPage(1);
+            setMapHasMoreDevelopers(false);
+          }
+        }
+      } catch (err) {
+        if (!append) {
+          setMapProperties([]);
+          setMapCurrentDeveloperPage(1);
+          setMapHasMoreDevelopers(false);
+        }
+      } finally {
+        if (!append) {
+          setMapLoading(false);
+        }
+      }
+    },
+    [
+      setMapProperties,
+      setMapCurrentDeveloperPage,
+      setMapHasMoreDevelopers,
+      setMapLoading,
+    ]
+  );
+
+  // Fetch map properties by developers - loads properties grouped by developers
+  const fetchMapPropertiesByDevelopers = useCallback(
+    async (
+      page: number = 1,
+      limit: number = 1, // Number of developers per page (increased to get more developers)
+      append: boolean = false
+    ) => {
+      if (!append) {
+        setMapLoading(true);
+      }
+
+      try {
+        // Build query parameters for API call
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+        params.append("properties_per_developer", "100"); // Max properties per developer
+
+        // No filters for map loading - just load all properties by developers
+
+        const response = await axios.get(
+          `/api/properties/by-developers?${params.toString()}`
+        );
+        const data = response.data;
+
+        if (data.success && data.data) {
+          // Flatten the developer groups into a single array of properties
+          const fetchedProperties: Property[] = [];
+          data.data.forEach((developerGroup: any) => {
+            fetchedProperties.push(...developerGroup.properties);
+          });
+
+          // Update map properties
+          if (append) {
+            setMapProperties((prev) => [...prev, ...fetchedProperties]);
+          } else {
+            setMapProperties(fetchedProperties);
+          }
+
+          // Update map pagination info
+          if (data.pagination) {
+            setMapCurrentDeveloperPage(data.pagination.page);
+            const hasMore = data.pagination.page < data.pagination.totalPages;
+            setMapHasMoreDevelopers(hasMore);
+
+            console.log(
+              `📊 Map Loading: Page ${data.pagination.page}/${data.pagination.totalPages}, HasMore: ${hasMore}, Properties: ${fetchedProperties.length}`
+            );
+          }
+        } else {
+          if (!append) {
+            setMapProperties([]);
+            setMapCurrentDeveloperPage(1);
+            setMapHasMoreDevelopers(false);
+          }
+        }
+      } catch (err) {
+        if (!append) {
+          setMapProperties([]);
+          setMapCurrentDeveloperPage(1);
+          setMapHasMoreDevelopers(false);
+        }
+      } finally {
+        if (!append) {
+          setMapLoading(false);
+        }
+      }
+    },
+    [
+      setMapProperties,
+      setMapCurrentDeveloperPage,
+      setMapHasMoreDevelopers,
+      setMapLoading,
+    ]
+  );
+
   useEffect(() => {
     // Set client-side flag to enable map rendering
     setIsClient(true);
-
-    // console.log(
-    //   "🚀 PropertyFiltersTesting: Initial load - fetching first page (map properties loaded progressively)"
-    // );
     fetchProperties(1, 12);
-    fetchStatuses();
-  }, []);
+    fetchMapPropertiesBatch100(1, 100, false);
 
-  // Apply filters and sorting - trigger new API call with server-side filtering
+    // Cleanup function to prevent map initialization errors
+    return () => {
+      if (mapRef.current) {
+        try {
+          mapRef.current.remove();
+          mapRef.current = null;
+        } catch (error) {
+          // Force re-initialization by updating the key
+          setMapKey((prev) => prev + 1);
+        }
+      }
+    };
+  }, [fetchMapPropertiesBatch100]);
+
+  // Auto-load map properties by developers with a delay - only when page changes and loading is complete
   useEffect(() => {
-    // Reset pagination and fetch new data when filters change
-    setCurrentPage(1);
-    setHasMore(true);
-    fetchProperties(1, 12, false); // This will reset map properties and start progressive loading
-  }, [appliedFilters, sortBy]); // Re-fetch when applied filters or sorting changes
+    console.log(
+      `⏰ Page change detected: page=${mapCurrentDeveloperPage}, hasMore=${mapHasMoreDevelopers}, loading=${mapLoading}`
+    );
+
+    // Only set timer when we have a valid page, there are more developers, and we're not currently loading
+    if (mapCurrentDeveloperPage > 0 && mapHasMoreDevelopers && !mapLoading) {
+      console.log(
+        `⏳ Setting 3-second timer for next batch (page ${
+          mapCurrentDeveloperPage + 1
+        })...`
+      );
+      const timer = setTimeout(() => {
+        console.log(
+          `⏰ Timer fired! Loading page ${mapCurrentDeveloperPage + 1}...`
+        );
+        if (mapHasMoreDevelopers && !mapLoading) {
+          const nextPage = mapCurrentDeveloperPage + 1;
+          fetchMapPropertiesBatch100(nextPage, 100, true);
+        }
+      }, 2000); // 2 seconds between batches (faster since we're loading 100 at once)
+
+      return () => {
+        console.log(`🚫 Clearing timer for page ${mapCurrentDeveloperPage}`);
+        clearTimeout(timer);
+      };
+    } else {
+      console.log(
+        `❌ Auto-load conditions not met: page=${mapCurrentDeveloperPage}, hasMore=${mapHasMoreDevelopers}, loading=${mapLoading}`
+      );
+    }
+  }, [
+    mapCurrentDeveloperPage,
+    mapHasMoreDevelopers,
+    mapLoading,
+    fetchMapPropertiesBatch100,
+  ]);
 
   // Infinite scroll effect
   useEffect(() => {
@@ -429,47 +415,6 @@ export function PropertyFiltersTesting({
       }
     };
   }, [hasMore, loadingMore, loading]);
-
-  // Filter helper functions for dialog filters (temporary state)
-  const handleDialogFilterChange = (
-    key: keyof Filters,
-    value: Filters[keyof Filters]
-  ) => {
-    setDialogFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Filter helper functions for applied filters (search term only - immediate effect)
-  const handleSearchChange = (searchTerm: string) => {
-    setAppliedFilters((prev) => ({ ...prev, searchTerm }));
-  };
-
-  const resetFilters = () => {
-    const defaultFilters = {
-      searchTerm: "",
-      priceRange: [0, 20000000] as [number, number],
-      priceDisplayMode: "total" as const,
-      completionTimeframe: "all",
-      developmentStatus: [],
-      salesStatus: [],
-    };
-    setDialogFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
-  };
-
-  const handleApplyFilters = () => {
-    // Apply the dialog filters to the applied filters (this will trigger the API call)
-    setAppliedFilters({ ...dialogFilters });
-    setIsDialogOpen(false);
-  };
-
-  // Initialize dialog filters when dialog opens
-  const handleDialogOpen = (open: boolean) => {
-    if (open) {
-      // Copy current applied filters to dialog filters when opening
-      setDialogFilters({ ...appliedFilters });
-    }
-    setIsDialogOpen(open);
-  };
 
   // Handle property hover from list - move to property but maintain zoom level 12
   const handlePropertyListHover = (property: Property) => {
@@ -499,20 +444,6 @@ export function PropertyFiltersTesting({
   };
 
   // Count active filters (excluding search term as it's visible in the search bar)
-  const getActiveFilterCount = () => {
-    let count = 0;
-
-    if (
-      appliedFilters.priceRange[0] > 0 ||
-      appliedFilters.priceRange[1] < 20000000
-    )
-      count++;
-    if (appliedFilters.completionTimeframe !== "all") count++;
-    if (appliedFilters.developmentStatus.length > 0) count++;
-    if (appliedFilters.salesStatus.length > 0) count++;
-
-    return count;
-  };
 
   // Parse coordinates from database structure to { lat, lng }
   const parseCoordinates = (
@@ -568,6 +499,12 @@ export function PropertyFiltersTesting({
     }
   };
 
+  // Get developer logo URL - fallback to placeholder if not available
+  const getDeveloperLogoUrl = (developerLogo?: string) => {
+    if (!developerLogo) return "/placeholder-developer.jpg";
+    return developerLogo;
+  };
+
   // MapEvents component for handling map interactions
   const MapEvents = dynamic(
     () =>
@@ -601,48 +538,6 @@ export function PropertyFiltersTesting({
           </p>
         </div>
 
-        {/* Search and Filter Controls */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-8 lg:items-center">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-warm-gray w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by property name or location..."
-                value={appliedFilters.searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full h-12 pl-12 pr-4 border border-beige rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold bg-white text-[#8b7355]"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <span className="text-[#8b7355]">
-              {totalProperties} properties found • Showing {properties.length}
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Sort By */}
-            <div className="flex items-center space-x-2">
-              <Label className="text-sm text-[#8b7355]">Sort by:</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48 border-beige/50 focus:border-gold rounded-lg">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="location">Location</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="lg:col-span-1">
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
@@ -663,17 +558,15 @@ export function PropertyFiltersTesting({
                   </Button>
                 </div>
               ) : properties.length > 0 ? (
-                properties.map((property) => (
+                properties.map((property, index) => (
                   <div
-                    key={property.id}
+                    key={`list-${property.id}-${index}`}
                     className={`border rounded-lg p-3 transition-all duration-300 cursor-pointer border-[#F6F2ED] hover:border-[#D4A373]/50 hover:shadow-md ${
                       hoveredProperty?.id === property.id
                         ? "border-gold shadow-lg bg-gold/5"
                         : ""
                     }`}
-                    onClick={() =>
-                      router.push(`/properties/${property.externalId}`)
-                    }
+                    onClick={() => router.push(`/properties/${property.id}`)}
                     onMouseEnter={() => handlePropertyListHover(property)}
                     onMouseLeave={handlePropertyListHoverEnd}
                   >
@@ -737,7 +630,7 @@ export function PropertyFiltersTesting({
                     No properties found matching your criteria
                   </div>
                   <Button
-                    onClick={resetFilters}
+                    // onClick={resetFilters}
                     className="bg-gold hover:bg-gold/90 text-charcoal"
                   >
                     Reset Filters
@@ -818,9 +711,18 @@ export function PropertyFiltersTesting({
                       <div className="absolute bottom-4 right-4 z-[1000] bg-white px-3 py-2 rounded-lg shadow-lg border">
                         <div className="text-sm font-medium text-gray-700">
                           {mapProperties.length} properties on map
-                          {hasMore && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              Scroll down to load more
+                          {mapHasMoreDevelopers && (
+                            <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                              {mapLoading ? (
+                                <>
+                                  <div className="w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                                  Loading more developers...
+                                </>
+                              ) : (
+                                `Loading developer batch ${
+                                  mapCurrentDeveloperPage + 1
+                                }...`
+                              )}
                             </div>
                           )}
                         </div>
@@ -828,6 +730,7 @@ export function PropertyFiltersTesting({
                     )}
 
                     <MapContainer
+                      key={`property-map-${mapKey}`} // Dynamic key to prevent re-initialization errors
                       className="custom-map english-map"
                       center={[
                         initialViewState.latitude,
@@ -846,18 +749,18 @@ export function PropertyFiltersTesting({
 
                       {mapProperties
                         .filter((property) => property.coordinates)
-                        .map((property) => {
+                        .map((property, index) => {
                           const coords = parseCoordinates(property.coordinates);
                           const isHovered = hoveredProperty?.id === property.id;
 
                           return (
                             <Marker
-                              key={property.id}
+                              key={`map-${property.id}-${index}`}
                               position={[coords.lat, coords.lng]}
                               icon={createCustomIcon(
                                 isHovered,
-                                getImageUrl(property.cover_image_url)
-                              )} // Use custom icon with property image
+                                getDeveloperLogoUrl(property.developer_logo)
+                              )} // Use custom icon with developer logo
                               eventHandlers={{
                                 click: () => {
                                   setSelectedProperty(property);
@@ -869,13 +772,24 @@ export function PropertyFiltersTesting({
                                 isHovered) && (
                                 <Popup>
                                   <div className="flex gap-3">
-                                    <ImageWithFallback
-                                      src={getImageUrl(
-                                        property.cover_image_url
+                                    <div className="flex flex-col gap-2">
+                                      <ImageWithFallback
+                                        src={getImageUrl(
+                                          property.cover_image_url
+                                        )}
+                                        alt={property.name}
+                                        className="w-16 h-12 object-cover rounded-lg flex-shrink-0"
+                                      />
+                                      {property.developer_logo && (
+                                        <ImageWithFallback
+                                          src={getDeveloperLogoUrl(
+                                            property.developer_logo
+                                          )}
+                                          alt={`${property.developer} logo`}
+                                          className="w-16 h-8 object-contain rounded bg-white p-1 flex-shrink-0"
+                                        />
                                       )}
-                                      alt={property.name}
-                                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                    />
+                                    </div>
 
                                     <div className="flex-1 min-w-0">
                                       <h4 className="mb-1 truncate text-sm text-[#D4AF37]">
@@ -1035,4 +949,3 @@ const createCustomIcon = (
     popupAnchor: [0, isHovered ? -24 : -16], // Popup above marker
   });
 };
-// border: 1px solid rgba(255, 255, 255, 0.3);
