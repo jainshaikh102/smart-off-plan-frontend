@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 // All imports restored - window error was fixed by adding proper guards
 import { FeaturedProjects } from "@/components/FeaturedProjects";
 import { PropertyFiltersTesting } from "@/components/PropertyFiltersTesting";
+import { CachingStatus } from "@/components/CachingStatus";
 import { DevelopersListing } from "@/components/DevelopersListing";
 import { PropertyListings } from "@/components/PropertyListings";
 import { MarketInfo } from "@/components/MarketInfo";
@@ -317,7 +318,7 @@ export default function HomePage() {
             {/* Test components one by one to identify window error source */}
             <FeaturedProjects onProjectSelect={handleProjectSelect} />
 
-            {/* Property Filters & Map - LIKELY CULPRIT (has map/window usage) */}
+            {/* Property Filters & Map - BACK TO ORIGINAL FOR NOW */}
             <PropertyFiltersTesting onPropertySelect={handleProjectSelect} />
 
             {/* Partners Section */}
@@ -344,6 +345,9 @@ export default function HomePage() {
 
             {/* Contact Us */}
             <ContactUs />
+
+            {/* Cache Status Monitor */}
+            <CachingStatus />
           </main>
         );
     }

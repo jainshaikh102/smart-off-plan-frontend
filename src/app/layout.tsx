@@ -3,6 +3,8 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "../styles/globals.css";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { Providers } from "@/components/providers/Providers";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -93,8 +95,16 @@ export default function RootLayout({
         className={`${inter.className} antialiased`}
         suppressHydrationWarning={true}
       >
-        <LayoutWrapper>{children}</LayoutWrapper>
-        <ToastProvider />
+        <Providers>
+          <LayoutWrapper>
+            <Script
+              src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&language=en`}
+              strategy="afterInteractive"
+            />
+            {children}
+          </LayoutWrapper>
+          <ToastProvider />
+        </Providers>
       </body>
     </html>
   );

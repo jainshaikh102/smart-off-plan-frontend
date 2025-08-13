@@ -145,7 +145,7 @@ export function FeaturedProjects({
       }
 
       // Take only first 3 for display
-      const displayProperties = featuredProperties.slice(0, 3);
+      const displayProperties = featuredProperties.slice(0, 9);
       setLocalProperties(displayProperties);
     } catch (err) {
       console.error("❌ Error fetching featured properties:", err);
@@ -323,13 +323,9 @@ export function FeaturedProjects({
                       <Button
                         className="w-full bg-[#8b7355] hover:bg-[#8b7355]/90 mt-auto text-white"
                         onClick={() => {
-                          if (onProjectSelect) {
-                            onProjectSelect(property);
-                          } else {
-                            const propertyId =
-                              property.externalId || property.id;
-                            router.push(`/properties/${propertyId}`);
-                          }
+                          const propertyId =
+                            property?.externalId || property?.id;
+                          router.push(`/properties/${propertyId}`);
                         }}
                       >
                         View Details

@@ -36,10 +36,19 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
     message: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -48,9 +57,78 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      // console.log("📧 Submitting partner application:", formData);
+      // Frontend validation matching backend rules
+
+      // Validate name (2-100 characters)
+      if (
+        !formData.name.trim() ||
+        formData.name.trim().length < 2 ||
+        formData.name.trim().length > 100
+      ) {
+        setError("Name must be between 2 and 100 characters");
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+        setError("Please provide a valid email address");
+        return;
+      }
+
+      // Validate phone (8-20 characters)
+      if (
+        !formData.phone.trim() ||
+        formData.phone.trim().length < 8 ||
+        formData.phone.trim().length > 20
+      ) {
+        setError("Phone number must be between 8 and 20 characters");
+        return;
+      }
+
+      // Validate company (2-200 characters)
+      if (
+        !formData.company.trim() ||
+        formData.company.trim().length < 2 ||
+        formData.company.trim().length > 200
+      ) {
+        setError("Company name must be between 2 and 200 characters");
+        return;
+      }
+
+      // Validate experience (1-500 characters)
+      if (
+        !formData.experience.trim() ||
+        formData.experience.trim().length < 1 ||
+        formData.experience.trim().length > 500
+      ) {
+        setError("Experience must be between 1 and 500 characters");
+        return;
+      }
+
+      // Validate portfolio URL (optional, but if provided must be valid)
+      if (formData.portfolio.trim()) {
+        try {
+          new URL(formData.portfolio.trim());
+        } catch {
+          setError("Please provide a valid portfolio URL");
+          return;
+        }
+      }
+
+      // Validate message (10-2000 characters)
+      if (
+        !formData.message.trim() ||
+        formData.message.trim().length < 10 ||
+        formData.message.trim().length > 2000
+      ) {
+        setError("Message must be between 10 and 2000 characters");
+        return;
+      }
 
       // Call the Join Partner API
       const backendUrl =
@@ -74,10 +152,8 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // console.log("✅ Partner application sent successfully:", result);
-        alert(
-          "Thank you for your application! We will review it and contact you within 48 hours."
-        );
+        // Success - show success message and reset form
+        setError(null);
 
         // Reset form
         setFormData({
@@ -89,24 +165,32 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
           portfolio: "",
           message: "",
         });
+
+        // Show success message (you can replace this with a better UI component)
+        alert(
+          "Thank you for your application! We will review it and contact you within 48 hours."
+        );
       } else {
-        console.error("❌ Failed to send partner application:", result);
+        // Handle validation errors from backend
         if (result.details && Array.isArray(result.details)) {
           const errorMessages = result.details
             .map((error: any) => error.msg)
             .join(", ");
-          alert(`Please check your input: ${errorMessages}`);
+          setError(`Please check your input: ${errorMessages}`);
         } else {
-          alert(
+          setError(
             result.message || "Failed to send application. Please try again."
           );
         }
       }
     } catch (error) {
-      console.error("❌ Error submitting partner application:", error);
-      alert(
-        "An error occurred while submitting your application. Please try again."
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting your application. Please try again."
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -375,6 +459,18 @@ Best regards,`;
             </div>
 
             <div className="bg-white rounded-3xl p-8 shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <div className="flex items-center">
+                    <div className="w-5 h-5 text-red-600 mr-2 flex-shrink-0">
+                      ⚠️
+                    </div>
+                    <p className="text-red-700 text-sm">{error}</p>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -517,10 +613,20 @@ Best regards,`;
                 <div className="text-center">
                   <Button
                     type="submit"
-                    className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] hover:scale-105"
+                    disabled={isSubmitting}
+                    className="bg-gold hover:bg-gold/90 disabled:bg-gold/50 disabled:cursor-not-allowed text-[#8b7355] px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] hover:scale-105 disabled:hover:scale-100"
                   >
-                    <Heart className="w-5 h-5 mr-2" />
-                    Submit Application
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 mr-2 border-2 border-[#8b7355]/30 border-t-[#8b7355] rounded-full animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="w-5 h-5 mr-2" />
+                        Submit Application
+                      </>
+                    )}
                   </Button>
                 </div>
               </form>

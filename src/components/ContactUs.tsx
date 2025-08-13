@@ -144,7 +144,21 @@ export function ContactUs() {
                       </div>
                       <div>
                         <h4 className="text-white mb-1">Call Us</h4>
-                        <p className="text-tan">‪+971543218123 / 03301330888</p>
+                        <div className="text-tan space-x-2">
+                          <a
+                            href="tel:+971543218123"
+                            className="hover:text-gold transition-colors cursor-pointer underline"
+                          >
+                            ‪+971543218123
+                          </a>
+                          <span>/</span>
+                          <a
+                            href="tel:03301330888"
+                            className="hover:text-gold transition-colors cursor-pointer underline"
+                          >
+                            03301330888
+                          </a>
+                        </div>
                       </div>
                     </div>
 

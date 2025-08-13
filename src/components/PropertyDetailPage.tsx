@@ -1444,24 +1444,17 @@ Please send me the detailed brochure for this property. Thank you!`;
 
                 {/* Action Buttons */}
                 <div className="space-y-3 pt-6 border-t border-beige">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsCallbackDialogOpen(true)}
+                      onClick={() =>
+                        (window.location.href = "tel:+971543218123")
+                      }
                       className="border-[#8b7355]/30 text-[#8b7355] hover:bg-[#8b7355]/10"
                     >
                       <PhoneCall className="w-4 h-4 mr-1" />
                       Call Me
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsViewingDialogOpen(true)}
-                      className="border-[#8b7355]/30 text-[#8b7355] hover:bg-[#8b7355]/10"
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
                     </Button>
                   </div>
                 </div>

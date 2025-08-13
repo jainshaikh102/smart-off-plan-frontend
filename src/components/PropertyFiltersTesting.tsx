@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import dynamic from "next/dynamic";
+import { useOptimizedMapProperties } from "@/hooks/useOptimizedProperties";
 import "leaflet/dist/leaflet.css";
 
 // Dynamically import Leaflet components to avoid SSR issues
@@ -42,6 +43,7 @@ import { Badge } from "./ui/badge";
 import { MapPin, Building, ExternalLink } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useRouter } from "next/navigation";
+import GoogleMutantLayer from "./GoogleMutantLayer";
 
 interface Property {
   id: number;
@@ -80,19 +82,28 @@ interface PropertyFiltersTestingProps {
 
 export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
   const [properties, setProperties] = useState<Property[]>([]); // For property list (paginated)
-  const [mapProperties, setMapProperties] = useState<Property[]>([]); // For map markers (progressively loaded)
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Key to force map re-initialization if needed
 
+  // Use optimized map properties with caching
+  const {
+    properties: mapProperties,
+    loading: mapLoading,
+    error: mapError,
+    hasMore: mapHasMore,
+    loadNextBatch,
+    refreshData: refreshMapData,
+  } = useOptimizedMapProperties();
+
   // Infinite scroll pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // Map loading state (developer-based)
-  const [mapLoading, setMapLoading] = useState(false);
+  // Map loading state (developer-based) - now handled by optimized hook
+  // Note: mapLoading is now provided by useOptimizedMapProperties hook
   const [mapCurrentDeveloperPage, setMapCurrentDeveloperPage] = useState(1);
   const [mapHasMoreDevelopers, setMapHasMoreDevelopers] = useState(true);
 
@@ -189,206 +200,105 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
     }
   };
 
-  // Fetch map properties in batches of 100 - much more efficient than developer-based loading
-  const fetchMapPropertiesBatch100 = useCallback(
-    async (page: number = 1, limit: number = 100, append: boolean = false) => {
-      if (!append) {
-        setMapLoading(true);
-      }
+  // OLD FUNCTION - NOW USING OPTIMIZED HOOK
+  // Map properties are now handled by useOptimizedMapProperties hook
+  // This provides automatic caching, progressive loading, and 8-hour persistence
 
-      try {
-        // Build query parameters for API call
-        const params = new URLSearchParams();
-        params.append("page", page.toString());
-        params.append("limit", limit.toString());
-
-        // No filters for map loading - just load all properties in batches
-
-        const response = await axios.get(
-          `/api/properties/batch-100?${params.toString()}`
-        );
-        const data = response.data;
-
-        if (data.success && data.data) {
-          const fetchedProperties = data.data;
-
-          if (append) {
-            setMapProperties((prev) => [...prev, ...fetchedProperties]);
-          } else {
-            setMapProperties(fetchedProperties);
-          }
-
-          // Update map pagination info
-          if (data.pagination) {
-            setMapCurrentDeveloperPage(data.pagination.page);
-            const hasMore = data.pagination.page < data.pagination.totalPages;
-            setMapHasMoreDevelopers(hasMore);
-
-            console.log(
-              `📦 Batch Loading: Page ${data.pagination.page}/${data.pagination.totalPages}, HasMore: ${hasMore}, Properties: ${fetchedProperties.length}`
-            );
-          }
-        } else {
-          if (!append) {
-            setMapProperties([]);
-            setMapCurrentDeveloperPage(1);
-            setMapHasMoreDevelopers(false);
-          }
-        }
-      } catch (err) {
-        if (!append) {
-          setMapProperties([]);
-          setMapCurrentDeveloperPage(1);
-          setMapHasMoreDevelopers(false);
-        }
-      } finally {
-        if (!append) {
-          setMapLoading(false);
-        }
-      }
-    },
-    [
-      setMapProperties,
-      setMapCurrentDeveloperPage,
-      setMapHasMoreDevelopers,
-      setMapLoading,
-    ]
-  );
-
-  // Fetch map properties by developers - loads properties grouped by developers
-  const fetchMapPropertiesByDevelopers = useCallback(
-    async (
-      page: number = 1,
-      limit: number = 1, // Number of developers per page (increased to get more developers)
-      append: boolean = false
-    ) => {
-      if (!append) {
-        setMapLoading(true);
-      }
-
-      try {
-        // Build query parameters for API call
-        const params = new URLSearchParams();
-        params.append("page", page.toString());
-        params.append("limit", limit.toString());
-        params.append("properties_per_developer", "100"); // Max properties per developer
-
-        // No filters for map loading - just load all properties by developers
-
-        const response = await axios.get(
-          `/api/properties/by-developers?${params.toString()}`
-        );
-        const data = response.data;
-
-        if (data.success && data.data) {
-          // Flatten the developer groups into a single array of properties
-          const fetchedProperties: Property[] = [];
-          data.data.forEach((developerGroup: any) => {
-            fetchedProperties.push(...developerGroup.properties);
-          });
-
-          // Update map properties
-          if (append) {
-            setMapProperties((prev) => [...prev, ...fetchedProperties]);
-          } else {
-            setMapProperties(fetchedProperties);
-          }
-
-          // Update map pagination info
-          if (data.pagination) {
-            setMapCurrentDeveloperPage(data.pagination.page);
-            const hasMore = data.pagination.page < data.pagination.totalPages;
-            setMapHasMoreDevelopers(hasMore);
-
-            console.log(
-              `📊 Map Loading: Page ${data.pagination.page}/${data.pagination.totalPages}, HasMore: ${hasMore}, Properties: ${fetchedProperties.length}`
-            );
-          }
-        } else {
-          if (!append) {
-            setMapProperties([]);
-            setMapCurrentDeveloperPage(1);
-            setMapHasMoreDevelopers(false);
-          }
-        }
-      } catch (err) {
-        if (!append) {
-          setMapProperties([]);
-          setMapCurrentDeveloperPage(1);
-          setMapHasMoreDevelopers(false);
-        }
-      } finally {
-        if (!append) {
-          setMapLoading(false);
-        }
-      }
-    },
-    [
-      setMapProperties,
-      setMapCurrentDeveloperPage,
-      setMapHasMoreDevelopers,
-      setMapLoading,
-    ]
-  );
+  // OLD FUNCTION - NOW USING OPTIMIZED HOOK
+  // Map properties by developers are now handled by useOptimizedMapProperties hook
 
   useEffect(() => {
     // Set client-side flag to enable map rendering
     setIsClient(true);
     fetchProperties(1, 12);
-    fetchMapPropertiesBatch100(1, 100, false);
+    // Map properties are now automatically loaded by useOptimizedMapProperties hook
+  }, []); // No dependencies needed since map loading is handled by hook
 
-    // Cleanup function to prevent map initialization errors
+  // Separate effect for map cleanup to prevent initialization errors
+  useEffect(() => {
     return () => {
+      // Cleanup map instance when component unmounts
       if (mapRef.current) {
         try {
+          // Properly remove all event listeners and layers
+          mapRef.current.off();
           mapRef.current.remove();
-          mapRef.current = null;
         } catch (error) {
-          // Force re-initialization by updating the key
+          // Silently handle cleanup errors and force re-initialization
           setMapKey((prev) => prev + 1);
+        } finally {
+          mapRef.current = null;
         }
       }
     };
-  }, [fetchMapPropertiesBatch100]);
+  }, [mapKey]); // Re-run cleanup when mapKey changes
 
-  // Auto-load map properties by developers with a delay - only when page changes and loading is complete
+  // Effect to handle map initialization errors
   useEffect(() => {
-    console.log(
-      `⏰ Page change detected: page=${mapCurrentDeveloperPage}, hasMore=${mapHasMoreDevelopers}, loading=${mapLoading}`
-    );
+    const handleMapError = () => {
+      // Force map re-initialization on error
+      setMapKey((prev) => prev + 1);
+    };
 
-    // Only set timer when we have a valid page, there are more developers, and we're not currently loading
-    if (mapCurrentDeveloperPage > 0 && mapHasMoreDevelopers && !mapLoading) {
+    // Listen for unhandled map errors
+    window.addEventListener("error", (event) => {
+      if (
+        event.message &&
+        event.message.includes("Map container is already initialized")
+      ) {
+        event.preventDefault();
+        handleMapError();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("error", handleMapError);
+    };
+  }, []);
+
+  // Auto-load map properties - now handled by optimized hook
+  useEffect(() => {
+    // The useOptimizedMapProperties hook automatically handles progressive loading
+    // with 5-second delays between batches and 8-hour caching
+    if (mapHasMore && !mapLoading) {
       console.log(
-        `⏳ Setting 3-second timer for next batch (page ${
-          mapCurrentDeveloperPage + 1
-        })...`
+        `🚀 Optimized map loading: ${mapProperties.length} properties loaded`
       );
+
+      // Trigger next batch if needed
       const timer = setTimeout(() => {
-        console.log(
-          `⏰ Timer fired! Loading page ${mapCurrentDeveloperPage + 1}...`
-        );
-        if (mapHasMoreDevelopers && !mapLoading) {
-          const nextPage = mapCurrentDeveloperPage + 1;
-          fetchMapPropertiesBatch100(nextPage, 100, true);
+        if (mapHasMore && !mapLoading) {
+          loadNextBatch();
         }
-      }, 2000); // 2 seconds between batches (faster since we're loading 100 at once)
+      }, 5000); // 5 seconds between batches as per optimized hook
 
-      return () => {
-        console.log(`🚫 Clearing timer for page ${mapCurrentDeveloperPage}`);
-        clearTimeout(timer);
-      };
-    } else {
-      console.log(
-        `❌ Auto-load conditions not met: page=${mapCurrentDeveloperPage}, hasMore=${mapHasMoreDevelopers}, loading=${mapLoading}`
-      );
+      return () => clearTimeout(timer);
     }
-  }, [
-    mapCurrentDeveloperPage,
-    mapHasMoreDevelopers,
-    mapLoading,
-    fetchMapPropertiesBatch100,
-  ]);
+  }, [mapHasMore, mapLoading, mapProperties.length, loadNextBatch]);
+
+  // Handle z-index for hovered properties - bring to front
+  useEffect(() => {
+    if (typeof window === "undefined" || !mapRef.current) return;
+
+    // Get all markers from the map
+    const map = mapRef.current;
+
+    // Reset all markers to default z-index
+    map.eachLayer((layer: any) => {
+      if (layer._propertyId && layer.setZIndexOffset) {
+        layer.setZIndexOffset(0);
+      }
+    });
+
+    // If there's a hovered property, bring its marker to front
+    if (hoveredProperty) {
+      map.eachLayer((layer: any) => {
+        if (layer._propertyId === hoveredProperty.id && layer.setZIndexOffset) {
+          layer.setZIndexOffset(1000);
+        }
+      });
+    }
+  }, [hoveredProperty]);
 
   // Infinite scroll effect
   useEffect(() => {
@@ -604,22 +514,39 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
                           </div>
                         </div>
 
-                        <Badge
-                          className={`mt-2 text-xs tracking-wide ${
-                            property.development_status === "Completed"
-                              ? "bg-[#8b7355] text-white"
-                              : property.development_status ===
-                                "Under construction"
-                              ? "bg-[#FF6900] text-white"
-                              : property.development_status === "Presale"
-                              ? "bg-[#D4AF37] text-white"
-                              : "" // Fallback for unexpected values
-                          }`}
-                        >
-                          {property.development_status ||
-                            property.development_status ||
-                            "Available"}
-                        </Badge>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {property.status && (
+                            <Badge
+                              className={`text-white border-0 text-xs font-medium px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-shadow ${
+                                property.status === "Presale"
+                                  ? "bg-[#D4AF37]"
+                                  : property.status === "Under construction"
+                                  ? "bg-[#FF6900]"
+                                  : property.status === "Completed"
+                                  ? "bg-[#8b7355]"
+                                  : "bg-[#8b7355]"
+                              }`}
+                            >
+                              {property.status}
+                            </Badge>
+                          )}
+
+                          {property.sale_status && (
+                            <Badge
+                              className={`text-white border-0 text-xs font-medium px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-shadow ${
+                                property.sale_status === "On sale"
+                                  ? "bg-[#D4AF37]"
+                                  : property.sale_status === "Start of sales"
+                                  ? "bg-[#FF6900]"
+                                  : property.sale_status === "Presale(EOI)"
+                                  ? "bg-[#8b7355]"
+                                  : "bg-[#8b7355]"
+                              }`}
+                            >
+                              {property.sale_status || "Available"}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -730,7 +657,7 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
                     )}
 
                     <MapContainer
-                      key={`property-map-${mapKey}`} // Dynamic key to prevent re-initialization errors
+                      key={`property-map-${mapKey}-${isClient}`} // Dynamic key to prevent re-initialization errors
                       className="custom-map english-map"
                       center={[
                         initialViewState.latitude,
@@ -739,12 +666,25 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
                       zoom={initialViewState.zoom}
                       style={{ height: "100%", width: "100%" }}
                       zoomControl={false}
-                      ref={mapRef}
+                      ref={(map) => {
+                        // Safely assign map reference
+                        if (map && !mapRef.current) {
+                          mapRef.current = map;
+                        }
+                      }}
+                      whenCreated={(map) => {
+                        // Additional safety check when map is created
+                        if (!mapRef.current) {
+                          mapRef.current = map;
+                        }
+                      }}
                     >
                       <TileLayer
                         attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
                         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                       />
+
+                      {/* <GoogleMutantLayer mapTypeId="roadmap" /> */}
                       <ZoomControl position="topright" />
 
                       {mapProperties
@@ -759,19 +699,36 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
                               position={[coords.lat, coords.lng]}
                               icon={createCustomIcon(
                                 isHovered,
-                                getDeveloperLogoUrl(property.developer_logo)
-                              )} // Use custom icon with developer logo
+                                getDeveloperLogoUrl(property.developer_logo),
+                                currentZoom
+                              )} // Use custom icon with developer logo and zoom-based sizing
                               eventHandlers={{
                                 click: () => {
                                   setSelectedProperty(property);
                                   // Don't interfere with list hover - only handle clicks
+                                },
+                                add: (e) => {
+                                  // Store reference to marker for z-index manipulation
+                                  const marker = e.target;
+                                  marker._propertyId = property.id;
+
+                                  // Apply z-index based on hover state
+                                  if (isHovered) {
+                                    marker.setZIndexOffset(1000);
+                                  }
                                 },
                               }}
                             >
                               {(selectedProperty?.id === property.id ||
                                 isHovered) && (
                                 <Popup>
-                                  <div className="flex gap-3">
+                                  <div
+                                    className="flex gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                                    onClick={() =>
+                                      router.push(`/properties/${property.id}`)
+                                    }
+                                    title="Click to view property details"
+                                  >
                                     <div className="flex flex-col gap-2">
                                       <ImageWithFallback
                                         src={getImageUrl(
@@ -815,12 +772,15 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
                                             ).toFixed(1)}M+`
                                           : "Price on Request"}
                                       </div>
-                                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
                                         <div className="flex items-center">
                                           <Building className="w-3 h-3 mr-1" />
                                           {property.developer}
                                         </div>
                                       </div>
+                                      <button className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-white text-xs py-1 px-2 rounded transition-colors">
+                                        View Details →
+                                      </button>
                                     </div>
                                   </div>
                                 </Popup>
@@ -862,7 +822,8 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
 
 const createCustomIcon = (
   isHovered = false,
-  imageUrl = "/placeholder-property.jpg"
+  imageUrl = "/placeholder-property.jpg",
+  zoomLevel = 10
 ) => {
   // Only create icon on client side
   if (typeof window === "undefined") {
@@ -872,13 +833,19 @@ const createCustomIcon = (
   // Dynamically import Leaflet only on client side
   const L = require("leaflet");
 
+  // Calculate size based on zoom level (minimum 16px, maximum 40px)
+  const baseSize = Math.max(16, Math.min(40, (zoomLevel - 8) * 4 + 16));
+  const hoveredSize = Math.max(32, Math.min(64, baseSize * 1.5));
+  const actualSize = isHovered ? hoveredSize : baseSize;
+  const innerSize = actualSize - 8; // Account for border
+
   return L.divIcon({
     className: "custom-marker",
     html: `
           <div style="
             position: relative;
-            width: ${isHovered ? "48px" : "20px"};
-            height: ${isHovered ? "48px" : "20px"};
+            width: ${actualSize}px;
+            height: ${actualSize}px;
             background: #d4af37;
             border: 2px solid white;
             border-radius: 50%;
@@ -895,8 +862,8 @@ const createCustomIcon = (
             }
           " class="marker-inner ${isHovered ? "hovered" : ""}">
             <div style="
-              width: ${isHovered ? "40px" : "16px"};
-              height: ${isHovered ? "40px" : "16px"};
+              width: ${innerSize}px;
+              height: ${innerSize}px;
               background-image: url('${imageUrl}');
               background-size: cover;
               background-position: center;
@@ -944,8 +911,9 @@ const createCustomIcon = (
             }
           </style>
         `,
-    iconSize: [isHovered ? 48 : 16, isHovered ? 48 : 16], // Match width/height
-    iconAnchor: [isHovered ? 24 : 8, isHovered ? 24 : 8], // Center of circle
-    popupAnchor: [0, isHovered ? -24 : -16], // Popup above marker
+    iconSize: [actualSize, actualSize], // Match width/height
+    iconAnchor: [actualSize / 2, actualSize / 2], // Center of circle
+    popupAnchor: [0, -actualSize / 2], // Popup above marker
+    zIndexOffset: isHovered ? 1000 : 0, // Bring hovered markers to front
   });
 };

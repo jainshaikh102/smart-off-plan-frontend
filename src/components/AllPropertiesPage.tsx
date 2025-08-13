@@ -39,6 +39,7 @@ interface Property {
   max_price: number;
   price_currency: string;
   sale_status: string;
+  status: string;
   development_status: string; // Development status from complete property data
   completion_datetime: string;
   coordinates: string;
@@ -322,22 +323,15 @@ export function AllPropertiesPage({
   // Format price display
   const formatPrice = (property: Property) => {
     const currency = property.price_currency || "AED";
-
-    if (property.min_price && property.max_price) {
-      if (property.min_price === property.max_price) {
+    if (property.min_price) {
+      if (property.min_price) {
         return `${currency} ${property.min_price.toLocaleString()}`;
       }
-      return `${currency} ${property.min_price.toLocaleString()} - ${property.max_price.toLocaleString()}`;
+      return `${currency} ${property.min_price.toLocaleString()}`;
     }
-
     if (property.min_price) {
       return `From ${currency} ${property.min_price.toLocaleString()}`;
     }
-
-    if (property.max_price) {
-      return `Up to ${currency} ${property.max_price.toLocaleString()}`;
-    }
-
     return "Price on Request";
   };
 
@@ -489,14 +483,43 @@ export function AllPropertiesPage({
                     </Badge>
                   ) : null}
 
-                  {property.development_status ? (
-                    <Badge className="absolute top-4 right-4 bg-black/60 text-white border-0">
-                      {property.development_status}
+                  {property.status ? (
+                    <Badge
+                      className={`absolute top-4 right-4 text-white border-0 text-xs font-medium px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-shadow ${
+                        property.status === "Presale"
+                          ? "bg-[#D4AF37]"
+                          : property.status === "Under construction"
+                          ? "bg-[#FF6900]"
+                          : property.status === "Completed"
+                          ? "bg-[#8b7355]"
+                          : "bg-[#8b7355]"
+                      }`}
+                    >
+                      {property.status}
+                    </Badge>
+                  ) : null}
+
+                  {property.sale_status ? (
+                    <Badge
+                      // className="absolute top-4 left-4 bg-black/60 text-white border-0"
+                      className={`absolute top-4 left-4 text-white border-0 text-xs font-medium px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-shadow ${
+                        property.sale_status === "On sale"
+                          ? "bg-[#D4AF37]"
+                          : property.sale_status === "Start of sales"
+                          ? "bg-[#FF6900]"
+                          : property.sale_status === "Presale(EOI)"
+                          ? "bg-[#8b7355]"
+                          : "bg-[#8b7355]"
+                      }`}
+                    >
+                      {property.sale_status === "Out of stock"
+                        ? "Sold Out"
+                        : property.sale_status || "Available"}
                     </Badge>
                   ) : null}
 
                   {property.completion_datetime ? (
-                    <Badge className="absolute bottom-4 left-4 bg-gold text-[#8b7355] px-2 py-1 text-xs">
+                    <Badge className="absolute bottom-4 left-4 bg-gold text-[#ffffff] px-2 py-1 text-xs">
                       <Clock className="w-3 h-3 mr-1" />
                       {property.completion_datetime
                         ? new Date(
@@ -531,12 +554,6 @@ export function AllPropertiesPage({
                       <div className="text-2xl text-gold">
                         {formatPrice(property)}
                       </div>
-                      <Badge
-                        variant="outline"
-                        className="text-xs border-gold/30 text-gold"
-                      >
-                        {property.sale_status || "Available"}
-                      </Badge>
                     </div>
 
                     {/* Developer */}

@@ -41,10 +41,19 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
     message: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -53,6 +62,8 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
     try {
       // Frontend validation matching backend rules
@@ -63,14 +74,14 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         formData.name.trim().length < 2 ||
         formData.name.trim().length > 100
       ) {
-        // alert("Name must be between 2 and 100 characters");
+        setError("Name must be between 2 and 100 characters");
         return;
       }
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
-        // alert("Please provide a valid email address");
+        setError("Please provide a valid email address");
         return;
       }
 
@@ -80,7 +91,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         formData.phone.trim().length < 8 ||
         formData.phone.trim().length > 20
       ) {
-        // alert("Phone number must be between 8 and 20 characters");
+        setError("Phone number must be between 8 and 20 characters");
         return;
       }
 
@@ -90,7 +101,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         formData.location.trim().length < 2 ||
         formData.location.trim().length > 200
       ) {
-        // alert("Location must be between 2 and 200 characters");
+        setError("Location must be between 2 and 200 characters");
         return;
       }
 
@@ -100,27 +111,27 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         formData.investment.trim().length < 2 ||
         formData.investment.trim().length > 100
       ) {
-        // alert("Investment amount must be between 2 and 100 characters");
+        setError("Investment amount must be between 2 and 100 characters");
         return;
       }
 
-      // Validate experience (1-500 characters)
+      // Validate experience (1-500 characters) - Fixed validation rule
       if (
         !formData.experience.trim() ||
-        formData.experience.trim().length < 10 ||
+        formData.experience.trim().length < 1 ||
         formData.experience.trim().length > 500
       ) {
-        // alert("Experience must be between 1 and 500 characters");
+        setError("Experience must be between 1 and 500 characters");
         return;
       }
 
-      // Validate timeline (3-100 characters)
+      // Validate timeline (2-100 characters) - Fixed validation rule
       if (
         !formData.timeline.trim() ||
-        formData.timeline.trim().length < 3 ||
+        formData.timeline.trim().length < 2 ||
         formData.timeline.trim().length > 100
       ) {
-        // alert("Timeline must be between 3 and 100 characters");
+        setError("Timeline must be between 2 and 100 characters");
         return;
       }
 
@@ -130,7 +141,7 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
         formData.message.trim().length < 10 ||
         formData.message.trim().length > 2000
       ) {
-        // alert("Message must be between 10 and 2000 characters");
+        setError("Message must be between 10 and 2000 characters");
         return;
       }
 
@@ -162,10 +173,8 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // console.log("✅ Franchisee application sent successfully:", result);
-        alert(
-          "Thank you for your application! Our franchise team will review it and contact you within 72 hours."
-        );
+        // Success - show success message and reset form
+        setError(null);
 
         // Reset form
         setFormData({
@@ -178,24 +187,32 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
           timeline: "",
           message: "",
         });
+
+        // Show success message (you can replace this with a better UI component)
+        alert(
+          "Thank you for your application! Our franchise team will review it and contact you within 72 hours."
+        );
       } else {
-        console.error("❌ Failed to send franchisee application:", result);
+        // Handle validation errors from backend
         if (result.details && Array.isArray(result.details)) {
           const errorMessages = result.details
             .map((error: any) => error.msg)
             .join(", ");
-          alert(`Please check your input: ${errorMessages}`);
+          setError(`Please check your input: ${errorMessages}`);
         } else {
-          alert(
+          setError(
             result.message || "Failed to send application. Please try again."
           );
         }
       }
     } catch (error) {
-      console.error("❌ Error submitting franchisee application:", error);
-      alert(
-        "An error occurred while submitting your application. Please try again."
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting your application. Please try again."
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -600,6 +617,18 @@ Thank you for your consideration.`;
             </div>
 
             <div className="bg-white rounded-3xl p-8 shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)]">
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <div className="flex items-center">
+                    <div className="w-5 h-5 text-red-600 mr-2 flex-shrink-0">
+                      ⚠️
+                    </div>
+                    <p className="text-red-700 text-sm">{error}</p>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -819,10 +848,20 @@ Thank you for your consideration.`;
                 <div className="text-center">
                   <Button
                     type="submit"
-                    className="bg-gold hover:bg-gold/90 text-[#8b7355] px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] hover:scale-105"
+                    disabled={isSubmitting}
+                    className="bg-gold hover:bg-gold/90 disabled:bg-gold/50 disabled:cursor-not-allowed text-[#8b7355] px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.3)] hover:scale-105 disabled:hover:scale-100"
                   >
-                    <Store className="w-5 h-5 mr-2" />
-                    Submit Application
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 mr-2 border-2 border-[#8b7355]/30 border-t-[#8b7355] rounded-full animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Store className="w-5 h-5 mr-2" />
+                        Submit Application
+                      </>
+                    )}
                   </Button>
                 </div>
               </form>

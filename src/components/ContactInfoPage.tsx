@@ -62,7 +62,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
   const offices = [
     {
       id: "main",
-      name: "Business Bay Headquarters",
+
       shortName: "UK",
       address: "240 London Road, Bagshot, GU19 5EZ, UK",
       phone: "‪+971543218123 / 03301330888",
@@ -395,7 +395,7 @@ Thank you!`;
       {/* Header Section */}
       <section className="py-12 bg-gradient-to-br from-beige to-ivory">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-10">
+          <div className="max-w-4xl mx-auto text-center mb-10">
             <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gold/10 to-gold/5 rounded-full mb-4">
               <Building2 className="w-4 h-4 text-gold mr-2" />
               <span className="text-[#8b7355] text-sm">
@@ -412,7 +412,7 @@ Thank you!`;
             </p>
 
             {/* Quick Contact Actions */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
               {contactMethods.map((method, index) => (
                 <Card
                   key={index}
@@ -463,7 +463,7 @@ Thank you!`;
                         {method.description}
                       </p>
 
-                      <div className="inline-flex items-center px-2 py-1 bg-beige/50 rounded-full text-xs text-[rgba(30,26,26,1)] group-hover:bg-white/20 transition-colors duration-300">
+                      <div className="inline-flex items-center px-2 py-1 bg-beige/50 rounded-full text-xs text-[rgba(30,26,26,1)] group-hover:bg-white/20 transition-colors duration-300 text-center">
                         {method.value}
                       </div>
                     </div>

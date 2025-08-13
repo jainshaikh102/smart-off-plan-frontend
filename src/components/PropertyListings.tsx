@@ -395,7 +395,7 @@ export function PropertyListings({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+          <div className="grid grid-cols-2 gap-2 mb-2 text-center">
             <div>
               <div className="flex items-center justify-center mb-1">
                 <Bed className="w-3 h-3 text-gold mr-1" />
@@ -409,13 +409,6 @@ export function PropertyListings({
                 <span className="text-xs text-warm-gray">Baths</span>
               </div>
               <div className="text-[#8b7355] text-sm">{property.bathrooms}</div>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-1">
-                <TrendingUp className="w-3 h-3 text-emerald-500 mr-1" />
-                <span className="text-xs text-warm-gray">ROI</span>
-              </div>
-              <div className="text-emerald-500 text-sm">{property.roi}</div>
             </div>
           </div>
 
@@ -471,7 +464,6 @@ export function PropertyListings({
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
                 <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="roi">Best ROI</SelectItem>
               </SelectContent>
             </Select>
           </div>
