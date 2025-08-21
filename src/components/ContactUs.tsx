@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export function ContactUs() {
   const [formData, setFormData] = useState({
@@ -60,10 +61,8 @@ export function ContactUs() {
         throw new Error("Phone number must be at least 8 characters");
       }
 
-      // Call the Contact Us API (use local backend)
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-      const response = await fetch(`${backendUrl}/api/email/contact-us`, {
+      // Call the Contact Us API via Next.js proxy to avoid CORS issues
+      const response = await fetch(`/api/email/contact-us`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,6 +90,7 @@ export function ContactUs() {
 
       // Show success message
       setIsSubmitted(true);
+      toast.success("Message sent! We'll get back to you within 24 hours.");
 
       // Reset form after 5 seconds
       setTimeout(() => {
@@ -98,11 +98,12 @@ export function ContactUs() {
         setFormData({ name: "", email: "", phone: "", message: "" });
       }, 5000);
     } catch (error) {
-      setError(
+      const msg =
         error instanceof Error
           ? error.message
-          : "Failed to send message. Please try again."
-      );
+          : "Failed to send message. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

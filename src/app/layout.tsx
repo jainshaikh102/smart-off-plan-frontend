@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "../styles/globals.css";
-import { ToastProvider } from "@/components/providers/ToastProvider";
+import { Toaster } from "@/components/ui/sonner";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Providers } from "@/components/providers/Providers";
 import Script from "next/script";
@@ -103,7 +103,7 @@ export default function RootLayout({
             />
             {children}
           </LayoutWrapper>
-          <ToastProvider />
+          <Toaster position="top-right" richColors expand={false} />
         </Providers>
       </body>
     </html>

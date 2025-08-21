@@ -66,6 +66,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import SmartInvestmentComponent from "./SmartInvestmentComponent";
+import { toast } from "sonner";
 
 interface Project {
   id: number;
@@ -78,14 +79,13 @@ interface Project {
   developer: string;
   status: string;
   coordinates?: [number, number];
-  apiData?: {
-    payment_plans?: unknown[];
-    unit_blocks?: unknown[];
-    facilities?: unknown[];
-    map_points?: unknown[];
-    architecture?: unknown[];
-    [key: string]: unknown;
-  };
+  // Additional optional fields present in API data
+  cover_image_url?: string;
+  area?: string;
+  development_status?: string;
+  sale_status?: string;
+  // Loosen apiData typing to allow various dynamic keys from API
+  apiData?: any;
 }
 
 interface PropertyDetailPageProps {
@@ -462,7 +462,7 @@ export function PropertyDetailPage({
       }
 
       if (!imageUrl) {
-        alert("No floor plan image available for download");
+        toast.error("No floor plan image available for download");
         return;
       }
 
@@ -491,7 +491,7 @@ export function PropertyDetailPage({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      alert("Failed to download image. Please try again.");
+      toast.error("Failed to download image. Please try again.");
     }
   };
 
@@ -506,7 +506,7 @@ export function PropertyDetailPage({
       !contactFormData.email ||
       !contactFormData.phone
     ) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -535,7 +535,7 @@ export function PropertyDetailPage({
       const result = await response.json();
 
       if (result.success) {
-        alert(
+        toast.success(
           "Thank you for your inquiry! We'll get back to you within 24 hours."
         );
 
@@ -549,14 +549,14 @@ export function PropertyDetailPage({
           referralName: "",
         });
       } else {
-        alert(
+        toast.error(
           `Failed to send inquiry: ${
             result.message || "Please try again later"
           }`
         );
       }
     } catch (error) {
-      alert(
+      toast.error(
         "An error occurred while sending your inquiry. Please try again later."
       );
     }

@@ -20,6 +20,7 @@ import {
   DollarSign,
   MessageCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface JoinAsPartnerPageProps {
   onBack: () => void;
@@ -130,10 +131,8 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
         return;
       }
 
-      // Call the Join Partner API
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-      const response = await fetch(`${backendUrl}/api/email/join-partner`, {
+      // Call the Join Partner API via Next.js proxy
+      const response = await fetch(`/api/email/join-partner`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -166,9 +165,9 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
           message: "",
         });
 
-        // Show success message (you can replace this with a better UI component)
-        alert(
-          "Thank you for your application! We will review it and contact you within 48 hours."
+        // Show success message toast
+        toast.success(
+          "Thank you for your application! We will review it and contact you within 24 to 48 hours."
         );
       } else {
         // Handle validation errors from backend
@@ -178,17 +177,19 @@ export function JoinAsPartnerPage({ onBack }: JoinAsPartnerPageProps) {
             .join(", ");
           setError(`Please check your input: ${errorMessages}`);
         } else {
-          setError(
-            result.message || "Failed to send application. Please try again."
-          );
+          const msg =
+            result.message || "Failed to send application. Please try again.";
+          setError(msg);
+          toast.error(msg);
         }
       }
     } catch (error) {
-      setError(
+      const msg =
         error instanceof Error
           ? error.message
-          : "An error occurred while submitting your application. Please try again."
-      );
+          : "An error occurred while submitting your application. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

@@ -24,6 +24,7 @@ import {
   Building,
   MessageCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface BecomeFranchiseePageProps {
   onBack: () => void;
@@ -147,28 +148,23 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
 
       // console.log("📧 Submitting franchisee application:", formData);
 
-      // Call the Become Franchisee API
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-      const response = await fetch(
-        `${backendUrl}/api/email/become-franchisee`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            location: formData.location.trim(),
-            investment: formData.investment.trim(),
-            experience: formData.experience.trim(),
-            timeline: formData.timeline.trim(),
-            message: formData.message.trim(),
-          }),
-        }
-      );
+      // Call the Become Franchisee API via Next.js proxy
+      const response = await fetch(`/api/email/become-franchisee`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          location: formData.location.trim(),
+          investment: formData.investment.trim(),
+          experience: formData.experience.trim(),
+          timeline: formData.timeline.trim(),
+          message: formData.message.trim(),
+        }),
+      });
 
       const result = await response.json();
 
@@ -188,9 +184,9 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
           message: "",
         });
 
-        // Show success message (you can replace this with a better UI component)
-        alert(
-          "Thank you for your application! Our franchise team will review it and contact you within 72 hours."
+        // Show success message toast
+        toast.success(
+          "Thank you for your application! Our franchise team will review it and contact you within 48 to 72 hours."
         );
       } else {
         // Handle validation errors from backend
@@ -200,17 +196,19 @@ export function BecomeFranchiseePage({ onBack }: BecomeFranchiseePageProps) {
             .join(", ");
           setError(`Please check your input: ${errorMessages}`);
         } else {
-          setError(
-            result.message || "Failed to send application. Please try again."
-          );
+          const msg =
+            result.message || "Failed to send application. Please try again.";
+          setError(msg);
+          toast.error(msg);
         }
       }
     } catch (error) {
-      setError(
+      const msg =
         error instanceof Error
           ? error.message
-          : "An error occurred while submitting your application. Please try again."
-      );
+          : "An error occurred while submitting your application. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

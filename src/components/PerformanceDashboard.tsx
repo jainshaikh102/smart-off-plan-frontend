@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
-import { 
-  Activity, 
-  Database, 
-  Clock, 
-  Zap, 
-  AlertTriangle, 
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import {
+  Activity,
+  Database,
+  Clock,
+  Zap,
+  AlertTriangle,
   CheckCircle,
   RefreshCw,
   TrendingUp,
-  TrendingDown
-} from 'lucide-react';
-import { useAppSelector } from '@/store';
-import { usePerformanceMonitor } from '@/hooks/useOptimizedProperties';
+  TrendingDown,
+} from "lucide-react";
+import { useAppSelector } from "@/store";
+import { usePerformanceMonitor } from "@/hooks/useOptimizedProperties";
 
 interface PerformanceStats {
   memoryUsage: {
@@ -43,19 +43,21 @@ export const PerformanceDashboard: React.FC = () => {
     const updateStats = () => {
       const metrics = getPerformanceMetrics();
       const memory = getMemoryUsage();
-      
+
       const newStats: PerformanceStats = {
-        memoryUsage: memory ? {
-          ...memory,
-          percentage: (memory.used / memory.limit) * 100
-        } : null,
-        apiCalls: metrics.apiCallCount || 0,
+        memoryUsage: memory
+          ? {
+              ...memory,
+              percentage: (memory.used / memory.limit) * 100,
+            }
+          : null,
+        apiCalls: (metrics as any).apiCallCount || 0,
         cacheHitRate: performanceState.mapProperties.length > 0 ? 85 : 0, // Simulated cache hit rate
-        loadTime: metrics.renderTime || 0,
+        loadTime: (metrics as any).renderTime || 0,
         propertiesLoaded: performanceState.totalPropertiesLoaded,
         lastUpdate: new Date().toLocaleTimeString(),
       };
-      
+
       setStats(newStats);
     };
 
@@ -65,15 +67,19 @@ export const PerformanceDashboard: React.FC = () => {
   }, [getPerformanceMetrics, getMemoryUsage, performanceState]);
 
   const getMemoryStatus = (percentage: number) => {
-    if (percentage > 80) return { color: 'destructive', icon: AlertTriangle, label: 'High' };
-    if (percentage > 60) return { color: 'warning', icon: TrendingUp, label: 'Medium' };
-    return { color: 'success', icon: CheckCircle, label: 'Good' };
+    if (percentage > 80)
+      return { color: "destructive", icon: AlertTriangle, label: "High" };
+    if (percentage > 60)
+      return { color: "warning", icon: TrendingUp, label: "Medium" };
+    return { color: "success", icon: CheckCircle, label: "Good" };
   };
 
   const getCacheStatus = (hitRate: number) => {
-    if (hitRate > 80) return { color: 'success', icon: CheckCircle, label: 'Excellent' };
-    if (hitRate > 60) return { color: 'warning', icon: TrendingUp, label: 'Good' };
-    return { color: 'destructive', icon: TrendingDown, label: 'Poor' };
+    if (hitRate > 80)
+      return { color: "success", icon: CheckCircle, label: "Excellent" };
+    if (hitRate > 60)
+      return { color: "warning", icon: TrendingUp, label: "Good" };
+    return { color: "destructive", icon: TrendingDown, label: "Poor" };
   };
 
   if (!isVisible) {
@@ -122,7 +128,7 @@ export const PerformanceDashboard: React.FC = () => {
             </p>
           )}
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {stats ? (
             <>
@@ -131,8 +137,11 @@ export const PerformanceDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Memory Usage</span>
                   {stats.memoryUsage && (
-                    <Badge 
-                      variant={getMemoryStatus(stats.memoryUsage.percentage).color as any}
+                    <Badge
+                      variant={
+                        getMemoryStatus(stats.memoryUsage.percentage)
+                          .color as any
+                      }
                       className="text-xs"
                     >
                       {getMemoryStatus(stats.memoryUsage.percentage).label}
@@ -148,21 +157,29 @@ export const PerformanceDashboard: React.FC = () => {
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${
-                          stats.memoryUsage.percentage > 80 
-                            ? 'bg-red-500' 
-                            : stats.memoryUsage.percentage > 60 
-                            ? 'bg-yellow-500' 
-                            : 'bg-green-500'
+                          stats.memoryUsage.percentage > 80
+                            ? "bg-red-500"
+                            : stats.memoryUsage.percentage > 60
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
                         }`}
-                        style={{ width: `${Math.min(stats.memoryUsage.percentage, 100)}%` }}
+                        style={{
+                          width: `${Math.min(
+                            stats.memoryUsage.percentage,
+                            100
+                          )}%`,
+                        }}
                       />
                     </div>
                     <p className="text-xs text-gray-500">
-                      {stats.memoryUsage.percentage.toFixed(1)}% of available memory
+                      {stats.memoryUsage.percentage.toFixed(1)}% of available
+                      memory
                     </p>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500">Memory info not available</p>
+                  <p className="text-xs text-gray-500">
+                    Memory info not available
+                  </p>
                 )}
               </div>
 
@@ -181,7 +198,7 @@ export const PerformanceDashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Cache Hit Rate</span>
-                  <Badge 
+                  <Badge
                     variant={getCacheStatus(stats.cacheHitRate).color as any}
                     className="text-xs"
                   >
@@ -214,7 +231,9 @@ export const PerformanceDashboard: React.FC = () => {
                   <span className="text-sm font-medium">Load Time</span>
                 </div>
                 <Badge variant="outline" className="text-xs">
-                  {stats.loadTime > 0 ? `${(stats.loadTime / 1000).toFixed(1)}s` : 'N/A'}
+                  {stats.loadTime > 0
+                    ? `${(stats.loadTime / 1000).toFixed(1)}s`
+                    : "N/A"}
                 </Badge>
               </div>
 
@@ -225,22 +244,30 @@ export const PerformanceDashboard: React.FC = () => {
                   <div>
                     <span className="text-gray-500">Map Cache:</span>
                     <br />
-                    <span className="font-medium">{performanceState.mapProperties.length} items</span>
+                    <span className="font-medium">
+                      {performanceState.mapProperties.length} items
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">List Cache:</span>
                     <br />
-                    <span className="font-medium">{performanceState.listProperties.length} items</span>
+                    <span className="font-medium">
+                      {performanceState.listProperties.length} items
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Cache Version:</span>
                     <br />
-                    <span className="font-medium">v{performanceState.cacheVersion}</span>
+                    <span className="font-medium">
+                      v{performanceState.cacheVersion}
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Max Size:</span>
                     <br />
-                    <span className="font-medium">{performanceState.maxCacheSize}</span>
+                    <span className="font-medium">
+                      {performanceState.maxCacheSize}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -267,19 +294,23 @@ export const PerformanceDashboard: React.FC = () => {
                       High API call count
                     </div>
                   )}
-                  {stats.memoryUsage && stats.memoryUsage.percentage < 50 && stats.cacheHitRate > 80 && (
-                    <div className="flex items-center text-green-600">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Optimal performance
-                    </div>
-                  )}
+                  {stats.memoryUsage &&
+                    stats.memoryUsage.percentage < 50 &&
+                    stats.cacheHitRate > 80 && (
+                      <div className="flex items-center text-green-600">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Optimal performance
+                      </div>
+                    )}
                 </div>
               </div>
             </>
           ) : (
             <div className="text-center py-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-500">Loading performance data...</p>
+              <p className="text-sm text-gray-500">
+                Loading performance data...
+              </p>
             </div>
           )}
         </CardContent>

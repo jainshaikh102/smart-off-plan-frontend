@@ -334,7 +334,7 @@ export function AreaDetailPage({
               </CardHeader>
               <CardContent className="p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {areaDetails.amenities.map((amenity, index) => {
+                  {areaDetails.amenities.map((amenity: any, index: number) => {
                     const IconComponent = amenity.icon;
                     return (
                       <div
@@ -412,7 +412,7 @@ export function AreaDetailPage({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {areaDetails.featuredProjects.map((project) => (
+            {areaDetails.featuredProjects.map((project: any) => (
               <Card
                 key={project.id}
                 className="group cursor-pointer border border-beige hover:shadow-[0_12px_48px_-4px_rgba(139,115,85,0.15)] transition-all duration-500 hover:-translate-y-2 overflow-hidden rounded-xl bg-white"

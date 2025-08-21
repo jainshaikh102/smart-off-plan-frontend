@@ -39,6 +39,7 @@ import {
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { toast } from "sonner";
 
 interface ContactInfoPageProps {
   onBack: () => void;
@@ -282,10 +283,8 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
 
       // console.log("📧 Submitting detailed message form:", formData);
 
-      // Call the Message Us API
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-      const response = await fetch(`${backendUrl}/api/email/message-us`, {
+      // Call the Message Us API via Next.js proxy
+      const response = await fetch(`/api/email/message-us`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -317,6 +316,7 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
 
       // Show success message
       setIsSubmitted(true);
+      toast.success("Message sent! We'll get back to you within 24 hours.");
 
       // Reset form after 5 seconds
       setTimeout(() => {
@@ -333,11 +333,12 @@ export function ContactInfoPage({ onBack }: ContactInfoPageProps) {
       }, 5000);
     } catch (error) {
       console.error("❌ Error submitting message form:", error);
-      setError(
+      const msg =
         error instanceof Error
           ? error.message
-          : "Failed to send message. Please try again."
-      );
+          : "Failed to send message. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -808,7 +809,7 @@ Thank you!`;
                   <div className="relative">
                     <ImageWithFallback
                       src={selectedOfficeData.image}
-                      alt={selectedOfficeData.name}
+                      alt={selectedOfficeData.shortName}
                       className="w-full h-40 object-cover rounded-xl"
                     />
                     <div className="absolute top-4 left-4">
@@ -826,7 +827,7 @@ Thank you!`;
                         </div>
                         <div>
                           <p className="text-[rgba(30,26,26,0.8)] text-sm">
-                            {selectedOfficeData.name}
+                            {selectedOfficeData.shortName}
                           </p>
                           <p className="text-[rgba(30,26,26,0.7)] text-xs">
                             {selectedOfficeData.address}

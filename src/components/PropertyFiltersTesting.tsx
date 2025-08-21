@@ -672,11 +672,9 @@ export function PropertyFiltersTesting({}: PropertyFiltersTestingProps) {
                           mapRef.current = map;
                         }
                       }}
-                      whenCreated={(map) => {
-                        // Additional safety check when map is created
-                        if (!mapRef.current) {
-                          mapRef.current = map;
-                        }
+                      whenReady={() => {
+                        // MapContainer will call whenReady without args per types; use ref from whenCreated above
+                        if (mapRef.current) return;
                       }}
                     >
                       <TileLayer

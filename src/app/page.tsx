@@ -347,7 +347,7 @@ export default function HomePage() {
             <ContactUs />
 
             {/* Cache Status Monitor */}
-            <CachingStatus />
+            {/* <CachingStatus /> */}
           </main>
         );
     }
