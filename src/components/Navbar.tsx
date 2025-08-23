@@ -1,4 +1,9 @@
+"use client";
+
 import { useState, useEffect } from "react";
+
+import { createPortal } from "react-dom";
+
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Menu, X, TrendingUp, ChevronDown } from "lucide-react";
@@ -70,7 +75,7 @@ export function Navbar({
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[60] transition-all duration-300 ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-[0_4px_20px_-2px_rgba(139,115,85,0.08),0_2px_8px_-2px_rgba(139,115,85,0.04)]"
           : "bg-white/90 backdrop-blur-sm"
@@ -243,7 +248,21 @@ export function Navbar({
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gold/10 shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] z-40">
+          <div
+            className="lg:hidden fixed inset-0 bg-white/95 top-0 min-h-screen mb-0 backdrop-blur-md shadow-[0_8px_32px_-4px_rgba(139,115,85,0.12),0_4px_16px_-4px_rgba(139,115,85,0.08)] z-[1000] overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="lg:hidden h-10 flex  text-[#8b7355] hover:text-gold transition-colors duration-300 w-full items-end justify-end px-8"
+            >
+              {isOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
             <div className="container py-6">
               <div className="space-y-2">
                 {navItems.map((item) => (
